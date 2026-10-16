@@ -45,19 +45,20 @@ export async function GET() {
     );
 
     const history = redemptions.map((redemption) => {
-      const reward = rewardMap.get(redemption.rewardId);
+    const reward = rewardMap.get(redemption.rewardId);
 
-      return {
-        id: redemption.id,
-        rewardId: redemption.rewardId,
-        rewardName: reward?.name ?? "Reward",
-        pointsSpent: redemption.pointsSpent,
-        status: redemption.status,
-        referenceCode: redemption.referenceCode,
-        createdAt: redemption.createdAt,
-        fulfilledAt: redemption.fulfilledAt,
-      };
-    });
+    return {
+      id: redemption.id,
+      rewardId: redemption.rewardId,
+      rewardName: reward?.name ?? "Reward",
+      pointsSpent: redemption.pointsSpent,
+      status: redemption.status,
+      rejectionReason: redemption.rejectionReason ?? null,
+      referenceCode: redemption.referenceCode,
+      createdAt: redemption.createdAt,
+      fulfilledAt: redemption.fulfilledAt,
+    };
+  });
 
     return NextResponse.json({
       balance: profile.currentPoints,

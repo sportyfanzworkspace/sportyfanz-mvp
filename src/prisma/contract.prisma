@@ -678,6 +678,7 @@ model RewardRedemption {
   pointsSpent   Int
 
   status        RedemptionStatus           @default(PENDING)
+  rejectionReason String?
 
   referenceCode String                     @unique
 
@@ -978,6 +979,7 @@ model AdminUser {
   passwordHash       String
   mustChangePassword Boolean                    @default(true)
   role               UserRole                   @default(ADMIN)
+  staffRole          String                     @default("SUPER_ADMIN")
   status             UserStatus                 @default(ACTIVE)
   lastLoginAt        TimestamptzString?
   createdAt          TimestamptzString          @default(now())

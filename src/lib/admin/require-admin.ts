@@ -1,7 +1,64 @@
-
 import { NextResponse } from "next/server";
 import { getCurrentAdminUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+
+export type StaffRole =
+  | "SUPER_ADMIN"
+  | "OPERATIONS"
+  | "CONTENT_MODERATION"
+  | "SUPPORT";
+
+export type AdminPermission =
+  | "staff:read"
+  | "staff:manage"
+  | "rewards:manage"
+  | "predictions:manage"
+  | "trivia:manage"
+  | "polls:manage"
+  | "content:moderate"
+  | "fans:support";
+
+const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
+  SUPER_ADMIN: [
+    "staff:read",
+    "staff:manage",
+    "rewards:manage",
+    "predictions:manage",
+    "trivia:manage",
+    "polls:manage",
+    "content:moderate",
+    "fans:support",
+  ],
+  OPERATIONS: [
+    "rewards:manage",
+    "predictions:manage",
+  ],
+  CONTENT_MODERATION: [
+    "trivia:manage",
+    "polls:manage",
+    "content:moderate",
+  ],
+  SUPPORT: [
+    "fans:support",
+  ],
+};
+
+function isStaffRole(value: string): value is StaffRole {
+  return (
+    value === "SUPER_ADMIN" ||
+    value === "OPERATIONS" ||
+    value === "CONTENT_MODERATION" ||
+    value === "SUPPORT"
+  );
+}
+
+export function hasPermission(
+  role: string,
+  permission: AdminPermission
+): boolean {
+  if (!isStaffRole(role)) return false;
+  return ROLE_PERMISSIONS[role].includes(permission);
+}
 
 export async function requireAdmin() {
   const adminUserId = await getCurrentAdminUserId();
@@ -58,6 +115,21 @@ export async function requireAdmin() {
     };
   }
 
+  const staffRole = isStaffRole(admin.staffRole)
+    ? admin.staffRole
+    : null;
+
+  if (!staffRole) {
+    return {
+      authorized: false as const,
+      reason: "invalid_staff_role" as const,
+      response: NextResponse.json(
+        { error: "Your staff role is invalid. Contact a Super Admin." },
+        { status: 403 }
+      ),
+    };
+  }
+
   return {
     authorized: true as const,
     user: {
@@ -66,7 +138,34 @@ export async function requireAdmin() {
       username: admin.username,
       name: admin.name,
       role: admin.role,
+      staffRole,
       mustChangePassword: admin.mustChangePassword,
     },
   };
+}
+
+export async function requirePermission(
+  permission: AdminPermission
+) {
+  const auth = await requireAdmin();
+
+  if (!auth.authorized) {
+    return auth;
+  }
+
+  if (!hasPermission(auth.user.staffRole, permission)) {
+    return {
+      authorized: false as const,
+      reason: "forbidden" as const,
+      response: NextResponse.json(
+        {
+          error: "You do not have permission to perform this action.",
+          code: "INSUFFICIENT_PERMISSIONS",
+        },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return auth;
 }

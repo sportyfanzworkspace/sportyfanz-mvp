@@ -1,14 +1,26 @@
-
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/require-admin";
+import {
+  requireAdmin,
+  hasPermission,
+  type AdminPermission,
+} from "@/lib/admin/require-admin";
 
-const sections = [
+
+const sections: {
+  title: string;
+  description: string;
+  status: string;
+  icon: string;
+  href: string;
+  permission: AdminPermission;
+}[] = [
   {
     title: "Trivia Management",
     description: "Create questions, manage answer options, set points, and publish trivia.",
     status: "Ready to connect",
     icon: "?",
     href: "/admin/dashboard/trivia",
+    permission: "trivia:manage",
   },
   {
     title: "Rewards Management",
@@ -16,6 +28,7 @@ const sections = [
     status: "Existing rewards API",
     icon: "★",
     href: "/admin/dashboard/rewards",
+    permission: "rewards:manage",
   },
   {
     title: "Polls Management",
@@ -23,6 +36,7 @@ const sections = [
     status: "Existing polls API",
     icon: "◉",
     href: "/admin/dashboard/polls",
+    permission: "polls:manage",
   },
   {
     title: "Predictions",
@@ -30,6 +44,7 @@ const sections = [
     status: "Existing predictions API",
     icon: "↗",
     href: "/admin/dashboard/predictions",
+    permission: "predictions:manage",
   },
   {
     title: "Fan Management",
@@ -37,19 +52,40 @@ const sections = [
     status: "Planned",
     icon: "♙",
     href: "/admin/dashboard/fans",
+    permission: "fans:support",
+  },
+  {
+    title: "Staff Management",
+    description:
+      "Create staff accounts, view staff details, and manage authorised access.",
+    status: "Staff administration",
+    icon: "♙",
+    href: "/admin/dashboard/staff",
+    permission: "staff:manage",
   },
 ];
 
-export default async function AdminDashboardPage() {
-  const result = await requireAdmin();
 
-  if (!result.authorized) {
-    if (result.reason === "password_change_required") {
+export default async function AdminDashboardPage() {
+  
+const result = await requireAdmin();
+
+   if (!result.authorized) {
+     if (result.reason === "password_change_required") {
       redirect("/admin/change-password");
     }
 
+    if (result.reason === "unauthenticated") {
+      redirect("/admin/login");
+    }
+
     redirect("/admin/login");
-  }
+   }
+
+const visibleSections = sections.filter((section) =>
+  hasPermission(result.user.staffRole, section.permission)
+);
+
 
   return (
     <main className="admin-shell">
@@ -68,7 +104,7 @@ export default async function AdminDashboardPage() {
           <a className="admin-nav-link active" href="/admin/dashboard">
             <span>⌂</span> Overview
           </a>
-          {sections.map((section) => (
+          {visibleSections.map((section) => (
             <a className="admin-nav-link" href={section.href} key={section.title}>
               <span>{section.icon}</span>
               {section.title.replace(" Management", "")}
@@ -121,11 +157,13 @@ export default async function AdminDashboardPage() {
               <h2>Management workspace</h2>
               <p>Choose an area to manage.</p>
             </div>
-            <span className="admin-role-pill">ADMIN ACCESS</span>
+            <span className="admin-role-pill">
+               {result.user.staffRole.replaceAll("_", " ")}
+            </span>
           </div>
 
           <div className="admin-grid">
-            {sections.map((section) => (
+            {visibleSections.map((section) => (
               <article className="admin-card" key={section.title}>
                 <div className="admin-card-icon">{section.icon}</div>
                 <h3>{section.title}</h3>

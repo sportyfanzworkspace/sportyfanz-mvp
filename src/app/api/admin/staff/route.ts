@@ -1,9 +1,18 @@
-
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { requireAdmin } from "@/lib/admin/require-admin";
+import {
+  requirePermission,
+  type StaffRole,
+} from "@/lib/admin/require-admin";
 import { db } from "@/lib/prisma";
+
+const VALID_STAFF_ROLES: StaffRole[] = [
+  "SUPER_ADMIN",
+  "OPERATIONS",
+  "CONTENT_MODERATION",
+  "SUPPORT",
+];
 
 function generateTemporaryPassword() {
   return `${randomBytes(12).toString("base64url")}A7!`;
@@ -22,9 +31,43 @@ function generateUsername(name: string) {
   return `${base}.${randomBytes(3).toString("hex")}`;
 }
 
+export async function GET() {
+  try {
+    const auth = await requirePermission("staff:read");
+
+    if (!auth.authorized) {
+      return auth.response;
+    }
+
+    const staff = await db.orm.public.AdminUser
+      .select(
+        "id",
+        "name",
+        "email",
+        "username",
+        "role",
+        "staffRole",
+        "status",
+        "mustChangePassword",
+        "lastLoginAt",
+        "createdAt"
+      )
+      .all();
+
+    return NextResponse.json({ success: true, staff });
+  } catch (error) {
+    console.error("Staff list failed:", error);
+
+    return NextResponse.json(
+      { error: "Unable to load staff accounts." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const auth = await requireAdmin();
+    const auth = await requirePermission("staff:manage");
 
     if (!auth.authorized) {
       return auth.response;
@@ -39,6 +82,11 @@ export async function POST(request: Request) {
       typeof body.email === "string"
         ? body.email.trim().toLowerCase()
         : "";
+
+    const staffRole =
+      typeof body.staffRole === "string"
+        ? body.staffRole
+        : "SUPPORT";
 
     if (name.length < 2 || name.length > 100) {
       return NextResponse.json(
@@ -58,17 +106,30 @@ export async function POST(request: Request) {
       );
     }
 
-    const existing = await db.orm.public.AdminUser.first({
-      email,
-    });
+    if (!VALID_STAFF_ROLES.includes(staffRole as StaffRole)) {
+      return NextResponse.json(
+        { error: "Select a valid staff role." },
+        { status: 400 }
+      );
+    }
+
+    const existing = await db.orm.public.AdminUser.first({ email });
 
     if (existing) {
       return NextResponse.json(
-        {
-          error:
-            "A staff account with this email already exists.",
-        },
+        { error: "A staff account with this email already exists." },
         { status: 409 }
+      );
+    }
+
+    // Only a Super Admin can assign the Super Admin role.
+    if (
+      staffRole === "SUPER_ADMIN" &&
+      auth.user.staffRole !== "SUPER_ADMIN"
+    ) {
+      return NextResponse.json(
+        { error: "Only a Super Admin can assign this role." },
+        { status: 403 }
       );
     }
 
@@ -82,6 +143,7 @@ export async function POST(request: Request) {
       name,
       passwordHash,
       role: "ADMIN",
+      staffRole: staffRole as StaffRole,
       status: "ACTIVE",
       mustChangePassword: true,
     });
@@ -95,6 +157,7 @@ export async function POST(request: Request) {
           email: admin.email,
           username: admin.username,
           role: admin.role,
+          staffRole: admin.staffRole,
           status: admin.status,
           mustChangePassword: admin.mustChangePassword,
         },
@@ -103,7 +166,7 @@ export async function POST(request: Request) {
           temporaryPassword,
         },
         warning:
-          "Share these credentials securely with the staff member. The temporary password is shown only once and is not stored in plain text.",
+          "Share these credentials securely. The temporary password is shown only once and is stored only as a password hash.",
       },
       { status: 201 }
     );

@@ -805,6 +805,13 @@
                   "plane": "domain"
                 }
               },
+              "staffRole": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -859,6 +866,9 @@
                 },
                 "role": {
                   "column": "role"
+                },
+                "staffRole": {
+                  "column": "staffRole"
                 },
                 "status": {
                   "column": "status"
@@ -3630,6 +3640,13 @@
                   "kind": "scalar"
                 }
               },
+              "rejectionReason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "rewardId": {
                 "nullable": false,
                 "type": {
@@ -3715,6 +3732,9 @@
                 },
                 "referenceCode": {
                   "column": "referenceCode"
+                },
+                "rejectionReason": {
+                  "column": "rejectionReason"
                 },
                 "rewardId": {
                   "column": "rewardId"
@@ -5224,6 +5244,15 @@
                     "namespaceId": "public",
                     "plane": "storage"
                   }
+                },
+                "staffRole": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "SUPER_ADMIN"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -7636,6 +7665,11 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "rejectionReason": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "rewardId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -9011,7 +9045,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e924d44dacd8de11f99941f90a707448a2ff63a47f9e5ce498b39612a822fc8f"
+    "storageHash": "da070d4fe3b7ec2b2dfd7ce0c29f191111cae61c53cbd69a73563bba0abb7388"
   },
   "execution": {
     "executionHash": "4a33979e6f47235e9e6a7d0dd8f458cedafd845c483e70fe36767da1af94fbd7",

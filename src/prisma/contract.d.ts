@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e924d44dacd8de11f99941f90a707448a2ff63a47f9e5ce498b39612a822fc8f'>;
+  StorageHashBase<'da070d4fe3b7ec2b2dfd7ce0c29f191111cae61c53cbd69a73563bba0abb7388'>;
 export type ExecutionHash =
   ExecutionHashBase<'4a33979e6f47235e9e6a7d0dd8f458cedafd845c483e70fe36767da1af94fbd7'>;
 export type ProfileHash =
@@ -273,6 +273,7 @@ export type FieldOutputTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly role: 'USER' | 'ADMIN';
+      readonly staffRole: CodecTypes['pg/text@1']['output'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly username: CodecTypes['pg/text@1']['output'];
@@ -521,6 +522,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly pointsSpent: CodecTypes['pg/int4@1']['output'];
       readonly referenceCode: CodecTypes['pg/text@1']['output'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['output'] | null;
       readonly rewardId: CodecTypes['pg/int4@1']['output'];
       readonly status: 'PENDING' | 'APPROVED' | 'FULFILLED' | 'CANCELLED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -635,6 +637,7 @@ export type FieldInputTypes = {
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly role: 'USER' | 'ADMIN';
+      readonly staffRole: CodecTypes['pg/text@1']['input'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly username: CodecTypes['pg/text@1']['input'];
@@ -883,6 +886,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly pointsSpent: CodecTypes['pg/int4@1']['input'];
       readonly referenceCode: CodecTypes['pg/text@1']['input'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['input'] | null;
       readonly rewardId: CodecTypes['pg/int4@1']['input'];
       readonly status: 'PENDING' | 'APPROVED' | 'FULFILLED' | 'CANCELLED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -997,6 +1001,7 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly role: 'USER' | 'ADMIN';
+      readonly staffRole: CodecTypes['pg/text@1']['output'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly username: CodecTypes['pg/text@1']['output'];
@@ -1231,6 +1236,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly pointsSpent: CodecTypes['pg/int4@1']['output'];
       readonly referenceCode: CodecTypes['pg/text@1']['output'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['output'] | null;
       readonly rewardId: CodecTypes['pg/int4@1']['output'];
       readonly status: 'PENDING' | 'APPROVED' | 'FULFILLED' | 'CANCELLED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -1359,6 +1365,7 @@ export type StorageColumnInputTypes = {
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly role: 'USER' | 'ADMIN';
+      readonly staffRole: CodecTypes['pg/text@1']['input'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly username: CodecTypes['pg/text@1']['input'];
@@ -1593,6 +1600,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly pointsSpent: CodecTypes['pg/int4@1']['input'];
       readonly referenceCode: CodecTypes['pg/text@1']['input'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['input'] | null;
       readonly rewardId: CodecTypes['pg/int4@1']['input'];
       readonly status: 'PENDING' | 'APPROVED' | 'FULFILLED' | 'CANCELLED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -1722,6 +1730,7 @@ export namespace Models {
     name: CodecTypes['pg/text@1']['output'];
     passwordHash: CodecTypes['pg/text@1']['output'];
     role: 'USER' | 'ADMIN';
+    staffRole: CodecTypes['pg/text@1']['output'];
     status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     username: CodecTypes['pg/text@1']['output'];
@@ -2026,6 +2035,7 @@ export namespace Models {
     id: CodecTypes['pg/int4@1']['output'];
     pointsSpent: CodecTypes['pg/int4@1']['output'];
     referenceCode: CodecTypes['pg/text@1']['output'];
+    rejectionReason: CodecTypes['pg/text@1']['output'] | null;
     rewardId: CodecTypes['pg/int4@1']['output'];
     status: 'PENDING' | 'APPROVED' | 'FULFILLED' | 'CANCELLED' | 'REJECTED';
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -2371,6 +2381,15 @@ type ContractBase = Omit<
                   readonly default: {
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', 'ADMIN'>;
+                  };
+                };
+                readonly staffRole: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'SUPER_ADMIN'>;
                   };
                 };
                 readonly status: {
@@ -4221,6 +4240,11 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                 };
+                readonly rejectionReason: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
                 readonly rewardId: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -5491,6 +5515,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly staffRole: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly status: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -5520,6 +5548,7 @@ type ContractBase = Omit<
                 readonly name: { readonly column: 'name' };
                 readonly passwordHash: { readonly column: 'passwordHash' };
                 readonly role: { readonly column: 'role' };
+                readonly staffRole: { readonly column: 'staffRole' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly username: { readonly column: 'username' };
@@ -7199,6 +7228,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly rejectionReason: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly rewardId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -7251,6 +7284,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly pointsSpent: { readonly column: 'pointsSpent' };
                 readonly referenceCode: { readonly column: 'referenceCode' };
+                readonly rejectionReason: { readonly column: 'rejectionReason' };
                 readonly rewardId: { readonly column: 'rewardId' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };

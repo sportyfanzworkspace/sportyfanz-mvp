@@ -32,6 +32,7 @@ type Redemption = {
   rewardName: string;
   pointsSpent: number;
   status: string;
+  rejectionReason: string | null;
   referenceCode: string;
   createdAt: string;
   fulfilledAt: string | null;
@@ -477,18 +478,14 @@ export default function RewardPage() {
                   <Gift size={30} />
                 </div>
 
-                <div className="reward-info">
+                <div className="reward-info" style={{ flex: "1 1 120px", minWidth: 0 }}>
 
                   <span>
                     {item.rewardName}
                   </span>
 
                   <strong>
-                    -
-                    {formatPoints(
-                      item.pointsSpent
-                    )}{" "}
-                    pts
+                     -{formatPoints(item.pointsSpent)} pts
                   </strong>
 
                   <small>
@@ -499,11 +496,70 @@ export default function RewardPage() {
 
                 </div>
 
-                <div>
-                  <small>
-                    {item.status}
-                  </small>
-                </div>
+                 <div 
+                 style={{
+                   marginLeft: "auto",
+                   display: "flex",
+                   flexDirection: "column",
+                   alignItems: "flex-end",
+                   gap: 6,
+                   flex: "0 1 300px",
+                   minWidth: 150,
+                   }}
+                   >
+                    <small
+                       style={{
+                          color:
+                          item.status === "REJECTED"
+                          ? "#c6283d"
+                          : item.status === "FULFILLED"
+                          ? "#079455"
+                          : "#153a55",
+                          fontWeight: 700,
+                          textAlign: "right",
+                        }}
+                       >
+                        {item.status}
+                       </small>
+                      </div>
+
+                      {item.status === "REJECTED" && item.rejectionReason && (
+                     <div
+                        style={{
+                           width: "100%",
+                           boxSizing: "border-box",
+                           padding: "7px 10px",
+                           borderRadius: 8,
+                           background: "#fff0f1",
+                           border: "1px solid #f0c4ca",
+                          }}
+                         >
+                        <strong
+                           style={{
+                              display: "block",
+                              color: "#a61b2b",
+                              fontSize: 11,
+                              lineHeight: 1.3,
+                              marginBottom: 3,
+                           }}
+                        >
+                        Reason for rejection
+                       </strong>
+
+                       <p
+                         style={{
+                             color: "#702632",
+                             fontSize: 12,
+                             lineHeight: 1.35,
+                             margin: 0,
+                             whiteSpace: "pre-wrap",
+                             overflowWrap: "anywhere",
+                          }}
+                        >
+                         {item.rejectionReason}
+                        </p>
+                      </div>
+                    )}
 
               </div>
 
