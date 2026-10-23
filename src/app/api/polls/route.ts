@@ -44,66 +44,68 @@ export async function GET() {
 
     const now = Date.now();
 
+  
     const polls = allPolls
-      .map((poll) => {
-        const options = allOptions.filter(
-          (option) => option.pollId === poll.id
-        );
+     .filter((poll) => {
+       const now = Date.now();
 
-        const pollVotes = allVotes.filter(
-          (vote) => vote.pollId === poll.id
-        );
+       const hasStarted =
+        !poll.startsAt ||
+        new Date(poll.startsAt).getTime() <= now;
 
-        const myVote = pollVotes.find(
-          (vote) => vote.userId === userId
-        );
+    const hasNotEnded =
+      !poll.endsAt ||
+      new Date(poll.endsAt).getTime() > now;
 
-        const startsAt = poll.startsAt
-          ? new Date(poll.startsAt).getTime()
-          : null;
+     return hasStarted && hasNotEnded;
+   })
+   .map((poll) => {
+    const options = allOptions.filter(
+      (option) => option.pollId === poll.id
+    );
+ 
+    const pollVotes = allVotes.filter(
+      (vote) => vote.pollId === poll.id
+    );
 
-        const endsAt = poll.endsAt
-          ? new Date(poll.endsAt).getTime()
-          : null;
+    const myVote = pollVotes.find(
+      (vote) => vote.userId === userId
+    );
 
-        const isOpen =
-          (startsAt === null || now >= startsAt) &&
-          (endsAt === null || now <= endsAt);
+    return {
+      id: poll.id,
+      question: poll.question,
+      description: poll.description,
+      pointsReward: poll.pointsReward,
+      startsAt: poll.startsAt,
+      endsAt: poll.endsAt,
+      isOpen: true,
+      totalVotes: pollVotes.length,
+      myVote: myVote
+        ? {
+            optionId: myVote.optionId,
+          }
+        : null,
+      options: options.map((option) => {
+        const voteCount = pollVotes.filter(
+          (vote) => vote.optionId === option.id
+        ).length;
 
         return {
-          id: poll.id,
-          question: poll.question,
-          description: poll.description,
-          pointsReward: poll.pointsReward,
-          startsAt: poll.startsAt,
-          endsAt: poll.endsAt,
-          isOpen,
-          totalVotes: pollVotes.length,
-          myVote: myVote
-            ? {
-                optionId: myVote.optionId,
-              }
-            : null,
-          options: options.map((option) => {
-            const voteCount = pollVotes.filter(
-              (vote) => vote.optionId === option.id
-            ).length;
-
-            return {
-              id: option.id,
-              label: option.label,
-              votes: voteCount,
-              percentage:
-                pollVotes.length > 0
-                  ? Math.round(
-                      (voteCount / pollVotes.length) * 100
-                    )
-                  : 0,
-            };
-          }),
+          id: option.id,
+          label: option.label,
+          votes: voteCount,
+          percentage:
+            pollVotes.length > 0
+              ? Math.round(
+                  (voteCount / pollVotes.length) * 100
+                )
+              : 0,
         };
-      })
-      .filter((poll) => poll.options.length > 0);
+      }),
+    };
+  })
+  .filter((poll) => poll.options.length >= 2);
 
     return NextResponse.json({
       success: true,

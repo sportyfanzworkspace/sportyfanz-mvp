@@ -1,394 +1,217 @@
 "use client";
 
-import { useState } from "react";
-import { Star, MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MessageCircle } from "lucide-react";
 
-const fanMessages = [
-  {
-    user: "EmmyGunner",
-    text: "Saka is on fire today! 🔥",
-    time: "7:12 PM",
-    avatar: "E",
-  },
-  {
-    user: "BlueForever",
-    text: "Chelsea will equalise soon.",
-    time: "7:14 PM",
-    avatar: "B",
-  },
-  {
-    user: "KennyFC",
-    text: "That goal was beautiful!",
-    time: "7:16 PM",
-    avatar: "K",
-  },
-  {
-    user: "FootballQueen",
-    text: "Who do you think will score next?",
-    time: "7:18 PM",
-    avatar: "F",
-  },
-];
+type Fixture = {
+  id: number;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string;
+  venue: string | null;
+  scheduledAt: string;
+  status: string;
+  homeScore: number;
+  awayScore: number;
+};
+
+type FixturesResponse = {
+  success: boolean;
+  liveMatches: Fixture[];
+  upcomingMatches: Fixture[];
+};
+
+function formatKickoff(date: string) {
+  return new Date(date).toLocaleString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function statusLabel(status: string) {
+  switch (status) {
+    case "LIVE":
+      return "LIVE";
+    case "HALF_TIME":
+      return "HALF TIME";
+    case "FINISHED":
+      return "FULL TIME";
+    default:
+      return "UPCOMING";
+  }
+}
 
 export default function MatchesPage() {
-  const [activeTab, setActiveTab] = useState("Overview");
+  const [fixtures, setFixtures] = useState<FixturesResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFixtures() {
+      try {
+        const response = await fetch("/api/matches/football", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to load football fixtures.");
+        }
+
+        const data: FixturesResponse = await response.json();
+
+        if (!cancelled) {
+          setFixtures(data);
+          setError("");
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Football fixtures are temporarily unavailable.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadFixtures();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const liveMatches = fixtures?.liveMatches ?? [];
+  const upcomingMatches = fixtures?.upcomingMatches ?? [];
 
   return (
     <div className="page">
-
       <div className="page-header">
         <div>
           <span>MATCH CENTRE</span>
-
           <h1>Live & Matches</h1>
-
-          <p>
-            Follow every moment, every stat and every fan reaction.
-          </p>
+          <p>Follow professional football fixtures and match scores.</p>
         </div>
       </div>
 
-      <div className="match-centre-layout">
+      {loading && (
+        <div className="white-panel">
+          Loading football fixtures...
+        </div>
+      )}
 
-        <div>
+      {error && (
+        <div className="white-panel">
+          <p>{error}</p>
+        </div>
+      )}
 
-          <div className="big-match-card">
+      {!loading && !error && (
+        <div className="match-centre-layout">
+          <div>
+            <div className="white-panel">
+              <div className="panel-title">
+                <h3>Live Matches</h3>
+              </div>
 
-            <div className="match-top">
+              {liveMatches.length === 0 ? (
+                <p>No professional matches are live right now.</p>
+              ) : (
+                liveMatches.map((match) => (
+                  <FixtureCard key={match.id} match={match} />
+                ))
+              )}
+            </div>
+
+            <div className="white-panel" style={{ marginTop: 20 }}>
+              <div className="panel-title">
+                <h3>Upcoming Matches</h3>
+              </div>
+
+              {upcomingMatches.length === 0 ? (
+                <p>No upcoming professional fixtures are available yet.</p>
+              ) : (
+                upcomingMatches.map((match) => (
+                  <FixtureCard key={match.id} match={match} />
+                ))
+              )}
+            </div>
+
+            <div className="join-room-banner">
+              <div className="join-room-icon">
+                <MessageCircle size={24} />
+              </div>
 
               <div>
-                <span className="live-pill">
-                  <span />
-                  LIVE
-                </span>
-
-                <span className="match-time">
-                  72:34
-                </span>
+                <strong>Join the Fan Room</strong>
+                <p>Discuss football and connect with other fans.</p>
               </div>
 
-              <span className="league-name">
-                Premier League
-              </span>
-
-            </div>
-
-            <div className="score-area">
-
-              <div className="large-team">
-                <div className="large-team-logo arsenal">
-                  A
-                </div>
-
-                <strong>Arsenal</strong>
-                <span>Home</span>
-              </div>
-
-              <div className="score">
-                <strong>2 - 1</strong>
-                <span>Emirates Stadium</span>
-              </div>
-
-              <div className="large-team">
-                <div className="large-team-logo chelsea">
-                  C
-                </div>
-
-                <strong>Chelsea</strong>
-                <span>Away</span>
-              </div>
-
-            </div>
-
-            <div className="match-tabs">
-
-              {[
-                "Overview",
-                "Stats",
-                "Lineups",
-                "Player Performance",
-                "Fan Room",
-                "More",
-              ].map((tab) => (
-                <button
-                  key={tab}
-                  className={
-                    activeTab === tab
-                      ? "active"
-                      : ""
-                  }
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-
+              <a href="/fan-hub">Join Now</a>
             </div>
           </div>
-
-          <div className="match-lower-grid">
-
-            <div className="white-panel">
-
-              <div className="panel-title">
-                <h3>Match Timeline</h3>
-              </div>
-
-              <div className="timeline">
-
-                <TimelineItem
-                  minute="72'"
-                  icon="⚽"
-                  title="Goal - Arsenal"
-                  player="Saka"
-                />
-
-                <TimelineItem
-                  minute="68'"
-                  icon="🔄"
-                  title="Substitution - Chelsea"
-                  player="Jackson on, Nkunku out"
-                />
-
-                <TimelineItem
-                  minute="62'"
-                  icon="⚽"
-                  title="Goal - Chelsea"
-                  player="Palmer"
-                />
-
-                <TimelineItem
-                  minute="45+2'"
-                  icon="🟨"
-                  title="Yellow Card - Arsenal"
-                  player="Ødegaard"
-                />
-
-                <TimelineItem
-                  minute="HT"
-                  icon="⏱"
-                  title="Half Time"
-                  player="2 - 1"
-                />
-
-              </div>
-            </div>
-
-            <div className="white-panel">
-
-              <div className="panel-title">
-                <h3>Match Statistics</h3>
-              </div>
-
-              <StatBar
-                label="Possession"
-                home="58%"
-                away="42%"
-              />
-
-              <StatBar
-                label="Shots on Target"
-                home="7"
-                away="4"
-              />
-
-              <StatBar
-                label="Total Shots"
-                home="14"
-                away="9"
-              />
-
-              <StatBar
-                label="Corners"
-                home="6"
-                away="3"
-              />
-
-              <StatBar
-                label="Fouls"
-                home="8"
-                away="11"
-              />
-
-            </div>
-
-          </div>
-
-          <div className="join-room-banner">
-
-            <div className="join-room-icon">
-              <MessageCircle size={24} />
-            </div>
-
-            <div>
-              <strong>Join the Fan Room</strong>
-
-              <p>
-                Discuss the match, react to goals and earn rewards.
-              </p>
-            </div>
-
-            <a href="/fan-hub">
-              Join Now
-            </a>
-
-          </div>
-
         </div>
-
-        <aside className="live-side">
-
-          <div className="white-panel">
-
-            <div className="panel-title">
-              <h3>Fan Reactions</h3>
-            </div>
-
-            {fanMessages.map((message) => (
-              <div
-                className="fan-message"
-                key={message.user}
-              >
-
-                <div className="sf-avatar small">
-                  {message.avatar}
-                </div>
-
-                <div>
-                  <div className="fan-message-head">
-                    <strong>{message.user}</strong>
-                    <span>{message.time}</span>
-                  </div>
-
-                  <p>{message.text}</p>
-                </div>
-
-              </div>
-            ))}
-
-          </div>
-
-          <div className="white-panel top-fans">
-
-            <div className="panel-title">
-              <h3>Top Fans</h3>
-            </div>
-
-            {[
-              "KingTee",
-              "Esther",
-              "BlueRanger",
-              "General4Life",
-            ].map((fan, index) => (
-
-              <div className="top-fan" key={fan}>
-
-                <div className="rank">
-                  {index + 1}
-                </div>
-
-                <div className="sf-avatar small">
-                  {fan[0]}
-                </div>
-
-                <div className="top-fan-info">
-                  <strong>{fan}</strong>
-                  <span>
-                    {1200 - index * 180} pts
-                  </span>
-                </div>
-
-                <Star
-                  size={14}
-                  fill="currentColor"
-                />
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </aside>
-
-      </div>
+      )}
     </div>
   );
 }
 
-function TimelineItem({
-  minute,
-  icon,
-  title,
-  player,
-}: {
-  minute: string;
-  icon: string;
-  title: string;
-  player: string;
-}) {
-  return (
-    <div className="timeline-item">
-
-      <span className="timeline-minute">
-        {minute}
-      </span>
-
-      <div className="timeline-icon">
-        {icon}
-      </div>
-
-      <div>
-        <strong>{title}</strong>
-        <span>{player}</span>
-      </div>
-
-    </div>
-  );
-}
-
-function StatBar({
-  label,
-  home,
-  away,
-}: {
-  label: string;
-  home: string;
-  away: string;
-}) {
-  const numericHome = parseInt(
-    home.replace("%", ""),
-    10
-  );
-
-  const numericAway = parseInt(
-    away.replace("%", ""),
-    10
-  );
-
-  const total = numericHome + numericAway;
-
-  const homeWidth = total
-    ? (numericHome / total) * 100
-    : 50;
+function FixtureCard({ match }: { match: Fixture }) {
+  const isLive =
+    match.status === "LIVE" || match.status === "HALF_TIME";
 
   return (
-    <div className="stat-bar">
+    <div
+      style={{
+        padding: "18px 0",
+        borderBottom: "1px solid #eee",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <span className="league-name">{match.competition}</span>
 
-      <div className="stat-values">
-        <strong>{home}</strong>
-        <span>{label}</span>
-        <strong>{away}</strong>
+        <span className={isLive ? "live-pill" : "match-time"}>
+          {statusLabel(match.status)}
+        </span>
       </div>
 
-      <div className="stat-track">
-        <span
-          style={{
-            width: `${homeWidth}%`,
-          }}
-        />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          gap: 12,
+          textAlign: "center",
+        }}
+      >
+        <strong>{match.homeTeam}</strong>
+
+        <strong style={{ fontSize: 22 }}>
+          {isLive || match.status === "FINISHED"
+            ? `${match.homeScore} - ${match.awayScore}`
+            : "VS"}
+        </strong>
+
+        <strong>{match.awayTeam}</strong>
       </div>
 
+      <p style={{ textAlign: "center", marginTop: 12 }}>
+        {formatKickoff(match.scheduledAt)}
+        {match.venue ? ` · ${match.venue}` : ""}
+      </p>
     </div>
   );
 }

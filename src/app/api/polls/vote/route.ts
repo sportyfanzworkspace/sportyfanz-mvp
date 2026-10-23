@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         (poll.startsAt &&
           now < new Date(poll.startsAt).getTime()) ||
         (poll.endsAt &&
-          now > new Date(poll.endsAt).getTime())
+          now >= new Date(poll.endsAt).getTime())
       ) {
         throw new Error("POLL_NOT_OPEN");
       }

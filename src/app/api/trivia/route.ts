@@ -35,10 +35,48 @@ export async function GET() {
       );
     }
 
-    const questions = await db.orm.public.TriviaQuestion
+    const now = Date.now();
+
+    const activeQuestions = await db.orm.public.TriviaQuestion
       .where({ status: "ACTIVE" })
       .all();
 
+    // Close expired questions when the fan Trivia API is requested.
+    for (const question of activeQuestions) {
+      if (
+        question.endsAt &&
+        new Date(question.endsAt).getTime() <= now
+      ) {
+        await db.orm.public.TriviaQuestion
+          .where({ id: question.id })
+          .update({ status: "CLOSED" });
+      }
+    }
+
+     // Only questions that have started and have not expired are available.
+      const availableQuestions = activeQuestions
+        .filter((question) => {
+        const now = Date.now();
+
+        const hasStarted =
+          !question.startsAt ||
+          new Date(question.startsAt).getTime() <= now;
+
+        const deadlineNotPassed =
+          !question.endsAt ||
+          new Date(question.endsAt).getTime() > now;
+
+        return (
+          question.status === "ACTIVE" &&
+          hasStarted &&
+          deadlineNotPassed
+        );
+     })
+     .sort(
+       (a, b) =>
+       new Date(b.createdAt).getTime() -
+       new Date(a.createdAt).getTime()
+     );
     const attempts = await db.orm.public.TriviaAttempt
       .where({ userId })
       .all();
@@ -47,18 +85,19 @@ export async function GET() {
       attempts.map((attempt) => attempt.questionId)
     );
 
-    const unansweredQuestions = questions
-      .filter(
-        (question) => !attemptedQuestionIds.has(question.id)
-      )
-      .sort((a, b) => a.id - b.id)
-      .slice(0, 5);
+    const unansweredQuestions = availableQuestions
+      .filter((question) => !attemptedQuestionIds.has(question.id))
+      .sort(
+        (a, b) =>
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+      );
 
     return NextResponse.json({
       success: true,
       balance: profile.currentPoints,
       totalPoints: profile.totalPoints,
-      roundSize: 5,
+      roundSize: unansweredQuestions.length,
       questions: unansweredQuestions.map((question) => ({
         id: question.id,
         question: question.question,

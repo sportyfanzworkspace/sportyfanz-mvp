@@ -1901,6 +1901,13 @@
           },
           "Match": {
             "fields": {
+              "apiFootballFixtureId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "awayCorners": {
                 "nullable": true,
                 "type": {
@@ -2083,6 +2090,13 @@
                   "kind": "scalar"
                 }
               },
+              "matchDataSource": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "scheduledAt": {
                 "nullable": false,
                 "type": {
@@ -2229,6 +2243,9 @@
             },
             "storage": {
               "fields": {
+                "apiFootballFixtureId": {
+                  "column": "apiFootballFixtureId"
+                },
                 "awayCorners": {
                   "column": "awayCorners"
                 },
@@ -2306,6 +2323,9 @@
                 },
                 "liveSecond": {
                   "column": "liveSecond"
+                },
+                "matchDataSource": {
+                  "column": "matchDataSource"
                 },
                 "scheduledAt": {
                   "column": "scheduledAt"
@@ -4228,6 +4248,13 @@
                   "kind": "scalar"
                 }
               },
+              "endsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -4277,6 +4304,13 @@
                   "kind": "scalar"
                 }
               },
+              "startsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -4323,6 +4357,9 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "endsAt": {
+                  "column": "endsAt"
+                },
                 "id": {
                   "column": "id"
                 },
@@ -4343,6 +4380,9 @@
                 },
                 "question": {
                   "column": "question"
+                },
+                "startsAt": {
+                  "column": "startsAt"
                 },
                 "status": {
                   "column": "status"
@@ -6433,6 +6473,11 @@
                 }
               ],
               "columns": {
+                "apiFootballFixtureId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "awayCorners": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -6579,6 +6624,15 @@
                   "nativeType": "int4",
                   "nullable": true
                 },
+                "matchDataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "scheduledAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -6717,7 +6771,13 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "apiFootballFixtureId"
+                  ]
+                }
+              ]
             },
             "notifications": {
               "checks": [
@@ -8277,6 +8337,11 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "endsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -8319,6 +8384,11 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "startsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -9045,7 +9115,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "da070d4fe3b7ec2b2dfd7ce0c29f191111cae61c53cbd69a73563bba0abb7388"
+    "storageHash": "4b6d1a480b9eac67e11c82061ce9b468089069bd5f0c0c0f8f289df681a34d82"
   },
   "execution": {
     "executionHash": "4a33979e6f47235e9e6a7d0dd8f458cedafd845c483e70fe36767da1af94fbd7",

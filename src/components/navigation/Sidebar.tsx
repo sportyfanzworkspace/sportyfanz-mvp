@@ -61,7 +61,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const [fanName, setFanName] = useState("SportyFanz Fan");
+const [fanName, setFanName] = useState("SportyFanz Fan");
 const [fanLevel, setFanLevel] = useState("NEW FAN");
 const [fanInitials, setFanInitials] = useState("S");
 
@@ -195,21 +195,6 @@ useEffect(() => {
           <Settings size={17} />
           <span>Settings</span>
         </button>
-
-        <Link
-          href="/kingdom"
-          className="sf-user-mini"
-        >
-          <div className="sf-avatar">{fanInitials}</div>
-
-          <div className="sf-user-info">
-             <strong>{fanName}</strong>
-             <span>{fanLevel}</span>
-          </div>
-          <span className="ml-auto text-slate-400">
-            →
-          </span>
-        </Link>
       </div>
     </aside>
   );

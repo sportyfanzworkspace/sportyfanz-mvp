@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -71,6 +71,32 @@ const navItems = [
 export default function SportyFanzShell({
   children,
 }: Props) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function verifyFanAccount() {
+      try {
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+        });
+
+        if (!cancelled && response.status === 401) {
+          window.location.replace("/login");
+        }
+      } catch {
+        // Keep the page available if a temporary network error occurs.
+      }
+    }
+
+    void verifyFanAccount();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
   return (
     <main className="sf-app">
       {/* SIDEBAR */}

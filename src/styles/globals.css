@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700;800;900&display=swap");
 
 :root {
-  --sf-navy: #062c45;
+  --sf-navy: #0a131f;
   --sf-navy-2: #073957;
   --sf-deep: #041f32;
 
@@ -2432,43 +2432,94 @@ button {
 .trending-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-
-  gap: 8px;
-
-  margin-bottom: 17px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .sport-discover-card {
-  padding: 13px 8px;
-
+  min-width: 0;
+  min-height: 190px;
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
   border: 1px solid var(--sf-border);
-  border-radius: 9px;
-
+  border-radius: 14px;
   background: white;
-
   text-align: center;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.sport-discover-card {
+  transform: translateY(-3px);
+  border-color: #f5b82e;
+  box-shadow: 0 8px 22px rgba(15, 35, 55, 0.08);
 }
 
 .sport-discover-card > div {
-  font-size: 22px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #fff7df;
+  color: var(--sf-navy);
+  font-size: 29px;
 }
 
+.sport-discover-card > div img {
+  width: 34px !important;
+  height: 34px !important;
+  object-fit: contain;
+}
 .sport-discover-card strong {
   display: block;
-
-  margin-top: 7px;
-
-  font-size: 8px;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.sport-discover-card span {
-  display: block;
-
-  margin-top: 3px;
-
+.sport-discover-card > span {
+  display: -webkit-box;
+  min-height: 32px;
+  margin-top: 0;
+  overflow: hidden;
   color: var(--sf-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
-  font-size: 7px;
+.sport-discover-card button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  background: white;
+  color: var(--sf-navy);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sport-discover-card button {
+  border-color: #f5b82e;
+  background: #fff9e8;
+}
+
+.sport-discover-card button {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .discover-team {
@@ -4229,6 +4280,12 @@ button {
   }
 }
 
+@media (max-width: 1100px) {
+.trending-grid {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+}
+
 @media (max-width: 950px) {
   .sf-sidebar {
     width: 68px;
@@ -4384,6 +4441,16 @@ button {
     gap: 6px;
     padding: 5px;
   }
+
+  .trending-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+.sport-discover-card {
+  min-height: 180px;
+  padding: 14px 9px;
+}
 
 }
 

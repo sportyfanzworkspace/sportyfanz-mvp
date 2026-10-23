@@ -15,8 +15,10 @@ export type AdminPermission =
   | "predictions:manage"
   | "trivia:manage"
   | "polls:manage"
+  | "fanrooms:manage"
   | "content:moderate"
-  | "fans:support";
+  | "fans:support"
+  | "players:manage";
 
 const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
   SUPER_ADMIN: [
@@ -26,8 +28,10 @@ const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
     "predictions:manage",
     "trivia:manage",
     "polls:manage",
+    "fanrooms:manage",
     "content:moderate",
     "fans:support",
+    "players:manage",
   ],
   OPERATIONS: [
     "rewards:manage",

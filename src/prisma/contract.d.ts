@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'da070d4fe3b7ec2b2dfd7ce0c29f191111cae61c53cbd69a73563bba0abb7388'>;
+  StorageHashBase<'4b6d1a480b9eac67e11c82061ce9b468089069bd5f0c0c0f8f289df681a34d82'>;
 export type ExecutionHash =
   ExecutionHashBase<'4a33979e6f47235e9e6a7d0dd8f458cedafd845c483e70fe36767da1af94fbd7'>;
 export type ProfileHash =
@@ -363,6 +363,7 @@ export type FieldOutputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly Match: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayCorners: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayFouls: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayHalfTimeScore: CodecTypes['pg/int4@1']['output'] | null;
@@ -389,6 +390,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly liveMinute: CodecTypes['pg/int4@1']['output'] | null;
       readonly liveSecond: CodecTypes['pg/int4@1']['output'] | null;
+      readonly matchDataSource: CodecTypes['pg/text@1']['output'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly sportId: CodecTypes['pg/int4@1']['output'];
       readonly startedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -564,6 +566,7 @@ export type FieldOutputTypes = {
     readonly TriviaQuestion: {
       readonly correctOption: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly optionA: CodecTypes['pg/text@1']['output'];
       readonly optionB: CodecTypes['pg/text@1']['output'];
@@ -571,6 +574,7 @@ export type FieldOutputTypes = {
       readonly optionD: CodecTypes['pg/text@1']['output'];
       readonly pointsReward: CodecTypes['pg/int4@1']['output'];
       readonly question: CodecTypes['pg/text@1']['output'];
+      readonly startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -727,6 +731,7 @@ export type FieldInputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly Match: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayCorners: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayFouls: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayHalfTimeScore: CodecTypes['pg/int4@1']['input'] | null;
@@ -753,6 +758,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly liveMinute: CodecTypes['pg/int4@1']['input'] | null;
       readonly liveSecond: CodecTypes['pg/int4@1']['input'] | null;
+      readonly matchDataSource: CodecTypes['pg/text@1']['input'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly sportId: CodecTypes['pg/int4@1']['input'];
       readonly startedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
@@ -928,6 +934,7 @@ export type FieldInputTypes = {
     readonly TriviaQuestion: {
       readonly correctOption: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly optionA: CodecTypes['pg/text@1']['input'];
       readonly optionB: CodecTypes['pg/text@1']['input'];
@@ -935,6 +942,7 @@ export type FieldInputTypes = {
       readonly optionD: CodecTypes['pg/text@1']['input'];
       readonly pointsReward: CodecTypes['pg/int4@1']['input'];
       readonly question: CodecTypes['pg/text@1']['input'];
+      readonly startsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -1110,6 +1118,7 @@ export type StorageColumnTypes = {
         | 'PERIOD_END';
     };
     readonly matches: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayCorners: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayFouls: CodecTypes['pg/int4@1']['output'] | null;
       readonly awayHalfTimeScore: CodecTypes['pg/int4@1']['output'] | null;
@@ -1136,6 +1145,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly liveMinute: CodecTypes['pg/int4@1']['output'] | null;
       readonly liveSecond: CodecTypes['pg/int4@1']['output'] | null;
+      readonly matchDataSource: CodecTypes['pg/text@1']['output'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly sportId: CodecTypes['pg/int4@1']['output'];
       readonly startedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -1292,6 +1302,7 @@ export type StorageColumnTypes = {
     readonly trivia_questions: {
       readonly correctOption: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly optionA: CodecTypes['pg/text@1']['output'];
       readonly optionB: CodecTypes['pg/text@1']['output'];
@@ -1299,6 +1310,7 @@ export type StorageColumnTypes = {
       readonly optionD: CodecTypes['pg/text@1']['output'];
       readonly pointsReward: CodecTypes['pg/int4@1']['output'];
       readonly question: CodecTypes['pg/text@1']['output'];
+      readonly startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -1474,6 +1486,7 @@ export type StorageColumnInputTypes = {
         | 'PERIOD_END';
     };
     readonly matches: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayCorners: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayFouls: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayHalfTimeScore: CodecTypes['pg/int4@1']['input'] | null;
@@ -1500,6 +1513,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly liveMinute: CodecTypes['pg/int4@1']['input'] | null;
       readonly liveSecond: CodecTypes['pg/int4@1']['input'] | null;
+      readonly matchDataSource: CodecTypes['pg/text@1']['input'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly sportId: CodecTypes['pg/int4@1']['input'];
       readonly startedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
@@ -1656,6 +1670,7 @@ export type StorageColumnInputTypes = {
     readonly trivia_questions: {
       readonly correctOption: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly optionA: CodecTypes['pg/text@1']['input'];
       readonly optionB: CodecTypes['pg/text@1']['input'];
@@ -1663,6 +1678,7 @@ export type StorageColumnInputTypes = {
       readonly optionD: CodecTypes['pg/text@1']['input'];
       readonly pointsReward: CodecTypes['pg/int4@1']['input'];
       readonly question: CodecTypes['pg/text@1']['input'];
+      readonly startsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -1840,6 +1856,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'fanRoom' | 'user';
   };
   export type public_Match = {
+    apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
     awayCorners: CodecTypes['pg/int4@1']['output'] | null;
     awayFouls: CodecTypes['pg/int4@1']['output'] | null;
     awayHalfTimeScore: CodecTypes['pg/int4@1']['output'] | null;
@@ -1866,6 +1883,7 @@ export namespace Models {
     id: CodecTypes['pg/int4@1']['output'];
     liveMinute: CodecTypes['pg/int4@1']['output'] | null;
     liveSecond: CodecTypes['pg/int4@1']['output'] | null;
+    matchDataSource: CodecTypes['pg/text@1']['output'] | null;
     scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
     sportId: CodecTypes['pg/int4@1']['output'];
     startedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -2093,6 +2111,7 @@ export namespace Models {
   export type public_TriviaQuestion = {
     correctOption: CodecTypes['pg/text@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
     id: CodecTypes['pg/int4@1']['output'];
     optionA: CodecTypes['pg/text@1']['output'];
     optionB: CodecTypes['pg/text@1']['output'];
@@ -2100,6 +2119,7 @@ export namespace Models {
     optionD: CodecTypes['pg/text@1']['output'];
     pointsReward: CodecTypes['pg/int4@1']['output'];
     question: CodecTypes['pg/text@1']['output'];
+    startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
     status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     attempts: public_TriviaAttempt[];
@@ -3268,6 +3288,11 @@ type ContractBase = Omit<
             };
             readonly matches: {
               columns: {
+                readonly apiFootballFixtureId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly awayCorners: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -3411,6 +3436,15 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                 };
+                readonly matchDataSource: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'MANUAL'>;
+                  };
+                };
                 readonly scheduledAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -3447,7 +3481,7 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
+              uniques: readonly [{ readonly columns: readonly ['apiFootballFixtureId'] }];
               indexes: readonly [
                 {
                   readonly name: 'matches_awayTeamId_idx_17f82264';
@@ -4707,6 +4741,11 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                 };
+                readonly endsAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: true;
+                };
                 readonly id: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -4749,6 +4788,11 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                };
+                readonly startsAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: true;
                 };
                 readonly status: {
                   readonly nativeType: 'text';
@@ -6165,6 +6209,10 @@ type ContractBase = Omit<
           };
           readonly Match: {
             readonly fields: {
+              readonly apiFootballFixtureId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly awayCorners: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -6275,6 +6323,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly matchDataSource: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly scheduledAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -6378,6 +6430,7 @@ type ContractBase = Omit<
               readonly table: 'matches';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly apiFootballFixtureId: { readonly column: 'apiFootballFixtureId' };
                 readonly awayCorners: { readonly column: 'awayCorners' };
                 readonly awayFouls: { readonly column: 'awayFouls' };
                 readonly awayHalfTimeScore: { readonly column: 'awayHalfTimeScore' };
@@ -6404,6 +6457,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly liveMinute: { readonly column: 'liveMinute' };
                 readonly liveSecond: { readonly column: 'liveSecond' };
+                readonly matchDataSource: { readonly column: 'matchDataSource' };
                 readonly scheduledAt: { readonly column: 'scheduledAt' };
                 readonly sportId: { readonly column: 'sportId' };
                 readonly startedAt: { readonly column: 'startedAt' };
@@ -7598,6 +7652,13 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
+              readonly endsAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
               readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -7625,6 +7686,13 @@ type ContractBase = Omit<
               readonly question: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startsAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
               };
               readonly status: {
                 readonly nullable: false;
@@ -7657,6 +7725,7 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly correctOption: { readonly column: 'correctOption' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly endsAt: { readonly column: 'endsAt' };
                 readonly id: { readonly column: 'id' };
                 readonly optionA: { readonly column: 'optionA' };
                 readonly optionB: { readonly column: 'optionB' };
@@ -7664,6 +7733,7 @@ type ContractBase = Omit<
                 readonly optionD: { readonly column: 'optionD' };
                 readonly pointsReward: { readonly column: 'pointsReward' };
                 readonly question: { readonly column: 'question' };
+                readonly startsAt: { readonly column: 'startsAt' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };

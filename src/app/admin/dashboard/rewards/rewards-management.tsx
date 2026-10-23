@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 
 type Reward = {
   id: number;
@@ -114,6 +115,7 @@ export default function RewardsManagement() {
   const [filter, setFilter] = useState("ALL");
   const [rejectionFormId, setRejectionFormId] = useState<number | null>(null);
   const [rejectionReasonDraft, setRejectionReasonDraft] = useState("");
+  const [showRewardForm, setShowRewardForm] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -154,26 +156,137 @@ export default function RewardsManagement() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function startEditing(reward: Reward) {
-    setEditingId(reward.id);
-    setForm({
-      name: reward.name,
-      description: reward.description ?? "",
-      imageUrl: reward.imageUrl ?? "",
-      category: reward.category ?? "",
-      pointsCost: String(reward.pointsCost),
-      stock: reward.stock === null ? "" : String(reward.stock),
-      status: reward.status,
-    });
+ 
+function startEditing(reward: Reward) {
+  setEditingId(reward.id);
+  setForm({
+    name: reward.name,
+    description: reward.description ?? "",
+    imageUrl: reward.imageUrl ?? "",
+    category: reward.category ?? "",
+    pointsCost: String(reward.pointsCost),
+    stock: reward.stock === null ? "" : String(reward.stock),
+    status: reward.status,
+  });
+  setShowRewardForm(true);
+  setNotice("");
+  setError("");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+ }
+
+ function resetForm() {
+   setEditingId(null);
+   setForm(emptyForm);
+   setShowRewardForm(false);
+ }
+
+ 
+function exportRewardsToExcel() {
+  if (visibleRewards.length === 0) {
+    setError("There are no rewards matching the selected filter to export.");
     setNotice("");
-    setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
   }
 
-  function resetForm() {
-    setEditingId(null);
-    setForm(emptyForm);
+  const rows = visibleRewards.map((reward) => ({
+    "Reward ID": reward.id,
+    "Reward Name": reward.name,
+    Slug: reward.slug,
+    Description: reward.description ?? "",
+    Category: reward.category ?? "",
+    "Points Cost": reward.pointsCost,
+    Stock: reward.stock === null ? "Unlimited" : reward.stock,
+    Status: reward.status.replaceAll("_", " "),
+    "Image URL": reward.imageUrl ?? "",
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+
+  worksheet["!cols"] = [
+    { wch: 12 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 45 },
+    { wch: 20 },
+    { wch: 15 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 45 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Rewards");
+
+  XLSX.writeFile(
+    workbook,
+    `SportyFanz_Rewards_${new Date().toISOString().slice(0, 10)}.xlsx`
+  );
+
+  setError("");
+  setNotice(`Exported ${rows.length} rewards to Excel.`);
+}
+
+
+function exportRedemptionsToExcel() {
+  if (redemptions.length === 0) {
+    setError("There are no redemption requests to export.");
+    setNotice("");
+    return;
   }
+
+  const rows = [...redemptions]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+    )
+    .map((item) => ({
+      "Request ID": item.id,
+      "Fan ID": item.userId,
+      "Reward ID": item.rewardId,
+      "Points Spent": item.pointsSpent,
+      Status: item.status.replaceAll("_", " "),
+      "Reference Code": item.referenceCode,
+      "Rejection Reason": item.rejectionReason ?? "",
+      "Request Date": item.createdAt
+        ? formatDate(item.createdAt)
+        : "",
+      "Fulfilled Date": item.fulfilledAt
+        ? formatDate(item.fulfilledAt)
+        : "",
+    }));
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+
+  worksheet["!cols"] = [
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 28 },
+    { wch: 45 },
+    { wch: 24 },
+    { wch: 24 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Redemption Requests"
+  );
+
+  XLSX.writeFile(
+    workbook,
+    `SportyFanz_Redemption_Requests_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`
+  );
+
+  setError("");
+  setNotice(`Exported ${rows.length} redemption requests to Excel.`);
+}
 
   async function saveReward(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -342,9 +455,32 @@ export default function RewardsManagement() {
             </p>
           </div>
 
-          <button onClick={() => void loadData()} style={buttonStyle}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+             onClick={() => {
+                setError("");
+                setNotice("");
+                setEditingId(null);
+                setForm(emptyForm);
+                setShowRewardForm(true);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+             }}
+             style={buttonStyle}
+            >
+             + Create Reward
+           </button>
+
+           <button
+             onClick={() => void loadData()}
+             style={{
+              ...buttonStyle,
+              background: "#303447",
+              color: "#fff",
+             }}
+           >
             Refresh data
-          </button>
+           </button>
+         </div>
         </div>
 
         {error && (
@@ -416,6 +552,7 @@ export default function RewardsManagement() {
           ))}
         </section>
 
+      {showRewardForm && (
         <section
           style={{
             padding: 24,
@@ -425,6 +562,7 @@ export default function RewardsManagement() {
             marginBottom: 28,
           }}
         >
+          
           <h2 style={{ fontSize: 20, marginTop: 0 }}>
             {editingId ? "Edit reward" : "Create a reward"}
           </h2>
@@ -556,7 +694,7 @@ export default function RewardsManagement() {
             </div>
           </form>
         </section>
-
+        )}
         <section
           style={{
             padding: 24,
@@ -576,12 +714,31 @@ export default function RewardsManagement() {
               marginBottom: 18,
             }}
           >
-            <h2 style={{ fontSize: 20, margin: 0 }}>Reward catalogue</h2>
+            
+           <div>
+              <h2 style={{ fontSize: 20, margin: 0 }}>Reward catalogue</h2>
+              <p style={{ color: "#9da4b8", fontSize: 13, marginBottom: 0 }}>
+              {visibleRewards.length} reward{visibleRewards.length === 1 ? "" : "s"}
+            </p>
+           </div>
+            
+            <button
+                type="button"
+                onClick={exportRewardsToExcel}
+                disabled={loading || visibleRewards.length === 0}
+                style={{
+                  ...buttonStyle,
+                  opacity: loading || visibleRewards.length === 0 ? 0.6 : 1,
+                }}
+              >
+               ↓ Export to Excel
+             </button>
+             
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               style={{ ...inputStyle, width: "auto", minWidth: 160 }}
-            >
+             >
               <option value="ALL">All statuses</option>
               {statuses.map((status) => (
                 <option key={status} value={status}>
@@ -690,9 +847,34 @@ export default function RewardsManagement() {
             borderRadius: 16,
           }}
         >
-          <h2 style={{ fontSize: 20, marginTop: 0 }}>
-            Redemption requests
-          </h2>
+          
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+              marginBottom: 12,
+            }}
+          >
+            <h2 style={{ fontSize: 20, margin: 0 }}>
+              Redemption requests
+            </h2>
+
+           <button
+             type="button"
+             onClick={exportRedemptionsToExcel}
+             disabled={loading || redemptions.length === 0}
+             style={{
+                ...buttonStyle,
+                opacity: loading || redemptions.length === 0 ? 0.6 : 1,
+              }}
+              >
+                 ↓ Export Requests to Excel
+              </button>
+            </div>
+
           <p style={{ color: "#9da4b8", fontSize: 13 }}>
             Review requests and record their progress. User IDs and reference
             codes are shown for identification.
@@ -943,6 +1125,14 @@ export default function RewardsManagement() {
             </div>
           )}
         </section>
+      </div>
+      <div style={{ marginTop: 24 }}>
+        <a
+          href="/admin/dashboard"
+          style={{ color: "#f5b82e", textDecoration: "none" }}
+        >
+          ← Back to Admin Dashboard
+        </a>
       </div>
     </main>
   );

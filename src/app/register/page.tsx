@@ -43,9 +43,9 @@ export default function RegisterPage() {
         return;
       }
 
-      // Registration already creates a session in the API.
-      // Continue to the app rather than asking the user to log in again.
-      window.location.href = "/app";
+      // Registration creates the user's session.
+      // New users choose their sports before entering the app.
+      window.location.href = "/choose-sports";
     } catch {
       setError("We couldn't connect to SportyFanz. Please try again.");
     } finally {

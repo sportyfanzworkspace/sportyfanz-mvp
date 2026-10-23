@@ -4,7 +4,7 @@ import {
   hasPermission,
   type AdminPermission,
 } from "@/lib/admin/require-admin";
-
+import AdminLogoutButton from "@/app/admin/logout-button";
 
 const sections: {
   title: string;
@@ -38,6 +38,15 @@ const sections: {
     href: "/admin/dashboard/polls",
     permission: "polls:manage",
   },
+    {
+    title: "Fan Room Management",
+    description:
+      "Create fan communities, manage room availability, and monitor member activity.",
+    status: "Fan Rooms API",
+    icon: "♧",
+    href: "/admin/dashboard/fanrooms",
+    permission: "fanrooms:manage",
+  },
   {
     title: "Predictions",
     description: "Manage prediction activities and review fan submissions.",
@@ -63,6 +72,15 @@ const sections: {
     href: "/admin/dashboard/staff",
     permission: "staff:manage",
   },
+  {
+  title: "Players Management",
+  description:
+    "Create player profiles, assign teams, and manage the players shown in Discover.",
+  status: "Player directory",
+  icon: "♙",
+  href: "/admin/dashboard/players",
+  permission: "players:manage",
+},
 ];
 
 
@@ -111,18 +129,21 @@ const visibleSections = sections.filter((section) =>
             </a>
           ))}
         </nav>
-
+        
+        <div className="admin-sidebar-bottom">
+           <AdminLogoutButton />
         <div className="admin-sidebar-footer">
           <span className="admin-status-dot" />
           Internal staff portal
-        </div>
+       </div>
+       </div>
       </aside>
 
       <section className="admin-main">
         <header className="admin-topbar">
           <div>
             <p className="admin-eyebrow">SPORTYFANZ OPERATIONS</p>
-            <h1>Admin Dashboard</h1>
+            <h1>Dashboard</h1>
           </div>
           <div className="admin-account">
             <span className="admin-avatar">
@@ -175,10 +196,6 @@ const visibleSections = sections.filter((section) =>
               </article>
             ))}
           </div>
-
-          <footer className="admin-footer">
-            SportyFanz Internal Administration · Authorised staff only
-          </footer>
         </div>
       </section>
 
@@ -236,6 +253,17 @@ const visibleSections = sections.filter((section) =>
         }
         .admin-nav-label { padding: 0 10px; margin-bottom: 12px; }
         .admin-nav { display: grid; gap: 7px; }
+        .admin-sidebar-bottom {
+           margin-top: auto;
+           padding-top: 28px;
+           display: grid;
+           gap: 18px;
+         }
+
+        .admin-sidebar-bottom button {
+          width: 100%;
+          text-align: left;
+        }
         .admin-nav-link {
           display: flex;
           align-items: center;

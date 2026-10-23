@@ -11,41 +11,38 @@ import {
   Target,
 } from "lucide-react";
 
-const matches = [
-  {
-    home: "Arsenal",
-    away: "Chelsea",
-    score: "2 - 1",
-    time: "72'",
-    league: "Premier League",
-    image:
-      "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    home: "Lakers",
-    away: "Warriors",
-    score: "68 - 72",
-    time: "Q3",
-    league: "NBA",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    home: "Man Utd",
-    away: "Liverpool",
-    score: "1 - 1",
-    time: "61'",
-    league: "Premier League",
-    image:
-      "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?auto=format&fit=crop&w=900&q=80",
-  },
-];
+type FootballMatch = {
+  id: number;
+  fixtureId: number;
+  homeTeam: string;
+  awayTeam: string;
+  homeTeamShortName: string | null;
+  awayTeamShortName: string | null;
+  homeTeamLogo: string | null;
+  awayTeamLogo: string | null;
+  competition: string;
+  venue: string | null;
+  scheduledAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+};
+
+type FootballFeed = {
+  liveMatches: FootballMatch[];
+  upcomingMatches: FootballMatch[];
+};
 
 export default function HomePage() {
 
   const [fanName, setFanName] = useState("SportyFanz Fan");
   const [fanInitials, setFanInitials] = useState("S");
   const [fanPoints, setFanPoints] = useState(0);
+  const [liveMatches, setLiveMatches] = useState<FootballMatch[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<FootballMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -55,6 +52,10 @@ export default function HomePage() {
       const response = await fetch("/api/auth/me", {
         cache: "no-store",
       });
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
 
       if (!response.ok) return;
 
@@ -84,6 +85,7 @@ export default function HomePage() {
       console.error("Unable to load home profile:", error);
     }
   }
+  
 
   loadFan();
 
@@ -91,6 +93,41 @@ export default function HomePage() {
     active = false;
   };
  }, []);
+
+ useEffect(() => {
+  let active = true;
+
+  async function loadMatches() {
+    try {
+      const response = await fetch("/api/matches/football", {
+        cache: "no-store",
+      });
+
+      const data: FootballFeed = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Unable to load football matches.");
+      }
+
+      if (!active) return;
+
+      setLiveMatches(data.liveMatches ?? []);
+      setUpcomingMatches(data.upcomingMatches ?? []);
+    } catch (error) {
+      console.error("Unable to load football matches:", error);
+    } finally {
+      if (active) {
+        setMatchesLoading(false);
+      }
+    }
+  }
+
+  loadMatches();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
   return (
     <div className="page">
@@ -207,7 +244,6 @@ export default function HomePage() {
 
         {/* LIVE MATCHES */}
         <div className="section-block live-block">
-
           <div className="section-title">
             <h2>Live Now</h2>
 
@@ -218,54 +254,51 @@ export default function HomePage() {
           </div>
 
           <div className="match-card-grid">
+            {matchesLoading ? (
+              <p>Loading live matches...</p>
+            ) : liveMatches.length === 0 ? (
+              <p>No live football matches right now.</p>
+            ) : (
+              liveMatches.map((match) => (
+                <div className="match-card" key={match.id}>
+                  <div
+                    className="match-card-image"
+                    style={{
+                      backgroundImage: match.homeTeamLogo
+                        ? `url(${match.homeTeamLogo})`
+                        : "none",
+                    }}
+                  >
+                    <span className="live-pill">
+                      <span />
+                      {match.status === "HALF_TIME" ? "HALF TIME" : "LIVE"}
+                    </span>
 
-            {matches.map((match) => (
-              <div
-                className="match-card"
-                key={match.home}
-              >
-
-                <div
-                  className="match-card-image"
-                  style={{
-                    backgroundImage:
-                      `url(${match.image})`,
-                  }}
-                >
-                  <span className="live-pill">
-                    <span />
-                    LIVE
-                  </span>
-
-                  <span className="match-card-time">
-                    {match.time}
-                  </span>
-                </div>
-
-                <div className="match-card-body">
-
-                  <div className="match-card-teams">
-                    <strong>{match.home}</strong>
-
-                    <span>{match.score}</span>
-
-                    <strong>{match.away}</strong>
+                    <span className="match-card-time">
+                      {match.status === "HALF_TIME" ? "HT" : "LIVE"}
+                    </span>
                   </div>
 
-                  <div className="match-card-footer">
+                  <div className="match-card-body">
+                    <div className="match-card-teams">
+                      <strong>{match.homeTeam}</strong>
 
-                    <small>{match.league}</small>
+                      <span>
+                        {match.homeScore ?? "—"} - {match.awayScore ?? "—"}
+                      </span>
 
-                    <Link href="/app/live">
-                      Watch
-                    </Link>
+                      <strong>{match.awayTeam}</strong>
+                    </div>
 
+                    <div className="match-card-footer">
+                      <small>{match.competition}</small>
+
+                      <Link href="/app/live">Watch</Link>
+                    </div>
                   </div>
-
                 </div>
-              </div>
-            ))}
-
+              ))
+            )}
           </div>
         </div>
 
@@ -337,9 +370,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* UPCOMING */}
+        {/* UPCOMING */} 
         <div className="section-block upcoming-block">
-
           <div className="section-title">
             <h2>Upcoming Matches</h2>
 
@@ -350,41 +382,40 @@ export default function HomePage() {
           </div>
 
           <div className="upcoming-list">
+            {matchesLoading ? (
+              <p>Loading upcoming matches...</p>
+            ) : upcomingMatches.length === 0 ? (
+              <p>No upcoming football matches scheduled.</p>
+            ) : (
+              upcomingMatches.map((match) => (
+                <div className="upcoming-card" key={match.id}>
+                  <div className="team-badge">
+                    {match.homeTeamShortName ??
+                      match.homeTeam.slice(0, 2).toUpperCase()}
+                  </div>
 
-            {[
-              ["Man City", "Tottenham", "Today • 8:00 PM"],
-              ["Barcelona", "Real Madrid", "Today • 10:00 PM"],
-              ["Nigeria", "Ghana", "Tomorrow • 7:00 PM"],
-              ["Djokovic", "Alcaraz", "Tomorrow • 9:00 PM"],
-            ].map((game, index) => (
+                  <div>
+                    <strong>
+                      {match.homeTeam} <span>vs</span> {match.awayTeam}
+                    </strong>
 
-              <div
-                className="upcoming-card"
-                key={index}
-              >
+                    <small>
+                      {new Date(match.scheduledAt).toLocaleString(undefined, {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </small>
 
-                <div className="team-badge">
-                  {index === 0
-                    ? "MC"
-                    : index === 1
-                    ? "FCB"
-                    : "⚽"}
+                    <small>{match.competition}</small>
+                  </div>
+
+                  <ChevronRight size={16} />
                 </div>
-
-                <div>
-                  <strong>
-                    {game[0]} <span>vs</span> {game[1]}
-                  </strong>
-
-                  <small>{game[2]}</small>
-                </div>
-
-                <ChevronRight size={16} />
-
-              </div>
-
-            ))}
-
+              ))
+            )}
           </div>
         </div>
 

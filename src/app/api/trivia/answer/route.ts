@@ -68,9 +68,27 @@ export async function POST(request: Request) {
         .where({ id: questionId })
         .first();
 
-      if (!question || question.status !== "ACTIVE") {
-        throw new Error("QUESTION_NOT_AVAILABLE");
+        
+        if (!question || question.status !== "ACTIVE") {
+          throw new Error("QUESTION_NOT_AVAILABLE");
+        }
+
+        const now = Date.now();
+
+       if (
+         question.startsAt &&
+         new Date(question.startsAt).getTime() > now
+       ) {
+        throw new Error("QUESTION_NOT_STARTED");
+       }
+
+      if (
+        question.endsAt &&
+        new Date(question.endsAt).getTime() <= now
+      ) {
+        throw new Error("QUESTION_DEADLINE_PASSED");
       }
+
 
       const existingAttempt = await tx.orm.public.TriviaAttempt
         .where({ questionId, userId })
@@ -160,6 +178,14 @@ export async function POST(request: Request) {
         ALREADY_ATTEMPTED: {
           message: "You have already answered this question.",
           status: 409,
+        },
+        QUESTION_NOT_STARTED: {
+          message: "This Trivia question is not available yet.",
+          status: 409,
+        },
+        QUESTION_DEADLINE_PASSED: {
+          message: "The deadline has passed. This Trivia question is now closed.",
+        status: 409,
         },
       };
 

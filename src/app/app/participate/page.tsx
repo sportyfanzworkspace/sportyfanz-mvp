@@ -498,9 +498,10 @@ useEffect(() => {
   };
 }, [activeTab]);
 
+
 /*
  * ============================================================
- * LOAD TRIVIA WHEN TAB OPENS
+ * LOAD AND REFRESH TRIVIA WHILE TAB IS OPEN
  * ============================================================
  */
 
@@ -508,12 +509,20 @@ useEffect(() => {
   if (activeTab !== "trivia") return;
 
   let cancelled = false;
+  let isFirstLoad = true;
+  let requestInProgress = false;
 
   async function fetchTrivia() {
-    try {
-      setTriviaLoading(true);
-      setError("");
+    if (requestInProgress || cancelled) return;
 
+    requestInProgress = true;
+
+    if (isFirstLoad) {
+      setTriviaLoading(true);
+      isFirstLoad = false;
+    }
+
+    try {
       const response = await fetch("/api/trivia", {
         cache: "no-store",
       });
@@ -528,7 +537,7 @@ useEffect(() => {
 
       if (!cancelled) {
         setTriviaData(result);
-        setTriviaAnswers({});
+        setError("");
       }
     } catch (err) {
       if (!cancelled) {
@@ -539,7 +548,9 @@ useEffect(() => {
         );
       }
     } finally {
-      if (!cancelled) {
+      requestInProgress = false;
+
+      if (!cancelled && !isFirstLoad) {
         setTriviaLoading(false);
       }
     }
@@ -547,8 +558,13 @@ useEffect(() => {
 
   void fetchTrivia();
 
+  const refreshInterval = window.setInterval(() => {
+    void fetchTrivia();
+  }, 15_000);
+
   return () => {
     cancelled = true;
+    window.clearInterval(refreshInterval);
   };
 }, [activeTab]);
 

@@ -384,6 +384,10 @@ model Match {
   competition       String?
   venue             String?
 
+  // External provider link for automated match updates
+  apiFootballFixtureId Int?    @unique
+  matchDataSource      String? @default("MANUAL")
+
   status            MatchStatus                @default(SCHEDULED)
 
   scheduledAt       TimestamptzString
@@ -946,6 +950,8 @@ model TriviaQuestion {
   correctOption String
   pointsReward  Int                        @default(10)
   status        TriviaStatus               @default(DRAFT)
+  startsAt      TimestamptzString?
+  endsAt        TimestamptzString?
   createdAt     TimestamptzString          @default(now())
   updatedAt     temporal.updatedAtString()
 

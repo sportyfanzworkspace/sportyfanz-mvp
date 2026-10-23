@@ -27,9 +27,17 @@ type FanProfile = {
   avatarUrl: string | null;
 };
 
+type Sport = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 export default function MyKingdomPage() {
   const [fan, setFan] = useState<FanProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mySports, setMySports] = useState<Sport[]>([]);
+  const [sportsLoading, setSportsLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -65,13 +73,46 @@ export default function MyKingdomPage() {
       }
     }
 
+    async function loadMySports() {
+     try {
+       const response = await fetch("/api/sports", {
+         cache: "no-store",
+       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to load your sports.");
+      }
+
+      if (!active) return;
+
+       const followedIds: number[] = data.followedSportIds ?? [];
+
+       const followedSports: Sport[] = (data.sports ?? []).filter(
+        (sport: Sport) => followedIds.includes(sport.id)
+      );
+
+      setMySports(followedSports);
+    } catch (error) {
+      console.error("Unable to load saved sports:", error);
+    } finally {
+      if (active) {
+       setSportsLoading(false);
+     }
+    }
+  }
+
+
     loadProfile();
+    loadMySports();
 
     return () => {
       active = false;
     };
   }, []);
 
+  
   const displayName =
     fan?.name?.trim() ||
     fan?.username ||
@@ -230,50 +271,42 @@ export default function MyKingdomPage() {
               <h3>My Sports</h3>
             </div>
 
-            <div className="sports-grid">
+           <div className="sports-grid">
+               {sportsLoading ? (
+            <p>Loading your sports...</p>
+          ) : mySports.length > 0 ? (
+          mySports.map((sport) => {
+         const sportIcons: Record<string, string> = {
+          football: "⚽",
+          basketball: "🏀",
+          tennis: "🎾",
+          boxing: "🥊",
+          cricket: "🏏",
+          rugby: "🏉",
+          volleyball: "🏐",
+          baseball: "⚾",
+          badminton: "🏸",
+          "formula-1": "🏎️",
+           athletics: "🏃",
+         };
 
-              <div className="my-sport">
-                <div>⚽</div>
+        return (
+         <div className="my-sport" key={sport.id}>
+            <div>{sportIcons[sport.slug] ?? "🏆"}</div>
 
-                <strong>Football</strong>
+                <strong>{sport.name}</strong>
 
-                <span>
-                  Your favourite sport
-                </span>
-              </div>
-
-              <div className="my-sport">
-                <div>🏀</div>
-
-                <strong>Basketball</strong>
-
-                <span>
-                  Explore this sport
-                </span>
-              </div>
-
-              <div className="my-sport">
-                <div>🎾</div>
-
-                <strong>Tennis</strong>
-
-                <span>
-                  Explore this sport
-                </span>
-              </div>
-
-              <div className="my-sport">
-                <div>🥊</div>
-
-                <strong>Boxing</strong>
-
-                <span>
-                  Explore this sport
-                </span>
-              </div>
-
+                <span>Your selected sport</span>
+             </div>
+              );
+              })
+              ) : (
+                 <div>
+                   <p>You haven't selected any sports yet.</p>
+                   <a href="/choose-sports">Choose your sports</a>
+                </div>
+              )}
             </div>
-
           </div>
 
           {/* FAN ACTIVITY */}
