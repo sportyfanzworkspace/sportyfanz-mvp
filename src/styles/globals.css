@@ -1437,22 +1437,6 @@ button {
   font-weight: 900;
 }
 
-.large-team-logo.arsenal {
-  background: linear-gradient(
-    145deg,
-    #c93535,
-    #7f1622
-  );
-}
-
-.large-team-logo.chelsea {
-  background: linear-gradient(
-    145deg,
-    #2673bd,
-    #123f77
-  );
-}
-
 .large-team strong {
   font-size: 13px;
 }

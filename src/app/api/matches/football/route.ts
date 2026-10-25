@@ -1,6 +1,66 @@
 
 import { NextResponse } from "next/server";
 
+const FIXTURE_CACHE_TTL_MS = 60 * 1000;
+
+type FixtureCacheEntry = {
+  expiresAt: number;
+  data: ApiFixture[];
+};
+
+const fixtureCache = new Map<string, FixtureCacheEntry>();
+
+async function getCachedFixtures(
+  date: string,
+  apiKey: string
+): Promise<ApiFixture[]> {
+  const now = Date.now();
+  const cached = fixtureCache.get(date);
+
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
+  const providerUrl = new URL(
+    "https://v3.football.api-sports.io/fixtures"
+  );
+
+  providerUrl.searchParams.set("date", date);
+  providerUrl.searchParams.set("timezone", "Africa/Lagos");
+
+  const response = await fetch(providerUrl.toString(), {
+    headers: {
+      "x-apisports-key": apiKey,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `API-Football returned HTTP ${response.status}.`
+    );
+  }
+
+  const payload = await response.json();
+
+  if (
+    (Array.isArray(payload.errors) && payload.errors.length > 0) ||
+    !Array.isArray(payload.response)
+  ) {
+    throw new Error("Invalid response from API-Football.");
+  }
+
+  const data = payload.response as ApiFixture[];
+
+  fixtureCache.set(date, {
+    data,
+    expiresAt: now + FIXTURE_CACHE_TTL_MS,
+  });
+
+  return data;
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -99,14 +159,14 @@ function mapFixture(fixture: ApiFixture) {
   originalDate.getMinutes() === 0; 
 
     if ([1493760, 1493762, 1493765, 1494050].includes(id)) {
-  console.log("FIXTURE TIME CHECK", {
-    id,
-    originalDate: fixture.fixture?.date,
-    statusShort: fixture.fixture?.status?.short,
-    statusLong: fixture.fixture?.status?.long,
-    timezone: "Africa/Lagos",
-  });
-}
+       console.log("FIXTURE TIME CHECK", {
+        id,
+        originalDate: fixture.fixture?.date,
+        statusShort: fixture.fixture?.status?.short,
+        statusLong: fixture.fixture?.status?.long,
+        timezone: "Africa/Lagos",
+      });
+    }
 
   let status:
     | "SCHEDULED"
@@ -185,7 +245,9 @@ export async function GET(request: Request) {
       ? [startDate]
       : [startDate, addDays(startDate, 1)];
 
-    const results = await Promise.all(
+     const results = await Promise.all(
+      dates.map((date) => getCachedFixtures(date, apiKey))
+      );
       dates.map(async (date) => {
         const providerUrl = new URL(
           "https://v3.football.api-sports.io/fixtures"
@@ -225,9 +287,9 @@ export async function GET(request: Request) {
 
         return payload.response as ApiFixture[];
       })
-    );
 
-     const leaguePriority = [
+  const leaguePriority = [
+  "epl",
   "premier league",
   "nigeria premier football league",
   "npfl",
@@ -250,24 +312,81 @@ function getLeaguePriority(competition: string) {
   return index === -1 ? leaguePriority.length : index;
 }
 
+const keyTeams = [
+  "liverpool",
+  "arsenal",
+  "manchester united",
+  "manchester city",
+  "chelsea",
+  "tottenham",
+  "atletico madrid",
+  "barcelona",
+  "barca",
+  "crystal palace",
+  "newcastle",
+  "brighton",
+  "hull",
+  "brentford",
+  "sunderland",
+  "bournemouth",
+  "fulham",
+  "everton",
+  "coventry",
+  "aston villa",
+  "katsina united",
+  "plateau united",
+  "espanyol",
+  "ikorodu city",
+  "shooting stars",
+  "rivers united",
+  "inter lagos united",
+  "enyimba",
+  "nasarawa",
+  "kano pillars",
+  "barau fc",
+  "kwara united",
+  "warri wolves",
+  "bendel insurance",
+  "kun khalifat fc",
+];
+
+function getKeyTeamPriority(homeTeam: string, awayTeam: string) {
+  const home = homeTeam.toLowerCase();
+  const away = awayTeam.toLowerCase();
+
+  return keyTeams.some(
+    (team) => home.includes(team) || away.includes(team)
+  )
+    ? 0
+    : 1;
+}
+
 const fixtures = results
   .flat()
   .map(mapFixture)
   .filter((fixture) => fixture !== null)
-  .sort((a, b) => {
-    const priorityDifference =
-      getLeaguePriority(a.competition) -
-      getLeaguePriority(b.competition);
+    .sort((a, b) => {
+       const keyTeamDifference =
+         getKeyTeamPriority(a.homeTeam, a.awayTeam) -
+         getKeyTeamPriority(b.homeTeam, b.awayTeam);
 
-    if (priorityDifference !== 0) {
-      return priorityDifference;
-    }
+       if (keyTeamDifference !== 0) {
+        return keyTeamDifference;
+     }
 
-    return (
-      new Date(a.scheduledAt).getTime() -
-      new Date(b.scheduledAt).getTime()
-    );
-  });
+     const leagueDifference =
+       getLeaguePriority(a.competition) -
+       getLeaguePriority(b.competition);
+
+      if (leagueDifference !== 0) {
+      return leagueDifference;
+     }
+
+      return (
+       new Date(a.scheduledAt).getTime() -
+       new Date(b.scheduledAt).getTime()
+      );
+    });
 
     const liveMatches = fixtures.filter(
       (fixture) =>
@@ -284,6 +403,7 @@ const fixtures = results
         success: true,
         liveMatches,
         upcomingMatches,
+        matches: fixtures,
         selectedDate: hasSelectedDate ? startDate : null,
         dateRange: {
           from: startDate,
