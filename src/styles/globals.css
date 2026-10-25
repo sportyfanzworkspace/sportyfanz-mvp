@@ -2452,9 +2452,9 @@ button {
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
-.sport-discover-card {
-  transform: translateY(-3px);
-  border-color: #f5b82e;
+.sport-discover-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--sf-green);
   box-shadow: 0 8px 22px rgba(15, 35, 55, 0.08);
 }
 
@@ -2512,12 +2512,12 @@ button {
   cursor: pointer;
 }
 
-.sport-discover-card button {
-  border-color: #f5b82e;
-  background: #fff9e8;
+.sport-discover-card button:hover:not(:disabled) {
+  border-color: var(--sf-green);
+  background: var(--sf-green-light);
 }
 
-.sport-discover-card button {
+.sport-discover-card button:disabled {
   cursor: wait;
   opacity: 0.65;
 }
@@ -4237,7 +4237,119 @@ button {
   background: #32cf7b;
 }
 
+.top-fans-panel {
+  margin-top: 16px;
+  overflow: hidden;
+}
 
+.top-fans-panel .panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.top-fans-panel .panel-title > span {
+  color: var(--sf-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.top-fans-list {
+  padding: 4px 14px 12px;
+}
+
+.top-fan-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.top-fan-row:last-child {
+  border-bottom: 0;
+}
+
+.top-fan-rank {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: #f1f4f7;
+  color: var(--sf-navy);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.top-fan-rank.rank-1 {
+  background: #fff3c4;
+  color: #8a6500;
+}
+
+.top-fan-rank.rank-2 {
+  background: #edf0f4;
+  color: #536273;
+}
+
+.top-fan-rank.rank-3 {
+  background: #f9e8dc;
+  color: #955a32;
+}
+
+.top-fan-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--sf-green-light);
+}
+
+.top-fan-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--sf-green-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.top-fan-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.top-fan-details strong {
+  overflow: hidden;
+  color: var(--sf-navy);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-fan-details span {
+  color: var(--sf-muted);
+  font-size: 9px;
+  text-transform: capitalize;
+}
+
+.top-fan-points {
+  flex-shrink: 0;
+  color: var(--sf-green-dark);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.top-fans-message {
+  padding: 0 16px 16px;
+  color: var(--sf-muted);
+  font-size: 12px;
+}
 
 
 

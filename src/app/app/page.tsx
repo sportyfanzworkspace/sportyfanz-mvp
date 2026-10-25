@@ -26,8 +26,11 @@ type FootballMatch = {
   startedAt: string | null;
   endedAt: string | null;
   status: string;
+  providerStatus?: string;
+  elapsed?: number | null;
   homeScore: number | null;
   awayScore: number | null;
+  kickoffTimeConfirmed?: boolean;
 };
 
 type FootballFeed = {
@@ -35,17 +38,43 @@ type FootballFeed = {
   upcomingMatches: FootballMatch[];
 };
 
+function getLagosDate(offsetDays = 0) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  );
+
+  const date = new Date(
+    `${values.year}-${values.month}-${values.day}T12:00:00Z`
+  );
+
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+
+  return date.toISOString().slice(0, 10);
+}
+
 export default function HomePage() {
 
   const [fanName, setFanName] = useState("SportyFanz Fan");
   const [fanInitials, setFanInitials] = useState("S");
   const [fanPoints, setFanPoints] = useState(0);
-  const [liveMatches, setLiveMatches] = useState<FootballMatch[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<FootballMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(() => getLagosDate());
+  const [matchesError, setMatchesError] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [matchDay, setMatchDay] = useState<"today" | "tomorrow" | "custom">("today");
+  
+  
 
   useEffect(() => {
-    let active = true;
+    let active = true;  
 
   async function loadFan() {
     try {
@@ -94,27 +123,39 @@ export default function HomePage() {
   };
  }, []);
 
- useEffect(() => {
+useEffect(() => {
   let active = true;
 
   async function loadMatches() {
+    setMatchesLoading(true);
+    setMatchesError("");
+
     try {
-      const response = await fetch("/api/matches/football", {
+      console.log("selectedDate:", JSON.stringify(selectedDate));
+      const query = selectedDate
+        ? `?date=${encodeURIComponent(selectedDate)}`
+        : "";
+
+      const response = await fetch(`/api/matches/football${query}`, {
         cache: "no-store",
       });
 
       const data: FootballFeed = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data) {
         throw new Error("Unable to load football matches.");
       }
 
       if (!active) return;
 
-      setLiveMatches(data.liveMatches ?? []);
       setUpcomingMatches(data.upcomingMatches ?? []);
     } catch (error) {
       console.error("Unable to load football matches:", error);
+
+      if (active) {
+        setMatchesError("Football fixtures are temporarily unavailable.");
+        setUpcomingMatches([]);
+      }
     } finally {
       if (active) {
         setMatchesLoading(false);
@@ -127,7 +168,7 @@ export default function HomePage() {
   return () => {
     active = false;
   };
-}, []);
+ }, [selectedDate]);
 
   return (
     <div className="page">
@@ -244,63 +285,16 @@ export default function HomePage() {
 
         {/* LIVE MATCHES */}
         <div className="section-block live-block">
-          <div className="section-title">
-            <h2>Live Now</h2>
-
-            <Link href="/app/live">
-              View All
-              <ChevronRight size={14} />
-            </Link>
-          </div>
-
-          <div className="match-card-grid">
-            {matchesLoading ? (
-              <p>Loading live matches...</p>
-            ) : liveMatches.length === 0 ? (
-              <p>No live football matches right now.</p>
-            ) : (
-              liveMatches.map((match) => (
-                <div className="match-card" key={match.id}>
-                  <div
-                    className="match-card-image"
-                    style={{
-                      backgroundImage: match.homeTeamLogo
-                        ? `url(${match.homeTeamLogo})`
-                        : "none",
-                    }}
-                  >
-                    <span className="live-pill">
-                      <span />
-                      {match.status === "HALF_TIME" ? "HALF TIME" : "LIVE"}
-                    </span>
-
-                    <span className="match-card-time">
-                      {match.status === "HALF_TIME" ? "HT" : "LIVE"}
-                    </span>
-                  </div>
-
-                  <div className="match-card-body">
-                    <div className="match-card-teams">
-                      <strong>{match.homeTeam}</strong>
-
-                      <span>
-                        {match.homeScore ?? "—"} - {match.awayScore ?? "—"}
-                      </span>
-
-                      <strong>{match.awayTeam}</strong>
-                    </div>
-
-                    <div className="match-card-footer">
-                      <small>{match.competition}</small>
-
-                      <Link href="/app/live">Watch</Link>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+         <div className="section-title">
+          <h2>Live Now</h2>
+          <Link href="/app/live">
+           View All
+           <ChevronRight size={14} />
+         </Link>
         </div>
+
+        <p>Live streaming is not available right now.</p>
+       </div>
 
         {/* RIGHT COLUMN */}
         <div className="home-right-column">
@@ -370,51 +364,316 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* UPCOMING */} 
-        <div className="section-block upcoming-block">
+          
+        {/* UPCOMING MATCHES */}
+        <div className="section-block upcoming-block"
+           style={{
+             background: "#fff",
+             border: "1px solid #e8e8e8",
+             borderRadius: 16,
+             padding: 20,
+             boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+             minWidth: 0,
+           }}
+          >
           <div className="section-title">
             <h2>Upcoming Matches</h2>
 
-            <button>
-              View Calendar
-              <ChevronRight size={14} />
-            </button>
+            <Link
+              href={`/app/matches?date=${encodeURIComponent(selectedDate)}`}
+              className="secondary-button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                textDecoration: "none",
+              }}
+            >
+              View All
+            <ChevronRight size={14} />
+           </Link>
           </div>
+            
+         <div
+           style={{
+             display: "flex",
+             justifyContent: "space-between",
+             alignItems: "center",
+             gap: 12,
+             flexWrap: "wrap",
+             marginBottom: 16,
+           }}
+          >
+         <div style={{ display: "flex", gap: 8 }}>
+          <button
+          style={{
+            background: matchDay === "today" ? "#16a34a" : "#fff",
+            color: matchDay === "today" ? "#fff" : "#333",
+            borderColor: matchDay === "today" ? "#16a34a" : "#ddd",
+           }}
+            type="button"
+            onClick={() => {
+              setMatchDay("today");
+              setSelectedDate(getLagosDate());
+              setShowDatePicker(false);
+            }}
+            className="secondary-button"
+            aria-pressed={matchDay === "today"}
+           >
+           Today
+          </button>
 
+         <button
+         style={{
+           background: matchDay === "tomorrow" ? "#16a34a" : "#fff",
+           color: matchDay === "tomorrow" ? "#fff" : "#333",
+           borderColor: matchDay === "tomorrow" ? "#16a34a" : "#ddd",
+          }}
+           type="button"          
+           onClick={() => {
+            setMatchDay("tomorrow");
+            setSelectedDate(getLagosDate(1));
+            setShowDatePicker(false);
+           }}
+        className="secondary-button"
+        aria-pressed={matchDay === "tomorrow"}
+       >
+        Tomorrow
+       </button>
+      </div>
+
+        
+<div style={{ position: "relative" }}>
+  <button
+    type="button"
+    onClick={() => setShowDatePicker((visible) => !visible)}
+    className="secondary-button"
+    aria-label="Choose match date"
+    aria-expanded={showDatePicker}
+  >
+    <CalendarDays size={18} />
+  </button>
+
+  {showDatePicker && (
+    <div
+      style={{
+        position: "absolute",
+        right: 0,
+        top: "calc(100% + 8px)",
+        zIndex: 50,
+        padding: 12,
+        border: "1px solid #e5e5e5",
+        borderRadius: 12,
+        background: "#fff",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+      }}
+    >
+      <input
+        type="date"
+        autoFocus
+        value={selectedDate}
+        onChange={(event) => {
+          if (event.target.value) {
+            setSelectedDate(event.target.value);
+            setMatchDay("custom"); 
+            setShowDatePicker(false);
+          }
+        }}
+        aria-label="Choose match date"
+        style={{
+          border: "none",
+          outline: "none",
+          padding: 4,
+          background: "transparent",
+          color: "#222",
+          fontSize: 14,
+          }}
+         />
+        </div>
+        )}
+       </div>
+
+         </div>
+     
           <div className="upcoming-list">
             {matchesLoading ? (
               <p>Loading upcoming matches...</p>
+            ) : matchesError ? (
+              <p>{matchesError}</p>
             ) : upcomingMatches.length === 0 ? (
-              <p>No upcoming football matches scheduled.</p>
+              <p>
+                {selectedDate
+                  ? "No football fixtures scheduled for this date."
+                  : "No football fixtures scheduled for today or tomorrow."}
+              </p>
             ) : (
-              upcomingMatches.map((match) => (
-                <div className="upcoming-card" key={match.id}>
-                  <div className="team-badge">
-                    {match.homeTeamShortName ??
-                      match.homeTeam.slice(0, 2).toUpperCase()}
+              upcomingMatches.slice(0, 10).map((match) => {
+                const isLive =
+                  match.status === "LIVE" ||
+                  match.status === "HALF_TIME";
+
+                const isFinished =
+                  match.status === "FINISHED" ||
+                  match.status === "FT";
+
+                const hasScore =
+                  match.homeScore !== null &&
+                  match.awayScore !== null;
+
+                const kickoff = new Date(match.scheduledAt);
+
+                const kickoffTime = kickoff.toLocaleString("en-NG", {
+                   timeZone: "Africa/Lagos",
+                   weekday: "short",
+                   month: "short",
+                   day: "numeric",
+                   hour: "numeric",
+                   minute: "2-digit",
+                   hour12: true,
+                });
+               const displayedKickoff = match.kickoffTimeConfirmed === false
+                 ? `${kickoff.toLocaleDateString("en-NG", {
+                 timeZone: "Africa/Lagos",
+                 weekday: "short",
+                 month: "short",
+                 day: "numeric",
+                 })} · Time TBC`
+                 : kickoffTime;
+                
+                return (
+                  <div className="upcoming-card" key={match.id}>
+                    <div
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 12,
+                      }}
+                    >
+                      <small
+                        style={{
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {match.competition}
+                      </small>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "minmax(0, 1fr) auto",
+                          alignItems: "center",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ display: "grid", gap: 12 }}>
+                          {[
+                            {
+                              name: match.homeTeam,
+                              logo: match.homeTeamLogo,
+                            },
+                            {
+                              name: match.awayTeam,
+                              logo: match.awayTeamLogo,
+                            },
+                          ].map((team, index) => (
+                            <div
+                              key={`${match.id}-${index}`}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                minWidth: 0,
+                              }}
+                            >
+                              {team.logo ? (
+                                <img
+                                  src={team.logo}
+                                  alt=""
+                                  loading="lazy"
+                                  style={{
+                                    width: 30,
+                                    height: 30,
+                                    objectFit: "contain",
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              ) : (
+                                <div
+                                  className="team-badge"
+                                  style={{ flexShrink: 0 }}
+                                >
+                                  {team.name.slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+
+                              <strong
+                                style={{
+                                  overflowWrap: "anywhere",
+                                }}
+                              >
+                                {team.name}
+                              </strong>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "grid",
+                            justifyItems: "end",
+                            gap: 12,
+                            fontWeight: 700,
+                            fontSize: 18,
+                          }}
+                        >
+                          <span>
+                            {hasScore ? match.homeScore : "—"}
+                          </span>
+                          <span>
+                            {hasScore ? match.awayScore : "—"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <small>
+                          {isLive
+                            ? `${match.elapsed ?? 0}′ · ${match.status === "HALF_TIME" ? "Half-time" : "LIVE"}`
+                            : isFinished
+                              ? "Full-time"
+                              : displayedKickoff}
+                        </small>
+
+                        <small
+                          style={{
+                            fontWeight: 700,
+                            color: isLive ? "#d93025" : "inherit",
+                          }}
+                        >
+                          {isLive
+                            ? "LIVE"
+                            : isFinished
+                              ? "FT"
+                              : match.status === "POSTPONED"
+                                ? "Postponed"
+                                : "Upcoming"}
+                        </small>
+                      </div>
+                    </div>
                   </div>
-
-                  <div>
-                    <strong>
-                      {match.homeTeam} <span>vs</span> {match.awayTeam}
-                    </strong>
-
-                    <small>
-                      {new Date(match.scheduledAt).toLocaleString(undefined, {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </small>
-
-                    <small>{match.competition}</small>
-                  </div>
-
-                  <ChevronRight size={16} />
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

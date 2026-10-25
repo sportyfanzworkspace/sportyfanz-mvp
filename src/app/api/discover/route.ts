@@ -162,7 +162,7 @@ export async function GET() {
         success: true,
         sports,
         teams,
-        players,
+        players: [],
         competitions,
         followedSportIds: sportFollows
           .filter((item) => item.userId === userId)

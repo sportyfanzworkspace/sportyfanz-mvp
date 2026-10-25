@@ -59,6 +59,16 @@ type PollsResponse = {
   polls: FanPoll[];
 };
 
+type TopFan = {
+  id: number;
+  name: string;
+  username: string | null;
+  avatarUrl: string | null;
+  totalPoints: number;
+  fanLevel: string;
+  rank: number;
+};
+
 export default function FanHubPage() {
   const [rooms, setRooms] = useState<FanRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
@@ -75,6 +85,9 @@ export default function FanHubPage() {
   const [votingPollId, setVotingPollId] = useState<number | null>(null);
   const [pollMessage, setPollMessage] = useState("");
   const [pollError, setPollError] = useState("");
+  const [topFans, setTopFans] = useState<TopFan[]>([]);
+  const [topFansLoading, setTopFansLoading] = useState(true);
+  const [topFansError, setTopFansError] = useState("");
 
   const formatPoints = (points: number) =>
     new Intl.NumberFormat("en-US").format(points);
@@ -114,7 +127,34 @@ export default function FanHubPage() {
     void loadRooms();
   }, [loadRooms]);
 
-  
+  const loadTopFans = useCallback(async () => {
+  try {
+    setTopFansLoading(true);
+    setTopFansError("");
+
+    const response = await fetch("/api/fanrooms/top-fans", {
+      cache: "no-store",
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to load Top Fans.");
+    }
+
+    setTopFans(result.fans ?? []);
+  } catch (err) {
+    setTopFansError(
+      err instanceof Error ? err.message : "Failed to load Top Fans."
+    );
+  } finally {
+    setTopFansLoading(false);
+  }
+}, []);
+
+useEffect(() => {
+  void loadTopFans();
+}, [loadTopFans]);
+
 const loadPolls = useCallback(async () => {
   try {
     setPollsLoading(true);
@@ -495,37 +535,37 @@ const handlePollVote = async (pollId: number, optionId: number) => {
             ) : (
               <div className="chat-body">
                  
-{roomTab === "Polls" ? (
-  <div style={{ padding: 16 }}>
-    {pollError && (
-      <p role="alert" style={{ marginBottom: 12 }}>
-        {pollError}
-      </p>
-    )}
+             {roomTab === "Polls" ? (
+              <div style={{ padding: 16 }}>
+               {pollError && (
+                 <p role="alert" style={{ marginBottom: 12 }}>
+                   {pollError}
+                 </p>
+               )}
 
-    {pollMessage && (
-      <p role="status" style={{ marginBottom: 12 }}>
-        {pollMessage}
-      </p>
-    )}
+               {pollMessage && (
+                  <p role="status" style={{ marginBottom: 12 }}>
+                 {pollMessage}
+               </p>
+               )}
 
-    {pollsLoading && !pollsData ? (
-      <p role="status">Loading fan polls...</p>
-    ) : !pollsData || pollsData.polls.length === 0 ? (
-      <div>
-        <h3>No active polls yet</h3>
-        <p>
-          Platform-wide polls will appear here when they are available.
-        </p>
-        <button type="button" onClick={() => void loadPolls()}>
-          Refresh polls
-        </button>
-      </div>
-    ) : (
-      <>
-        {pollsData.polls.map((poll) => {
-          const hasVoted = poll.myVote !== null;
-          const isVoting = votingPollId === poll.id;
+            {pollsLoading && !pollsData ? (
+               <p role="status">Loading fan polls...</p>
+              ) : !pollsData || pollsData.polls.length === 0 ? (
+            <div>
+               <h3>No active polls yet</h3>
+                <p>
+                 Platform-wide polls will appear here when they are available.
+                </p>
+               <button type="button" onClick={() => void loadPolls()}>
+                  Refresh polls
+               </button>
+             </div>
+             ) : (
+              <>
+              {pollsData.polls.map((poll) => {
+             const hasVoted = poll.myVote !== null;
+            const isVoting = votingPollId === poll.id;
 
           return (
             <div
@@ -671,7 +711,7 @@ const handlePollVote = async (pollId: number, optionId: number) => {
               <div className="panel-title">
                 <h3>Available Fan Rooms</h3>
               </div>
-
+               
               <p style={{ padding: "0 16px" }}>
                 You have joined {fanRoomsJoined} room
                 {fanRoomsJoined === 1 ? "" : "s"}.
@@ -730,7 +770,53 @@ const handlePollVote = async (pollId: number, optionId: number) => {
                 </div>
               )}
             </div>
+             <div className="white-panel top-fans-panel">
+               <div className="panel-title">
+                 <h3>Top Fans</h3>
+                 <span>Leaderboard</span>
+              </div>
 
+             {topFansLoading ? (
+               <p className="top-fans-message">Loading Top Fans...</p>
+              ) : topFansError ? (
+            <div className="top-fans-message">
+              <p>{topFansError}</p>
+             <button type="button" onClick={() => void loadTopFans()}>
+               Try again
+            </button>
+           </div>
+           ) : topFans.length === 0 ? (
+            <p className="top-fans-message">No fan rankings available yet.</p>
+           ) : (
+         <div className="top-fans-list">
+           {topFans.map((fan) => (
+         <div className="top-fan-row" key={fan.id}>
+          
+          {fan.avatarUrl ? (
+            <img
+              className="top-fan-avatar"
+              src={fan.avatarUrl}
+              alt=""
+            />
+           ) : (
+            <div className="top-fan-avatar top-fan-avatar-fallback">
+              {fan.name.charAt(0).toUpperCase()}
+            </div>
+           )}
+
+           <div className="top-fan-details">
+              <strong>{fan.name}</strong>
+              <span>{fan.fanLevel.replace(/_/g, " ")}</span>
+            </div>
+
+            <strong className="top-fan-points">
+              {formatPoints(fan.totalPoints)}
+             </strong>
+           </div>
+               ))}
+             </div>
+             )}
+           </div>
             <div className="room-reward-card">
               <Gift size={28} />
               <span>Fan Room Reward</span>

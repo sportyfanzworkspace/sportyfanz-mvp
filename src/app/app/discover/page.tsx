@@ -59,7 +59,7 @@ const EMPTY_DATA: DiscoverData = {
   followedPlayerIds: [],
 };
 
-const TABS = ["Sports", "Teams", "Players", "Competitions"];
+const TABS = ["Sports", "Teams", "Competitions"];
 
 const SPORT_EMOJIS: Record<string, string> = {
   football: "⚽",
