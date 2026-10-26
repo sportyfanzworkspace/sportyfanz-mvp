@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 
 type FootballMatch = {
@@ -53,7 +54,15 @@ function getLagosDate(offsetDays = 0) {
 }
 
 export default function AllMatchesPage() {
-  const [selectedDate, setSelectedDate] = useState(getLagosDate);
+  const searchParams = useSearchParams();
+
+const [selectedDate, setSelectedDate] = useState(
+  () => searchParams.get("date") || getLagosDate()
+ );
+
+const [selectedSportSlug, setSelectedSportSlug] = useState(
+  () => searchParams.get("sport") || "football"
+ );
   const [matchDay, setMatchDay] = useState<"today" | "tomorrow" | "custom">(
     "today"
   );
@@ -71,14 +80,14 @@ export default function AllMatchesPage() {
 
       try {
         const response = await fetch(
-          `/api/matches/football?date=${encodeURIComponent(selectedDate)}`,
+          `/api/matches/${encodeURIComponent(selectedSportSlug)}?date=${encodeURIComponent(selectedDate)}`,
           { cache: "no-store" }
         );
 
         const data: FootballFeed = await response.json();
 
         if (!response.ok || !data) {
-          throw new Error("Unable to load football matches.");
+          throw new Error("Unable to load matches.");
         }
 
         if (active) {
@@ -88,7 +97,7 @@ export default function AllMatchesPage() {
         console.error("Unable to load all matches:", err);
 
         if (active) {
-          setError("Football fixtures are temporarily unavailable.");
+          setError("Fixtures for this sport are temporarily unavailable. Please try again later.");
           setMatches([]);
         }
       } finally {
@@ -101,7 +110,7 @@ export default function AllMatchesPage() {
     return () => {
       active = false;
     };
-  }, [selectedDate]);
+  }, [selectedDate, selectedSportSlug]);
 
   function chooseDay(day: "today" | "tomorrow") {
     setMatchDay(day);
@@ -124,7 +133,9 @@ export default function AllMatchesPage() {
       <div className="page-header">
         <div>
           <span>MATCH CENTRE</span>
-          <h1>All Matches</h1>
+          <h1>
+            All {selectedSportSlug.charAt(0).toUpperCase() + selectedSportSlug.slice(1)} Matches
+          </h1>
         </div>
 
         <Link

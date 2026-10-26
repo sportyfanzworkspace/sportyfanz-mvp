@@ -1,68 +1,10 @@
 
 import { NextResponse } from "next/server";
 
-const FIXTURE_CACHE_TTL_MS = 60 * 1000;
-
-type FixtureCacheEntry = {
-  expiresAt: number;
-  data: ApiFixture[];
-};
-
-const fixtureCache = new Map<string, FixtureCacheEntry>();
-
-async function getCachedFixtures(
-  date: string,
-  apiKey: string
-): Promise<ApiFixture[]> {
-  const now = Date.now();
-  const cached = fixtureCache.get(date);
-
-  if (cached && cached.expiresAt > now) {
-    return cached.data;
-  }
-
-  const providerUrl = new URL(
-    "https://v3.football.api-sports.io/fixtures"
-  );
-
-  providerUrl.searchParams.set("date", date);
-  providerUrl.searchParams.set("timezone", "Africa/Lagos");
-
-  const response = await fetch(providerUrl.toString(), {
-    headers: {
-      "x-apisports-key": apiKey,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `API-Football returned HTTP ${response.status}.`
-    );
-  }
-
-  const payload = await response.json();
-
-  if (
-    (Array.isArray(payload.errors) && payload.errors.length > 0) ||
-    !Array.isArray(payload.response)
-  ) {
-    throw new Error("Invalid response from API-Football.");
-  }
-
-  const data = payload.response as ApiFixture[];
-
-  fixtureCache.set(date, {
-    data,
-    expiresAt: now + FIXTURE_CACHE_TTL_MS,
-  });
-
-  return data;
-}
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const FIXTURE_CACHE_TTL_MS = 60 * 1000;
 
 type ApiFixture = {
   fixture?: {
@@ -73,14 +15,9 @@ type ApiFixture = {
       long?: string;
       elapsed?: number | null;
     };
-    venue?: {
-      name?: string | null;
-    };
+    venue?: { name?: string | null };
   };
-  league?: {
-    name?: string;
-    country?: string;
-  };
+  league?: { name?: string; country?: string };
   teams?: {
     home?: {
       id?: number;
@@ -98,6 +35,13 @@ type ApiFixture = {
     away?: number | null;
   };
 };
+
+type FixtureCacheEntry = {
+  expiresAt: number;
+  data: ApiFixture[];
+};
+
+const fixtureCache = new Map<string, FixtureCacheEntry>();
 
 function lagosDateString(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -120,7 +64,9 @@ function addDays(dateString: string, days: number) {
   return date.toISOString().slice(0, 10);
 }
 
-function isValidDateString(value: string | null): value is string {
+function isValidDateString(
+  value: string | null
+): value is string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
   }
@@ -131,6 +77,74 @@ function isValidDateString(value: string | null): value is string {
     !Number.isNaN(date.getTime()) &&
     date.toISOString().slice(0, 10) === value
   );
+}
+
+async function getCachedFixtures(
+  date: string,
+  apiKey: string
+): Promise<ApiFixture[]> {
+  const cached = fixtureCache.get(date);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  const url = new URL(
+    "https://v3.football.api-sports.io/fixtures"
+  );
+
+  url.searchParams.set("date", date);
+  url.searchParams.set("timezone", "Africa/Lagos");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-apisports-key": apiKey,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `API-Football returned HTTP ${response.status}.`
+    );
+  }
+
+  const payload = await response.json();
+
+  if (
+    (Array.isArray(payload.errors) &&
+      payload.errors.length > 0) ||
+    (payload.errors &&
+      Object.keys(payload.errors).length > 0) ||
+     !Array.isArray(payload.response)
+   ) {
+   console.error(
+    "API-Football fixture feed error:",
+    payload.errors
+  );
+
+  throw new Error(
+    "Football data is temporarily unavailable from the provider."
+  );
+}
+
+  console.log("API-FOOTBALL FIXTURE CHECK", {
+  date,
+  parameters: payload.parameters,
+  errors: payload.errors,
+  results: payload.results,
+  responseCount: payload.response.length,
+});
+
+  const data = payload.response as ApiFixture[];
+
+  fixtureCache.set(date, {
+    data,
+    expiresAt: Date.now() + FIXTURE_CACHE_TTL_MS,
+  });
+
+  return data;
 }
 
 function mapFixture(fixture: ApiFixture) {
@@ -152,22 +166,6 @@ function mapFixture(fixture: ApiFixture) {
   const providerStatus =
     fixture.fixture?.status?.short?.toUpperCase() ?? "NS";
 
-    const originalDate = new Date(scheduledAt);
-
-  const isMidnightKickoff =
-  originalDate.getHours() === 0 &&
-  originalDate.getMinutes() === 0; 
-
-    if ([1493760, 1493762, 1493765, 1494050].includes(id)) {
-       console.log("FIXTURE TIME CHECK", {
-        id,
-        originalDate: fixture.fixture?.date,
-        statusShort: fixture.fixture?.status?.short,
-        statusLong: fixture.fixture?.status?.long,
-        timezone: "Africa/Lagos",
-      });
-    }
-
   let status:
     | "SCHEDULED"
     | "LIVE"
@@ -177,7 +175,9 @@ function mapFixture(fixture: ApiFixture) {
     | "CANCELLED" = "SCHEDULED";
 
   if (
-    ["1H", "2H", "ET", "P", "BT", "LIVE"].includes(providerStatus)
+    ["1H", "2H", "ET", "P", "BT", "LIVE"].includes(
+      providerStatus
+    )
   ) {
     status = "LIVE";
   } else if (providerStatus === "HT") {
@@ -211,84 +211,7 @@ function mapFixture(fixture: ApiFixture) {
   };
 }
 
-export async function GET(request: Request) {
-  try {
-    const apiKey = process.env.API_FOOTBALL_KEY;
-
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Football fixtures are temporarily unavailable.",
-        },
-        { status: 503 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const requestedDate = searchParams.get("date");
-    const hasSelectedDate = isValidDateString(requestedDate);
-
-    if (requestedDate && !hasSelectedDate) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "The selected date is invalid. Use YYYY-MM-DD.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const today = lagosDateString(new Date());
-    const startDate = hasSelectedDate ? requestedDate : today;
-    const dates = hasSelectedDate
-      ? [startDate]
-      : [startDate, addDays(startDate, 1)];
-
-     const results = await Promise.all(
-      dates.map((date) => getCachedFixtures(date, apiKey))
-      );
-      dates.map(async (date) => {
-        const providerUrl = new URL(
-          "https://v3.football.api-sports.io/fixtures"
-        );
-
-        providerUrl.searchParams.set("date", date);
-        providerUrl.searchParams.set("timezone", "Africa/Lagos");
-
-        const response = await fetch(providerUrl.toString(), {
-          headers: {
-            "x-apisports-key": apiKey,
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `API-Football returned HTTP ${response.status}.`
-          );
-        }
-
-        const payload = await response.json();
-
-        if (
-          (Array.isArray(payload.errors) &&
-            payload.errors.length > 0) ||
-          !Array.isArray(payload.response)
-        ) {
-          console.error(
-            "API-Football fixture feed error:",
-            payload.errors
-          );
-
-          throw new Error("Invalid response from API-Football.");
-        }
-
-        return payload.response as ApiFixture[];
-      })
-
-  const leaguePriority = [
+const leaguePriority = [
   "epl",
   "premier league",
   "nigeria premier football league",
@@ -301,16 +224,6 @@ export async function GET(request: Request) {
   "ligue 1",
   "serie a",
 ];
-
-function getLeaguePriority(competition: string) {
-  const name = competition.toLowerCase();
-
-  const index = leaguePriority.findIndex((league) =>
-    name.includes(league)
-  );
-
-  return index === -1 ? leaguePriority.length : index;
-}
 
 const keyTeams = [
   "liverpool",
@@ -350,43 +263,84 @@ const keyTeams = [
   "kun khalifat fc",
 ];
 
-function getKeyTeamPriority(homeTeam: string, awayTeam: string) {
-  const home = homeTeam.toLowerCase();
-  const away = awayTeam.toLowerCase();
+function getLeaguePriority(name: string) {
+  const index = leaguePriority.findIndex((league) =>
+    name.toLowerCase().includes(league)
+  );
 
+  return index === -1 ? leaguePriority.length : index;
+}
+
+function getKeyTeamPriority(home: string, away: string) {
   return keyTeams.some(
-    (team) => home.includes(team) || away.includes(team)
+    (team) =>
+      home.toLowerCase().includes(team) ||
+      away.toLowerCase().includes(team)
   )
     ? 0
     : 1;
 }
 
-const fixtures = results
-  .flat()
-  .map(mapFixture)
-  .filter((fixture) => fixture !== null)
-    .sort((a, b) => {
-       const keyTeamDifference =
-         getKeyTeamPriority(a.homeTeam, a.awayTeam) -
-         getKeyTeamPriority(b.homeTeam, b.awayTeam);
+export async function GET(request: Request) {
+  try {
+    const apiKey = process.env.API_FOOTBALL_KEY;
 
-       if (keyTeamDifference !== 0) {
-        return keyTeamDifference;
-     }
-
-     const leagueDifference =
-       getLeaguePriority(a.competition) -
-       getLeaguePriority(b.competition);
-
-      if (leagueDifference !== 0) {
-      return leagueDifference;
-     }
-
-      return (
-       new Date(a.scheduledAt).getTime() -
-       new Date(b.scheduledAt).getTime()
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Football fixtures are temporarily unavailable.",
+        },
+        { status: 503 }
       );
-    });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const requestedDate = searchParams.get("date");
+    const hasSelectedDate = isValidDateString(requestedDate);
+
+    if (requestedDate && !hasSelectedDate) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "The selected date is invalid. Use YYYY-MM-DD.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const today = lagosDateString(new Date());
+    const startDate = hasSelectedDate ? requestedDate : today;
+    const dates = hasSelectedDate
+      ? [startDate]
+      : [startDate, addDays(startDate, 1)];
+
+    const results = await Promise.all(
+      dates.map((date) => getCachedFixtures(date, apiKey))
+    );
+
+    const fixtures = results
+      .flat()
+      .map(mapFixture)
+      .filter((fixture) => fixture !== null)
+      .sort((a, b) => {
+        const keyDifference =
+          getKeyTeamPriority(a.homeTeam, a.awayTeam) -
+          getKeyTeamPriority(b.homeTeam, b.awayTeam);
+
+        if (keyDifference !== 0) return keyDifference;
+
+        const leagueDifference =
+          getLeaguePriority(a.competition) -
+          getLeaguePriority(b.competition);
+
+        if (leagueDifference !== 0) return leagueDifference;
+
+        return (
+          new Date(a.scheduledAt).getTime() -
+          new Date(b.scheduledAt).getTime()
+        );
+      });
 
     const liveMatches = fixtures.filter(
       (fixture) =>

@@ -38,6 +38,19 @@ type FootballFeed = {
   upcomingMatches: FootballMatch[];
 };
 
+
+type FanSport = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
+type SportsResponse = {
+  success: boolean;
+  sports: FanSport[];
+  followedSportIds: number[];
+};
+
 function getLagosDate(offsetDays = 0) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Lagos",
@@ -66,13 +79,16 @@ export default function HomePage() {
   const [fanPoints, setFanPoints] = useState(0);
   const [upcomingMatches, setUpcomingMatches] = useState<FootballMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(() => getLagosDate());
   const [matchesError, setMatchesError] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [matchDay, setMatchDay] = useState<"today" | "tomorrow" | "custom">("today");
-  
-  
+  const [fanSports, setFanSports] = useState<FanSport[]>([]);
+  const [sportsLoading, setSportsLoading] = useState(true);
+  const [sportsError, setSportsError] = useState("");
+  const [selectedDate, setSelectedDate] = useState(getLagosDate);
+  const [selectedSportSlug, setSelectedSportSlug] = useState("football");
 
+  
   useEffect(() => {
     let active = true;  
 
@@ -123,6 +139,58 @@ export default function HomePage() {
   };
  }, []);
 
+ 
+useEffect(() => {
+  let active = true;
+
+  async function loadFanSports() {
+    setSportsLoading(true);
+    setSportsError("");
+
+    try {
+      const response = await fetch("/api/sports", {
+        cache: "no-store",
+      });
+
+      const data: SportsResponse = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error("Unable to load your selected sports.");
+      }
+
+      if (!active) return;
+
+      const selected = data.sports.filter((sport) =>
+        data.followedSportIds.includes(sport.id)
+      );
+
+      setFanSports(selected);
+
+      setSelectedSportSlug((current) => {
+        if (selected.some((sport) => sport.slug === current)) {
+          return current;
+        }
+
+        return selected[0]?.slug ?? "";
+      });
+    } catch {
+      if (!active) return;
+
+      setSportsError("Unable to load your selected sports.");
+      setFanSports([]);
+    } finally {
+      if (active) setSportsLoading(false);
+    }
+  }
+
+  loadFanSports();
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+  
 useEffect(() => {
   let active = true;
 
@@ -131,35 +199,44 @@ useEffect(() => {
     setMatchesError("");
 
     try {
-      console.log("selectedDate:", JSON.stringify(selectedDate));
+      if (!selectedSportSlug) {
+        setUpcomingMatches([]);
+        return;
+      }
+
       const query = selectedDate
         ? `?date=${encodeURIComponent(selectedDate)}`
         : "";
 
-      const response = await fetch(`/api/matches/football${query}`, {
-        cache: "no-store",
-      });
+       const response = await fetch(
+        `/api/matches/${encodeURIComponent(selectedSportSlug)}${query}`,
+        { cache: "no-store" }
+      );
 
-      const data: FootballFeed = await response.json();
-
-      if (!response.ok || !data) {
-        throw new Error("Unable to load football matches.");
-      }
+      const data = await response.json();
 
       if (!active) return;
 
-      setUpcomingMatches(data.upcomingMatches ?? []);
-    } catch (error) {
-      console.error("Unable to load football matches:", error);
-
-      if (active) {
-        setMatchesError("Football fixtures are temporarily unavailable.");
+      if (!response.ok || !data?.success) {
+        setMatchesError(
+          data?.message ??
+            `${selectedSportSlug} fixtures are temporarily unavailable.`
+        );
         setUpcomingMatches([]);
+        return;
       }
+
+      setUpcomingMatches(data.matches ?? []);
+
+     } catch {
+      if (!active) return;
+
+      setMatchesError(
+        `Unable to connect to ${selectedSportSlug} fixtures. Please try again later.`
+      );
+      setUpcomingMatches([]);
     } finally {
-      if (active) {
-        setMatchesLoading(false);
-      }
+      if (active) setMatchesLoading(false);
     }
   }
 
@@ -167,8 +244,9 @@ useEffect(() => {
 
   return () => {
     active = false;
-  };
- }, [selectedDate]);
+   };
+  }, [selectedDate, selectedSportSlug]);
+
 
   return (
     <div className="page">
@@ -365,6 +443,84 @@ useEffect(() => {
         </div>
 
           
+        {/* FAN'S SELECTED SPORTS */}
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #e8e8e8",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+          }}
+        >
+          <h2 style={{ margin: "0 0 6px", fontSize: 18 }}>
+             Your Sports
+          </h2>
+
+         <p style={{ margin: "0 0 16px", color: "#64748b", fontSize: 13 }}>
+           Choose a sport to explore its matches.
+         </p>
+
+         {sportsLoading ? (
+           <p>Loading your sports...</p>
+          ) : sportsError ? (
+           <p>{sportsError}</p>
+          ) : fanSports.length === 0 ? (
+           <p>
+             You haven't selected any sports yet. Update your sports
+             preferences to get started.
+           </p>
+          ) : (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+          }}
+        >
+        {fanSports.map((sport) => {
+        const active = selectedSportSlug === sport.slug;
+
+        const icons: Record<string, string> = {
+          football: "⚽",
+          basketball: "🏀",
+          tennis: "🎾",
+          cricket: "🏏",
+          rugby: "🏉",
+          volleyball: "🏐",
+          baseball: "⚾",
+          badminton: "🏸",
+          "formula-1": "🏎️",
+          athletics: "🏃",
+        };
+
+        return (
+          <button
+            key={sport.id}
+            type="button"
+            onClick={() => setSelectedSportSlug(sport.slug)}
+            aria-pressed={active}
+            className="secondary-button"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: active ? "#16a34a" : "#fff",
+              color: active ? "#fff" : "#243447",
+              border: `1px solid ${active ? "#16a34a" : "#ddd"}`,
+              borderRadius: 10,
+              padding: "10px 16px",
+            }}
+          >
+            <span>{icons[sport.slug] ?? "🏆"}</span>
+            {sport.name}
+          </button>
+           );
+          })}
+         </div>
+        )}
+       </div>
+  
         {/* UPCOMING MATCHES */}
         <div className="section-block upcoming-block"
            style={{
@@ -377,10 +533,14 @@ useEffect(() => {
            }}
           >
           <div className="section-title">
-            <h2>Upcoming Matches</h2>
+            <h2>
+              Upcoming {fanSports.find(
+              (sport) => sport.slug === selectedSportSlug
+              )?.name ?? "Sports"} Matches
+            </h2>
 
             <Link
-              href={`/app/matches?date=${encodeURIComponent(selectedDate)}`}
+              href={`/app/matches?sport=${encodeURIComponent(selectedSportSlug)}&date=${encodeURIComponent(selectedDate)}`}
               className="secondary-button"
               style={{
                 display: "inline-flex",
@@ -503,8 +663,8 @@ useEffect(() => {
             ) : upcomingMatches.length === 0 ? (
               <p>
                 {selectedDate
-                  ? "No football fixtures scheduled for this date."
-                  : "No football fixtures scheduled for today or tomorrow."}
+                  ? `No ${selectedSportSlug} fixtures scheduled for this date.`
+                  : `No ${selectedSportSlug} fixtures scheduled for today or tomorrow.`}
               </p>
             ) : (
               upcomingMatches.slice(0, 10).map((match) => {
@@ -654,21 +814,30 @@ useEffect(() => {
                               ? "Full-time"
                               : displayedKickoff}
                         </small>
+                   
+                      <small
+                       style={{
+                        fontWeight: 700,
+                        color: isLive
+                        ? "#d93025"
+                        : isFinished
+                        ? "#188038"
+                        : "inherit",
+                       }}
+                      >
+                       {isLive
+                         ? "LIVE"
+                         : isFinished
+                         ? "FT"
+                         : match.status === "POSTPONED"
+                         ? "Postponed"
+                         : match.status === "CANCELLED"
+                         ? "Cancelled"
+                         : match.status === "SCHEDULED"
+                         ? "Upcoming"
+                         : match.status}
+                       </small>
 
-                        <small
-                          style={{
-                            fontWeight: 700,
-                            color: isLive ? "#d93025" : "inherit",
-                          }}
-                        >
-                          {isLive
-                            ? "LIVE"
-                            : isFinished
-                              ? "FT"
-                              : match.status === "POSTPONED"
-                                ? "Postponed"
-                                : "Upcoming"}
-                        </small>
                       </div>
                     </div>
                   </div>
