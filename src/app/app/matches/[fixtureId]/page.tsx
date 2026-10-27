@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
@@ -59,13 +59,34 @@ type MatchCentreData = {
     startXI?: Array<{ player?: { name?: string; number?: number; pos?: string } }>;
     substitutes?: Array<{ player?: { name?: string; number?: number; pos?: string } }>;
   }>;
+    dataAvailability?: {
+    events: boolean;
+    statistics: boolean;
+    lineups: boolean;
+  };
+  sport?: string;
+  game?: Record<string, unknown>;
+  playByPlay?: Array<Record<string, unknown>>;
+  setScores?: Array<Record<string, unknown>>;
   message?: string;
 };
 
-type Tab = "Overview" | "Events" | "Stats" | "Lineups";
+type Tab =
+  | "Overview"
+  | "Play-by-play"
+  | "Events"
+  | "Set scores"
+  | "Stats"
+  | "Lineups";
 
 export default function MatchCentrePage() {
   const params = useParams<{ fixtureId: string }>();
+  const searchParams = useSearchParams();
+  const sport = (searchParams.get("sport") || "football")
+  .trim()
+  .toLowerCase();
+
+  const isFootball = sport === "football";
   const fixtureId = params.fixtureId;
 
   const [data, setData] = useState<MatchCentreData | null>(null);
@@ -73,25 +94,122 @@ export default function MatchCentrePage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("Overview");
 
+  
   useEffect(() => {
     let active = true;
 
     async function loadMatch() {
       setLoading(true);
       setError("");
+      setData(null);
 
       try {
-        const response = await fetch(
-          `/api/matches/football/${encodeURIComponent(fixtureId)}`,
-          { cache: "no-store" }
-        );
-        const result: MatchCentreData = await response.json();
+        const endpoint =
+          sport.toLowerCase() === "football"
+            ? `/api/matches/football/${encodeURIComponent(fixtureId)}`
+            : `/api/matches/${encodeURIComponent(
+                sport.toLowerCase()
+              )}/${encodeURIComponent(fixtureId)}`;
 
-        if (!response.ok || !result.success || !result.fixture) {
-          throw new Error(result.message || "Unable to load this match.");
+        const response = await fetch(endpoint, {
+          cache: "no-store",
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Unable to load this match."
+          );
         }
 
-        if (active) setData(result);
+        let normalized: MatchCentreData;
+
+        if (sport.toLowerCase() === "football") {
+          if (!result.fixture) {
+            throw new Error("Football match details were not found.");
+          }
+
+          normalized = result as MatchCentreData;
+        } else {
+          const game = result.game;
+
+          if (!game) {
+            throw new Error("Match details were not found.");
+          }
+
+          const homeScore =
+            typeof game.scores?.home === "number"
+              ? game.scores.home
+              : game.scores?.home?.total ?? null;
+
+          const awayScore =
+            typeof game.scores?.away === "number"
+              ? game.scores.away
+              : game.scores?.away?.total ?? null;
+
+          const gameDate = game.date
+            ? new Date(game.date).toISOString()
+            : undefined;
+
+          const venue =
+            typeof game.venue === "string"
+              ? game.venue
+              : game.venue?.name ?? null;
+
+          normalized = {
+            success: true,
+            sport,
+            game,
+            playByPlay: Array.isArray(result.playByPlay)
+            ? result.playByPlay
+            : [],
+            setScores: Array.isArray(result.setScores)
+            ? result.setScores
+            : [],
+            fixture: {
+              fixture: {
+                id: game.id,
+                date: gameDate,
+                status: {
+                  short: game.status?.short ?? "NS",
+                  long: game.status?.long ?? "Status unavailable",
+                  elapsed: game.status?.elapsed ?? null,
+                },
+                venue: { name: venue },
+              },
+              league: {
+                name: game.league?.name ?? `${sport} match`,
+                country:
+                  typeof game.country === "string"
+                    ? game.country
+                    : game.country?.name ?? "",
+              },
+              teams: {
+                home: {
+                  name: game.teams?.home?.name ?? "Home",
+                  logo: game.teams?.home?.logo ?? null,
+                },
+                away: {
+                  name: game.teams?.away?.name ?? "Away",
+                  logo: game.teams?.away?.logo ?? null,
+                },
+              },
+              goals: {
+                home: homeScore,
+                away: awayScore,
+              },
+            },
+            events: [],
+            statistics: [],
+            lineups: [],
+          };
+        }
+
+        if (active) {
+          setData(normalized);
+          setTab("Overview");
+        }
       } catch (err) {
         if (active) {
           setError(
@@ -101,16 +219,21 @@ export default function MatchCentrePage() {
           );
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
-    if (fixtureId) loadMatch();
+    if (fixtureId && sport) {
+      loadMatch();
+    }
 
     return () => {
       active = false;
     };
-  }, [fixtureId]);
+  }, [fixtureId, sport]);
+
 
   if (loading) {
     return <div className="page"><p>Loading match centre...</p></div>;
@@ -131,8 +254,14 @@ export default function MatchCentrePage() {
   const home = fixture.teams?.home;
   const away = fixture.teams?.away;
   const status = fixture.fixture?.status?.short ?? "NS";
-  const live = ["1H", "2H", "HT", "ET", "P", "BT", "LIVE"].includes(status);
-  const finished = ["FT", "AET", "PEN"].includes(status);
+  const live = [
+     "1H", "2H", "HT", "ET", "P", "BT", "LIVE",
+     "Q1", "Q2", "Q3", "Q4", "IN",
+   ].includes(status);
+
+const finished = [
+  "FT", "AET", "PEN", "AOT", "AP",
+].includes(status);
   const hasScore =
     fixture.goals?.home != null && fixture.goals?.away != null;
 
@@ -148,7 +277,15 @@ export default function MatchCentrePage() {
       })
     : "Kickoff time unavailable";
 
-  const tabs: Tab[] = ["Overview", "Events", "Stats", "Lineups"];
+  const tabs: Tab[] = isFootball
+  ? ["Overview", "Events", "Stats", "Lineups"]
+  : sport === "basketball" || sport === "baseball"
+    ? ["Overview", "Play-by-play", "Stats"]
+    : sport === "rugby"
+      ? ["Overview", "Events", "Stats"]
+      : sport === "volleyball"
+        ? ["Overview", "Set scores", "Stats"]
+        : ["Overview"];
 
   const panelStyle = {
     background: "#fff",
@@ -163,7 +300,7 @@ export default function MatchCentrePage() {
       <div className="page-header">
         <div>
           <span>MATCH CENTRE</span>
-          <h1>{fixture.league?.name ?? "Football Match"}</h1>
+          <h3>{fixture.league?.name ?? `${sport} Match`}</h3>
           <p>{fixture.league?.country ?? ""}</p>
         </div>
         <Link
@@ -234,21 +371,20 @@ export default function MatchCentrePage() {
 
       {tab === "Overview" && (
         <section style={panelStyle}>
-          <h2>Match Overview</h2>
-          <p><strong>Competition:</strong> {fixture.league?.name ?? "—"}</p>
-          <p><strong>Country:</strong> {fixture.league?.country ?? "—"}</p>
-          <p><strong>Venue:</strong> {fixture.fixture?.venue?.name ?? "Not available"}</p>
-          <p><strong>Status:</strong> {fixture.fixture?.status?.long ?? status}</p>
-          <p><strong>Kickoff:</strong> {kickoff}</p>
-          <p style={{ color: "#666", fontSize: 13 }}>Match information is supplied by API-Football.</p>
+          <h4>Match Overview</h4>
+          <p style={{fontSize: 14}}><strong>Competition:</strong> {fixture.league?.name ?? "—"}</p>
+          <p style={{fontSize: 14}}><strong>Country:</strong> {fixture.league?.country ?? "—"}</p>
+          <p style={{fontSize: 14}}><strong>Venue:</strong> {fixture.fixture?.venue?.name ?? "Not available"}</p>
+          <p style={{fontSize: 14}}><strong>Status:</strong> {fixture.fixture?.status?.long ?? status}</p>
+          <p style={{fontSize: 14}}><strong>Kickoff:</strong> {kickoff}</p>
         </section>
-      )}
+       )}
 
       {tab === "Events" && (
         <section style={panelStyle}>
-          <h2>Match Events</h2>
+          <h4>Match Events</h4>
           {!data.events?.length ? (
-            <p>Match events are not available yet.</p>
+            <p style={{fontSize: 14}}>Match events not available at the moment.</p>
           ) : (
             <div style={{ display: "grid", gap: 12 }}>
               {data.events.map((event, index) => (
@@ -266,10 +402,14 @@ export default function MatchCentrePage() {
 
       {tab === "Stats" && (
         <section style={panelStyle}>
-          <h2>Match Statistics</h2>
+          <h4>Statistics</h4>
           {!data.statistics?.length ? (
-            <p>Statistics are not available for this match yet.</p>
-          ) : (
+            <p>
+              {data.dataAvailability?.statistics === false
+                ? "We couldn't retrieve statistics from the provider. Please try again later."
+                : "Statistics not published for this match yet."}
+            </p>
+           ) : (
             <div style={{ display: "grid", gap: 20 }}>
               {data.statistics.map((team, index) => (
                 <div key={`${team.team?.name}-${index}`}>
@@ -293,9 +433,13 @@ export default function MatchCentrePage() {
 
       {tab === "Lineups" && (
         <section style={panelStyle}>
-          <h2>Team Lineups</h2>
+          <h4>Team Lineups</h4>
           {!data.lineups?.length ? (
-            <p>Lineups have not been published for this match.</p>
+            <p>
+              {data.dataAvailability?.lineups === false
+              ? "We couldn't retrieve lineups from the provider. Please try again later."
+              : "Team lineups not published for this match yet."}
+            </p>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
               {data.lineups.map((lineup, index) => (

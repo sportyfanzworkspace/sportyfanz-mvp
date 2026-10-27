@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -8,33 +9,59 @@ const API_BASE = "https://v3.football.api-sports.io";
 async function fetchFootballData(
   endpoint: string,
   apiKey: string
-) {
-  const response = await fetch(`${API_BASE}/${endpoint}`, {
-    headers: {
-      "x-apisports-key": apiKey,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+): Promise<{ data: unknown[]; available: boolean }> {
+  try {
+    const response = await fetch(`${API_BASE}/${endpoint}`, {
+      headers: {
+        "x-apisports-key": apiKey,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(12000),
+    });
 
-  if (!response.ok) {
-    throw new Error(`API-Football returned HTTP ${response.status}.`);
+    const payload = await response.json();
+
+    const errors =
+      payload && typeof payload === "object" && "errors" in payload
+        ? (payload as { errors?: unknown }).errors
+        : undefined;
+
+    const results =
+      payload && typeof payload === "object" && "results" in payload
+        ? (payload as { results?: unknown }).results
+        : undefined;
+
+    const data =
+      payload && typeof payload === "object" && "response" in payload
+        ? (payload as { response?: unknown }).response
+        : undefined;
+
+    console.info("[Football provider diagnostic]", {
+      endpoint,
+      httpStatus: response.status,
+      errors,
+      results,
+      responseCount: Array.isArray(data) ? data.length : null,
+    });
+
+    if (!response.ok || !Array.isArray(data) ||
+        (Array.isArray(errors) && errors.length > 0) ||
+        (errors && !Array.isArray(errors) &&
+          typeof errors === "object" &&
+          Object.keys(errors as object).length > 0)) {
+      return { data: [], available: false };
+    }
+
+    return { data, available: true };
+  } catch (error) {
+    console.error("[Football provider request failed]", endpoint, error);
+    return { data: [], available: false };
   }
-
-  const payload = await response.json();
-
-  if (
-    (Array.isArray(payload.errors) && payload.errors.length > 0) ||
-    !Array.isArray(payload.response)
-  ) {
-    throw new Error("Invalid response from API-Football.");
-  }
-
-  return payload.response;
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ fixtureId: string }> }
 ) {
   try {
@@ -57,14 +84,22 @@ export async function GET(
       );
     }
 
-    const [fixtures, events, statistics, lineups] = await Promise.all([
-      fetchFootballData(`fixtures?id=${fixtureId}`, apiKey),
-      fetchFootballData(`fixtures/events?fixture=${fixtureId}`, apiKey),
-      fetchFootballData(`fixtures/statistics?fixture=${fixtureId}`, apiKey),
-      fetchFootballData(`fixtures/lineups?fixture=${fixtureId}`, apiKey),
-    ]);
+    const fixtureResult = await fetchFootballData(
+      `fixtures?id=${fixtureId}`,
+      apiKey
+    );
 
-    const fixture = fixtures[0];
+    const fixture = fixtureResult.data[0];
+
+    if (!fixtureResult.available) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unable to retrieve this fixture from the football provider.",
+        },
+        { status: 502 }
+      );
+    }
 
     if (!fixture) {
       return NextResponse.json(
@@ -73,13 +108,34 @@ export async function GET(
       );
     }
 
+    const [eventsResult, statisticsResult, lineupsResult] =
+      await Promise.all([
+        fetchFootballData(
+          `fixtures/events?fixture=${fixtureId}`,
+          apiKey
+        ),
+        fetchFootballData(
+          `fixtures/statistics?fixture=${fixtureId}`,
+          apiKey
+        ),
+        fetchFootballData(
+          `fixtures/lineups?fixture=${fixtureId}`,
+          apiKey
+        ),
+      ]);
+
     return NextResponse.json(
       {
         success: true,
         fixture,
-        events,
-        statistics,
-        lineups,
+        events: eventsResult.data,
+        statistics: statisticsResult.data,
+        lineups: lineupsResult.data,
+        dataAvailability: {
+          events: eventsResult.available,
+          statistics: statisticsResult.available,
+          lineups: lineupsResult.available,
+        },
         updatedAt: new Date().toISOString(),
       },
       {

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const FIXTURE_CACHE_TTL_MS = 60 * 1000;
+const FIXTURE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 type ApiFixture = {
   fixture?: {
@@ -43,6 +43,9 @@ type FixtureCacheEntry = {
 
 const fixtureCache = new Map<string, FixtureCacheEntry>();
 
+// Reuse an existing request when the same date is requested concurrently.
+const fixtureRequests = new Map<string, Promise<ApiFixture[]>>()
+
 function lagosDateString(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Lagos",
@@ -79,73 +82,112 @@ function isValidDateString(
   );
 }
 
+
 async function getCachedFixtures(
   date: string,
   apiKey: string
 ): Promise<ApiFixture[]> {
   const cached = fixtureCache.get(date);
 
+  // Return fresh cached fixtures without contacting the provider.
   if (cached && cached.expiresAt > Date.now()) {
     return cached.data;
   }
 
-  const url = new URL(
-    "https://v3.football.api-sports.io/fixtures"
-  );
+  // Reuse a request already running for this date.
+  const existingRequest = fixtureRequests.get(date);
 
-  url.searchParams.set("date", date);
-  url.searchParams.set("timezone", "Africa/Lagos");
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      "x-apisports-key": apiKey,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `API-Football returned HTTP ${response.status}.`
-    );
+  if (existingRequest) {
+    return existingRequest;
   }
 
-  const payload = await response.json();
+  const request = (async (): Promise<ApiFixture[]> => {
+    try {
+      const url = new URL(
+        "https://v3.football.api-sports.io/fixtures"
+      );
 
-  if (
-    (Array.isArray(payload.errors) &&
-      payload.errors.length > 0) ||
-    (payload.errors &&
-      Object.keys(payload.errors).length > 0) ||
-     !Array.isArray(payload.response)
-   ) {
-   console.error(
-    "API-Football fixture feed error:",
-    payload.errors
-  );
+      url.searchParams.set("date", date);
+      url.searchParams.set("timezone", "Africa/Lagos");
 
-  throw new Error(
-    "Football data is temporarily unavailable from the provider."
-  );
+      const response = await fetch(url.toString(), {
+        headers: {
+          "x-apisports-key": apiKey,
+          Accept: "application/json",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(12000),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `API-Football returned HTTP ${response.status}.`
+        );
+      }
+
+      const payload = await response.json();
+
+      if (
+        (Array.isArray(payload.errors) &&
+          payload.errors.length > 0) ||
+        (payload.errors &&
+          typeof payload.errors === "object" &&
+          !Array.isArray(payload.errors) &&
+          Object.keys(payload.errors).length > 0) ||
+        !Array.isArray(payload.response)
+      ) {
+        console.error(
+          "API-Football fixture feed error:",
+          payload.errors
+        );
+
+        throw new Error(
+          "Football data is temporarily unavailable from the provider."
+        );
+      }
+
+      const data = payload.response as ApiFixture[];
+
+      console.info("API-FOOTBALL FIXTURE CHECK", {
+        date,
+        results: payload.results,
+        responseCount: data.length,
+      });
+
+      // Store even an empty successful response.
+      fixtureCache.set(date, {
+        data,
+        expiresAt: Date.now() + FIXTURE_CACHE_TTL_MS,
+      });
+
+      return data;
+    } catch (error) {
+      // Keep showing previously fetched fixtures when the provider fails.
+      if (cached) {
+        console.warn(
+          `Using stale football fixtures for ${date}:`,
+          error
+        );
+
+        return cached.data;
+      }
+
+      // No cache exists for this date, so the provider failure must surface.
+      throw error;
+    }
+  })();
+
+  fixtureRequests.set(date, request);
+
+  try {
+    return await request;
+  } finally {
+    if (fixtureRequests.get(date) === request) {
+      fixtureRequests.delete(date);
+    }
+  }
 }
 
-  console.log("API-FOOTBALL FIXTURE CHECK", {
-  date,
-  parameters: payload.parameters,
-  errors: payload.errors,
-  results: payload.results,
-  responseCount: payload.response.length,
-});
-
-  const data = payload.response as ApiFixture[];
-
-  fixtureCache.set(date, {
-    data,
-    expiresAt: Date.now() + FIXTURE_CACHE_TTL_MS,
-  });
-
-  return data;
-}
 
 function mapFixture(fixture: ApiFixture) {
   const id = fixture.fixture?.id;

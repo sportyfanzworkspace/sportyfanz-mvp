@@ -11,6 +11,7 @@ import {
   Gift,
   Home,
   MessageCircle,
+  Newspaper,
   Radio,
   Search,
   Settings,
@@ -40,6 +41,11 @@ const navItems = [
     label: "Discover",
     href: "/app/discover",
     icon: Search,
+  },
+  {
+  label: "News",
+  href: "/app/news",
+  icon: Newspaper,
   },
   {
     label: "My Kingdom",

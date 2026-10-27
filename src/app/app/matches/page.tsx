@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 
@@ -53,7 +53,7 @@ function getLagosDate(offsetDays = 0) {
   return date.toISOString().slice(0, 10);
 }
 
-export default function AllMatchesPage() {
+function AllMatchesPageContent() {
   const searchParams = useSearchParams();
 
 const [selectedDate, setSelectedDate] = useState(
@@ -133,9 +133,9 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
       <div className="page-header">
         <div>
           <span>MATCH CENTRE</span>
-          <h1>
+          <h3>
             All {selectedSportSlug.charAt(0).toUpperCase() + selectedSportSlug.slice(1)} Matches
-          </h1>
+          </h3>
         </div>
 
         <Link
@@ -149,7 +149,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
           }}
         >
           <ArrowLeft size={16} />
-          Back to Home
+          Back
         </Link>
       </div>
 
@@ -179,7 +179,10 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
         >
           <button
             type="button"
-            style={filterButtonStyle(matchDay === "today")}
+            style={{
+              ...filterButtonStyle(matchDay === "today"),
+              fontSize: "12px",
+             }}
             aria-pressed={matchDay === "today"}
             onClick={() => chooseDay("today")}
           >
@@ -188,7 +191,10 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
 
           <button
             type="button"
-            style={filterButtonStyle(matchDay === "tomorrow")}
+            style={{
+              ...filterButtonStyle(matchDay === "tomorrow"),
+              fontSize: "12px",
+            }}
             aria-pressed={matchDay === "tomorrow"}
             onClick={() => chooseDay("tomorrow")}
           >
@@ -209,6 +215,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
                 justifyContent: "center",
                 padding: "8px",
                 minWidth: 38,
+                border: "1px solid #16a34a",
               }}
              >
              <CalendarDays size={17} />
@@ -365,7 +372,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
 
                             <strong 
                              style={{ 
-                              fontSize: 16,
+                              fontSize: 12,
                               fontWeight: 700,
                               lineHeight: 1.4,
                               overflowWrap: "anywhere",
@@ -383,7 +390,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
                           justifyItems: "end",
                           gap: 12,
                           fontWeight: 700,
-                          fontSize: 18,
+                          fontSize: 16,
                         }}
                       >
                         <span>{hasScore ? match.homeScore : "—"}</span>
@@ -435,5 +442,14 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
         </div>
       </section>
     </div>
+  );
+}
+
+
+export default function AllMatchesPage() {
+  return (
+    <Suspense fallback={<div className="page">Loading matches...</div>}>
+      <AllMatchesPageContent />
+    </Suspense>
   );
 }

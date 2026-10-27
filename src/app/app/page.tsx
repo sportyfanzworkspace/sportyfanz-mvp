@@ -781,7 +781,7 @@ useEffect(() => {
 
                               <strong
                                 style={{
-                                  fontSize: 16,
+                                  fontSize: 12,
                                   fontWeight: 700,
                                   lineHeight: 1.4,
                                   overflowWrap: "anywhere",
@@ -799,7 +799,7 @@ useEffect(() => {
                             justifyItems: "end",
                             gap: 12,
                             fontWeight: 700,
-                            fontSize: 18,
+                            fontSize: 16,
                           }}
                         >
                           <span>
