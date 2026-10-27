@@ -929,34 +929,27 @@ button {
 .match-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-
   gap: 10px;
 }
 
 .match-card {
   overflow: hidden;
-
   border: 1px solid var(--sf-border);
   border-radius: 10px;
-
   background: white;
 }
 
 .match-card-image {
   height: 100px;
-
   position: relative;
-
   background-position: center;
   background-size: cover;
 }
 
 .match-card-image::after {
   content: "";
-
   position: absolute;
   inset: 0;
-
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.18),
@@ -968,26 +961,18 @@ button {
   position: absolute;
   left: 7px;
   top: 7px;
-
   z-index: 1;
 }
 
 .match-card-time {
   position: absolute;
-
   right: 7px;
   top: 7px;
-
   z-index: 1;
-
   padding: 3px 5px;
-
   border-radius: 4px;
-
   background: rgba(0, 0, 0, 0.5);
-
   color: white;
-
   font-size: 8px;
   font-weight: 800;
 }
@@ -1005,13 +990,11 @@ button {
 
 .match-card-teams strong {
   color: var(--sf-navy);
-
   font-size: 9px;
 }
 
 .match-card-teams span {
   color: var(--sf-green-dark);
-
   font-size: 11px;
   font-weight: 900;
 }
@@ -1020,26 +1003,20 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-top: 8px;
 }
 
 .match-card-footer small {
   color: var(--sf-muted);
-
   font-size: 7px;
 }
 
 .match-card-footer button {
   padding: 5px 8px;
-
   border: 0;
   border-radius: 5px;
-
   background: var(--sf-green-light);
-
   color: var(--sf-green-dark);
-
   font-size: 8px;
   font-weight: 900;
 }
@@ -1048,89 +1025,67 @@ button {
   display: flex;
   align-items: center;
   gap: 9px;
-
   padding: 12px;
-
   border-radius: 10px;
-
   background:
     linear-gradient(
       135deg,
       #073955,
       #06283e
     );
-
   color: white;
 }
 
 .challenge-icon {
   width: 35px;
   height: 35px;
-
   display: grid;
   place-items: center;
-
   flex-shrink: 0;
-
   border-radius: 8px;
-
   background: rgba(53, 211, 125, 0.14);
-
   color: var(--sf-green);
 }
 
 .challenge-card > div:nth-child(2) {
   flex: 1;
-
   min-width: 0;
-
   display: flex;
   flex-direction: column;
 }
 
 .challenge-card span {
   color: #7fc19d;
-
   font-size: 8px;
   font-weight: 800;
 }
 
 .challenge-card strong {
   margin-top: 3px;
-
   font-size: 9px;
 }
 
 .challenge-card small {
   margin-top: 3px;
-
   color: #8ea9b7;
-
   font-size: 7px;
 }
 
 .challenge-card > button {
   padding: 6px 8px;
-
   border: 0;
   border-radius: 5px;
-
   background: var(--sf-green);
-
   color: #062c45;
-
   font-size: 8px;
   font-weight: 900;
 }
 
 .white-panel {
   padding: 14px;
-
   border: 1px solid var(--sf-border);
   border-radius: 10px;
-
   background: white;
-
   box-shadow: 0 4px 18px rgba(7, 44, 69, 0.025);
 }
 
@@ -1138,15 +1093,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-bottom: 13px;
 }
 
 .panel-title h3 {
   margin: 0;
-
   color: var(--sf-navy);
-
   font-size: 11px;
 }
 
@@ -1158,27 +1110,21 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-
   padding: 9px 0;
-
   border-top: 1px solid #edf2f4;
 }
 
 .room-icon {
   width: 28px;
   height: 28px;
-
   display: grid;
   place-items: center;
-
   border-radius: 7px;
-
   background: #f2f7f8;
 }
 
 .room-row > div:nth-child(2) {
   flex: 1;
-
   display: flex;
   flex-direction: column;
 }
@@ -1189,9 +1135,7 @@ button {
 
 .room-row span {
   margin-top: 2px;
-
   color: var(--sf-muted);
-
   font-size: 7px;
 }
 
@@ -1206,7 +1150,6 @@ button {
 .upcoming-list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-
   gap: 9px;
 }
 
@@ -1214,35 +1157,26 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-
   padding: 11px;
-
   border: 1px solid var(--sf-border);
   border-radius: 9px;
-
   background: white;
 }
 
 .team-badge {
   width: 31px;
   height: 31px;
-
   display: grid;
   place-items: center;
-
   border-radius: 8px;
-
   background: #f0f5f7;
-
   color: var(--sf-navy);
-
   font-size: 8px;
   font-weight: 900;
 }
 
 .upcoming-card > div:nth-child(2) {
   flex: 1;
-
   display: flex;
   flex-direction: column;
 }
@@ -1258,9 +1192,7 @@ button {
 
 .upcoming-card small {
   margin-top: 3px;
-
   color: var(--sf-muted);
-
   font-size: 7px;
 }
 
@@ -1270,27 +1202,21 @@ button {
 
 .promo-card {
   grid-area: promo;
-
   display: flex;
   overflow: hidden;
-
   min-height: 118px;
-
   border-radius: 10px;
-
   background:
     linear-gradient(
       120deg,
       #062d46,
       #0a5b78
     );
-
   color: white;
 }
 
 .promo-image {
   width: 40%;
-
   background:
     linear-gradient(
       135deg,

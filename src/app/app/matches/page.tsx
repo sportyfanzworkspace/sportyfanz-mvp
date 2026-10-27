@@ -286,7 +286,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
 
               return (
                <Link
-                 href={`/app/matches/${match.fixtureId}`}
+                 href={`/app/matches/${match.fixtureId}?sport=${encodeURIComponent(selectedSportSlug)}`}
                  className="upcoming-card"
                  key={match.id}
                  style={{
@@ -348,8 +348,8 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
                                 alt=""
                                 loading="lazy"
                                 style={{
-                                  width: 30,
-                                  height: 30,
+                                  width: 24,
+                                  height: 24,
                                   objectFit: "contain",
                                   flexShrink: 0,
                                 }}
@@ -363,7 +363,14 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
                               </div>
                             )}
 
-                            <strong style={{ overflowWrap: "anywhere" }}>
+                            <strong 
+                             style={{ 
+                              fontSize: 16,
+                              fontWeight: 700,
+                              lineHeight: 1.4,
+                              overflowWrap: "anywhere",
+                              }}
+                              >
                               {team.name}
                             </strong>
                           </div>

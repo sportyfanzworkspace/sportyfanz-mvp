@@ -603,14 +603,14 @@ useEffect(() => {
       </div>
 
         
-<div style={{ position: "relative" }}>
-  <button
-    type="button"
-    onClick={() => setShowDatePicker((visible) => !visible)}
-    className="secondary-button"
-    aria-label="Choose match date"
-    aria-expanded={showDatePicker}
-  >
+     <div style={{ position: "relative" }}>
+      <button
+       type="button"
+       onClick={() => setShowDatePicker((visible) => !visible)}
+       className="secondary-button"
+       aria-label="Choose match date"
+       aria-expanded={showDatePicker}
+     >
     <CalendarDays size={18} />
   </button>
 
@@ -701,7 +701,17 @@ useEffect(() => {
                  : kickoffTime;
                 
                 return (
-                  <div className="upcoming-card" key={match.id}>
+                  <Link
+                   href={`/app/matches/${match.fixtureId}?sport=${encodeURIComponent(selectedSportSlug)}`}
+                   className="upcoming-card"
+                   key={`${selectedSportSlug}-${match.id}`}
+                   style={{
+                     display: "block",
+                     color: "inherit",
+                     textDecoration: "none",
+                     cursor: "pointer",
+                    }}
+                    >
                     <div
                       style={{
                         width: "100%",
@@ -754,8 +764,8 @@ useEffect(() => {
                                   alt=""
                                   loading="lazy"
                                   style={{
-                                    width: 30,
-                                    height: 30,
+                                    width: 24,
+                                    height: 24,
                                     objectFit: "contain",
                                     flexShrink: 0,
                                   }}
@@ -771,6 +781,9 @@ useEffect(() => {
 
                               <strong
                                 style={{
+                                  fontSize: 16,
+                                  fontWeight: 700,
+                                  lineHeight: 1.4,
                                   overflowWrap: "anywhere",
                                 }}
                               >
@@ -840,7 +853,7 @@ useEffect(() => {
 
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })
             )}
