@@ -37,6 +37,26 @@ function categoryFor(story: NewsStory) {
     : story.category;
 }
 
+
+function displayHeadline(story: NewsStory) {
+  const title = story.title
+    .replace(/^\s*(breaking|news update)\s*:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (title.length <= 88) return title;
+
+  const sentenceEnd = title.search(/[.!?]\s/);
+  if (sentenceEnd >= 45 && sentenceEnd <= 88) {
+    return title.slice(0, sentenceEnd + 1);
+  }
+
+  const shorter = title.slice(0, 85);
+  const lastSpace = shorter.lastIndexOf(" ");
+
+  return `${shorter.slice(0, lastSpace > 55 ? lastSpace : 85).replace(/[,:;–—-]+$/, "")}…`;
+}
+
 function timeAgo(date: string | null) {
   if (!date) return "Recently";
 
@@ -62,6 +82,7 @@ export default function NewsPage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [commentStory, setCommentStory] = useState<NewsStory | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -178,10 +199,10 @@ export default function NewsPage() {
           <div className="news-hero-content">
             <span className="news-hero-brand">
               <span className="news-brand-mark">S</span>
-              {categoryFor(featured).toUpperCase()} · {featured.source}
+              {categoryFor(featured).toUpperCase()}
             </span>
 
-            <h2>{featured.title}</h2>
+            <h2>{displayHeadline(featured)}</h2>
             <p>{featured.summary || "Read the latest update from the publisher."}</p>
 
             <Link href={articleHref(featured)} className="news-read-button">
@@ -242,47 +263,90 @@ export default function NewsPage() {
         {error && <p role="status">{error}</p>}
 
         <div className="trending-list">
-          {trendingStories.map((story, index) => (
-            <Link
-              className="trending-story"
-              key={story.id}
-              href={articleHref(story)}
-            >
-              {story.image ? (
-                <Image
-                  src={story.image}
-                  alt=""
-                  width={64}
-                  height={54}
-                  unoptimized
-                  className="trending-thumbnail"
-                />
-              ) : (
-                <div className="trending-thumbnail" aria-hidden="true" />
-              )}
+          
+        {trendingStories.map((story, index) => (
+         <div className="trending-story" key={story.id}>
+          <Link
+           className="trending-story-link"
+           href={articleHref(story)}
+          >
+          {story.image ? (
+           <Image
+            src={story.image}
+            alt=""
+            width={64}
+            height={54}
+            unoptimized
+            className="trending-thumbnail"
+          />
+          ) : (
+          <div className="trending-thumbnail" aria-hidden="true" />
+         )}
 
-              <div className="trending-story-content">
-                <span className="trending-category">
-                  {categoryFor(story)} · {story.source}
-                </span>
-                <h3>{story.title}</h3>
+          <div className="trending-story-content">
+            <span className="trending-category">
+              {categoryFor(story)}
+            </span>
+             <h3>{displayHeadline(story)}</h3>
 
-                <div className="trending-meta">
-                  <span>{timeAgo(story.publishedAt)}</span>
-                  <span className="trending-comments">
-                    <MessageCircle size={12} />
-                    News
-                  </span>
-                </div>
-              </div>
+             <div className="trending-meta">
+               <span>{timeAgo(story.publishedAt)}</span>
+               <span>{story.source}</span>
+             </div>
+            </div>
 
-              <span className="trending-row-number">
-                {String(index + 1).padStart(2, "0")}
-              </span>
+             <div className="trending-meta">
+               <span>{timeAgo(story.publishedAt)}</span>
+               <span>{story.source}</span>
+             </div>
             </Link>
+
+              <button
+               type="button"
+               className="trending-comments"
+               aria-label={`Comment on ${story.title}`}
+               onClick={() => setCommentStory(story)}
+              >
+              <MessageCircle size={15} />
+             <span>Comment</span>
+           </button>
+          </div>
           ))}
         </div>
       </section>
+      
+{commentStory && (
+  <div
+    className="news-comment-backdrop"
+    onClick={() => setCommentStory(null)}
+  >
+    <section
+      className="news-comment-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Story comments"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="news-comment-close"
+        onClick={() => setCommentStory(null)}
+        aria-label="Close comments"
+       >
+        ×
+      </button>
+
+       <h2>Fan Comments</h2>
+       <p>{displayHeadline(commentStory)}</p>
+        <p className="news-comment-empty">
+          Comments for this story will appear here.
+        </p>
+         <p className="news-comment-note">
+          Comment posting will be enabled when the fan comments API is connected.
+         </p>
+       </section>
+      </div>
+      )}
     </main>
   );
 }

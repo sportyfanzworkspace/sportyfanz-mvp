@@ -28,6 +28,7 @@ const allowedHosts = [
 function ArticleContent() {
   const params = useSearchParams();
   const url = params.get("url");
+
   const [story, setStory] = useState<NewsStory | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +43,7 @@ function ArticleContent() {
 
       try {
         const parsedUrl = new URL(url);
+
         const allowed = allowedHosts.some(
           (host) =>
             parsedUrl.hostname === host ||
@@ -53,40 +55,73 @@ function ArticleContent() {
           return;
         }
 
-        const response = await fetch("/api/news", { cache: "no-store" });
-        if (!response.ok) throw new Error("Unable to load news");
+        const response = await fetch("/api/news", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to load news");
+        }
 
         const data = await response.json();
-        const found = (data.stories as NewsStory[]).find(
-          (item) => item.link === url
-        );
+        const stories = data.stories as NewsStory[];
 
-        if (!cancelled) setStory(found || null);
+        const found = stories.find((item) => {
+          try {
+            const itemUrl = new URL(item.link);
+            const requestedUrl = new URL(url);
+
+            return (
+              itemUrl.hostname === requestedUrl.hostname &&
+              itemUrl.pathname === requestedUrl.pathname
+            );
+          } catch {
+            return item.link === url;
+          }
+        });
+
+        if (!cancelled) {
+          setStory(found || null);
+        }
       } catch {
-        if (!cancelled) setStory(null);
+        if (!cancelled) {
+          setStory(null);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadStory();
+
     return () => {
       cancelled = true;
     };
   }, [url]);
 
   if (loading) {
-    return <main className="news-page"><p>Loading story…</p></main>;
+    return (
+      <main className="news-page">
+        <p>Loading story…</p>
+      </main>
+    );
   }
 
   if (!story) {
     return (
       <main className="news-page">
         <Link href="/app/news" className="news-read-button">
-          <ArrowLeft size={16} /> Back to Sports News
+          <ArrowLeft size={16} />
+          Back to Sports News
         </Link>
+
         <h1>Story unavailable</h1>
-        <p>This story may have expired from the feed. Please return to the latest news.</p>
+        <p>
+          This story may have expired from the feed.
+          Please return to the latest news.
+        </p>
       </main>
     );
   }
@@ -94,22 +129,44 @@ function ArticleContent() {
   return (
     <main className="news-page">
       <Link href="/app/news" className="news-read-button">
-        <ArrowLeft size={16} /> Back to Sports News
+        <ArrowLeft size={16} />
+        Back to Sports News
       </Link>
 
-      <article style={{ maxWidth: 900, margin: "28px auto" }}>
-        <span className="news-eyebrow">
-          {story.category} · {story.source}
+      <article
+        style={{
+          maxWidth: 900,
+          margin: "28px auto",
+          color: "#111111",
+        }}
+      >
+        <span
+          className="news-eyebrow"
+          style={{ color: "#222222" }}
+        >
+          {story.category}
         </span>
-        <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: 1.15 }}>
+
+        <h1
+          style={{
+            color: "#111111",
+            fontSize: "clamp(2rem, 5vw, 3.5rem)",
+            lineHeight: 1.15,
+            marginTop: 12,
+          }}
+        >
           {story.title}
         </h1>
 
-        <p style={{ color: "var(--sf-muted)", margin: "16px 0 24px" }}>
+        <p
+          style={{
+            color: "#444444",
+            margin: "16px 0 24px",
+          }}
+        >
           {story.publishedAt
             ? new Date(story.publishedAt).toLocaleString()
-            : "Latest update"}{" "}
-          · Published by {story.source}
+            : "Latest update"}
         </p>
 
         {story.image && (
@@ -125,7 +182,7 @@ function ArticleContent() {
           >
             <Image
               src={story.image}
-              alt=""
+              alt={story.title}
               fill
               unoptimized
               sizes="(max-width: 900px) 100vw, 900px"
@@ -134,24 +191,60 @@ function ArticleContent() {
           </div>
         )}
 
-        <p style={{ fontSize: "1.15rem", lineHeight: 1.8 }}>
-          {story.summary || "Read the original publisher's report for the full story."}
-        </p>
-
-        <p style={{ marginTop: 16, lineHeight: 1.8 }}>
-          This is a news summary from {story.source}. Visit the publisher for
-          the complete report, additional context and any updates.
-        </p>
-
-        <a
-          href={story.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="news-read-button"
-          style={{ display: "inline-flex", marginTop: 24, gap: 10 }}
+        <div
+          className="news-article-body"
+          style={{
+            color: "#111111",
+            background: "#ffffff",
+            fontSize: 18,
+            lineHeight: 1.9,
+            maxWidth: 760,
+            margin: "0 auto",
+          }}
         >
-          Read original article <ExternalLink size={16} />
-        </a>
+          <h2
+            style={{
+              color: "#111111",
+              fontSize: 26,
+              lineHeight: 1.3,
+              marginBottom: 18,
+            }}
+          >
+            Story Summary
+          </h2>
+
+          {story.summary ? (
+            story.summary
+              .split(/\n{2,}/)
+              .map((paragraph, index) => (
+                <p
+                  key={index}
+                  style={{
+                    color: "#111111",
+                    margin: "0 0 22px",
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {paragraph.trim()}
+                </p>
+              ))
+          ) : (
+            <p style={{ color: "#111111" }}>
+              A detailed summary is not available in the current news feed.
+            </p>
+          )}
+
+          <a
+            href={story.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="news-read-button"
+            style={{ marginTop: 24 }}
+          >
+            Read the complete article
+            <ExternalLink size={16} />
+          </a>
+        </div>
       </article>
     </main>
   );
@@ -159,7 +252,13 @@ function ArticleContent() {
 
 export default function NewsArticlePage() {
   return (
-    <Suspense fallback={<main className="news-page"><p>Loading story…</p></main>}>
+    <Suspense
+      fallback={
+        <main className="news-page">
+          <p>Loading story…</p>
+        </main>
+      }
+    >
       <ArticleContent />
     </Suspense>
   );

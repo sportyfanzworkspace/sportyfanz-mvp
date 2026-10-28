@@ -223,6 +223,9 @@ model User {
   predictions             Prediction[]
   pollVotes               PollVote[]
   triviaAttempts          TriviaAttempt[]
+  newsComments            NewsComment[]
+  newsViews               NewsView[]
+  newsCommentLikes        NewsCommentLike[]
 
   @@index([status])
   @@index([createdAt])
@@ -992,6 +995,58 @@ model AdminUser {
   updatedAt          temporal.updatedAtString()
 
   @@map("admin_users")
+}
+
+// ============================================================
+// NEWS ENGAGEMENT
+// ============================================================
+
+model NewsComment {
+  id        Int      @id @default(autoincrement())
+  articleUrl String
+  userId    Int
+  body      String
+  parentId  Int?
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  user      User          @relation(fields: [userId], references: [id])
+  parent    NewsComment?  @relation("NewsCommentReplies", fields: [parentId], references: [id])
+  replies   NewsComment[] @relation("NewsCommentReplies")
+  likes     NewsCommentLike[]
+
+  @@index([articleUrl, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@map("news_comments")
+}
+
+model NewsCommentLike {
+  id        Int      @id @default(autoincrement())
+  commentId Int
+  userId    Int
+  createdAt TimestamptzString @default(now())
+
+  comment   NewsComment @relation(fields: [commentId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@map("news_comment_likes")
+}
+
+model NewsView {
+  id        Int      @id @default(autoincrement())
+  articleUrl String
+  userId    Int?
+  visitorKey String?
+  createdAt TimestamptzString @default(now())
+
+  user      User? @relation(fields: [userId], references: [id])
+
+  @@index([articleUrl, createdAt])
+  @@index([userId, articleUrl])
+  @@map("news_views")
 }
 
 // ============================================================

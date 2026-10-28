@@ -11,7 +11,7 @@ const parser = new Parser({
     "User-Agent": "SportyFanzNews/1.0",
   },
   customFields: {
-    item: ["media:content", "media:thumbnail", "enclosure"],
+    item: ["media:content", "media:thumbnail", "enclosure", "content:encoded"],
   },
 });
 
@@ -37,16 +37,77 @@ type NewsStory = {
   image: string | null;
 };
 
-function getImage(item: Record<string, unknown>): string | null {
-  const enclosure = item.enclosure as
-    | { url?: string; type?: string }
-    | undefined;
+type FeedItem = Parser.Item & {
+  "content:encoded"?: string;
+  "media:content"?: unknown;
+  "media:thumbnail"?: unknown;
+  enclosure?: {
+    url?: string;
+    type?: string;
+  };
+};
+
+function decodeFeedText(value: string): string {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p\s*>/gi, "\n\n")
+    .replace(/<\/div\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\d+);/g, (_, number: string) => {
+      const code = Number(number);
+      return code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code)
+        : " ";
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, number: string) => {
+      const code = parseInt(number, 16);
+      return code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code)
+        : " ";
+    })
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function extractSummary(item: FeedItem): string {
+  const candidates = [
+    item["content:encoded"],
+    item.content,
+    item.contentSnippet,
+    item.summary,
+  ];
+
+  const cleaned = candidates
+    .filter((value): value is string => typeof value === "string")
+    .map(decodeFeedText)
+    .filter(Boolean);
+
+  // Use the longest text actually provided by the feed.
+  return cleaned.sort((a, b) => b.length - a.length)[0]?.slice(0, 5000) ?? "";
+}
+
+function getImage(item: FeedItem): string | null {
+  const enclosure = item.enclosure;
 
   if (enclosure?.url && enclosure.type?.startsWith("image/")) {
     return enclosure.url;
   }
 
-  const mediaContent = item["media:content"] as
+  const raw = item as Record<string, unknown>;
+
+  const mediaContent = raw["media:content"] as
     | { $?: { url?: string } }
     | { $?: { url?: string } }[]
     | undefined;
@@ -57,38 +118,69 @@ function getImage(item: Record<string, unknown>): string | null {
 
   if (media?.$?.url) return media.$.url;
 
-  const thumbnail = item["media:thumbnail"] as
+  const thumbnail = raw["media:thumbnail"] as
     | { $?: { url?: string } }
     | undefined;
 
-  if (thumbnail?.$?.url) return thumbnail.$.url;
-
-  return null;
+  return thumbnail?.$?.url ?? null;
 }
 
 function getCategory(title: string, categories?: string[]): string {
-  if (categories?.length && categories[0]) {
-    return categories[0];
-  }
-
   const text = title.toLowerCase();
 
+  if (/rugby/.test(text)) return "Rugby";
+  if (/cricket/.test(text)) return "Cricket";
+  if (/formula.?1|f1|grand prix|motorsport/.test(text)) {
+    return "Formula 1";
+  }
+  if (/tennis|wimbledon|atp|wta/.test(text)) return "Tennis";
+  if (/basketball|nba/.test(text)) return "Basketball";
   if (/transfer|signing|contract/.test(text)) return "Transfers";
-  if (/premier league|manchester|arsenal|chelsea|liverpool/.test(text)) {
+  if (/football|premier league|champions league|soccer/.test(text)) {
     return "Football";
   }
-  if (/basketball|nba/.test(text)) return "Basketball";
-  if (/tennis|wimbledon|atp|wta/.test(text)) return "Tennis";
+
+  const supplied = categories?.[0]?.trim();
+
+  if (
+    supplied &&
+    !/^(sports|news story|article\/blog|liveblog)$/i.test(supplied)
+  ) {
+    return supplied;
+  }
 
   return "Sports";
 }
 
+function canonicalUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    url.hash = "";
+
+    // Remove tracking parameters so duplicate feed entries can be merged.
+    for (const key of [...url.searchParams.keys()]) {
+      if (
+        key.startsWith("utm_") ||
+        ["at_medium", "at_campaign", "ocid"].includes(key)
+      ) {
+        url.searchParams.delete(key);
+      }
+    }
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return value.split("?")[0].replace(/\/$/, "");
+  }
+}
+
 export async function GET() {
   const results = await Promise.all(
-    FEEDS.map(async (feed) => {
+    FEEDS.map(async (feed): Promise<NewsStory[]> => {
       try {
         const response = await fetch(feed.url, {
-          headers: { "User-Agent": "SportyFanzNews/1.0" },
+          headers: {
+            "User-Agent": "SportyFanzNews/1.0",
+          },
           signal: AbortSignal.timeout(10000),
           next: { revalidate: 600 },
         });
@@ -100,32 +192,31 @@ export async function GET() {
         const xml = await response.text();
         const parsed = await parser.parseString(xml);
 
-        return parsed.items.map((item) => {
-          const title = (item.title || "Sports news").trim();
-          const link = (item.link || "").trim();
-          const rawDate = item.isoDate || item.pubDate;
-          const date = rawDate ? new Date(rawDate) : null;
-          const validDate =
-            date && !Number.isNaN(date.getTime()) ? date.toISOString() : null;
+        return parsed.items
+          .map((rawItem): NewsStory => {
+            const item = rawItem as FeedItem;
+            const title = (item.title || "Sports news").trim();
+            const link = (item.link || "").trim();
+            const rawDate = item.isoDate || item.pubDate;
+            const date = rawDate ? new Date(rawDate) : null;
 
-          const rawItem = item as unknown as Record<string, unknown>;
-          const summary = (item.contentSnippet || item.content || "")
-            .replace(/<[^>]*>/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 700);
+            const validDate =
+              date && !Number.isNaN(date.getTime())
+                ? date.toISOString()
+                : null;
 
-          return {
-            id: `${feed.name}-${link || title}`,
-            title,
-            summary,
-            category: getCategory(title, item.categories),
-            source: feed.name,
-            publishedAt: validDate,
-            link,
-            image: getImage(rawItem),
-          } satisfies NewsStory;
-        }).filter((story) => story.link);
+            return {
+              id: `${feed.name}-${canonicalUrl(link) || title}`,
+              title,
+              summary: extractSummary(item),
+              category: getCategory(title, item.categories),
+              source: feed.name,
+              publishedAt: validDate,
+              link,
+              image: getImage(item),
+            };
+          })
+          .filter((story) => story.link);
       } catch (error) {
         console.error(`SportyFanz news feed error (${feed.name}):`, error);
         return [];
@@ -138,19 +229,25 @@ export async function GET() {
   const stories = results
     .flat()
     .filter((story) => {
-      const key = story.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const key = canonicalUrl(story.link);
+
       if (seen.has(key)) return false;
+
       seen.add(key);
       return true;
     })
     .sort((a, b) => {
       const dateA = a.publishedAt ? Date.parse(a.publishedAt) : 0;
       const dateB = b.publishedAt ? Date.parse(b.publishedAt) : 0;
+
       return dateB - dateA;
     });
 
   return NextResponse.json(
-    { stories, updatedAt: new Date().toISOString() },
+    {
+      stories,
+      updatedAt: new Date().toISOString(),
+    },
     {
       headers: {
         "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200",
