@@ -16,6 +16,18 @@ type NewsStory = {
   publishedAt: string | null;
   link: string;
   image: string | null;
+  feedSummary?: string;
+  articleSummary?: string;
+};
+
+type NewsResponse = {
+  stories: NewsStory[];
+};
+
+type SummaryResponse = {
+  feedSummary?: string;
+  articleSummary?: string;
+  error?: string;
 };
 
 const allowedHosts = [
@@ -25,36 +37,46 @@ const allowedHosts = [
   "skysports.com",
 ];
 
+function isAllowedArticleUrl(value: string): boolean {
+  try {
+    const parsedUrl = new URL(value);
+
+    return (
+      parsedUrl.protocol === "https:" &&
+      allowedHosts.some(
+        (host) =>
+          parsedUrl.hostname.toLowerCase() === host ||
+          parsedUrl.hostname.toLowerCase().endsWith(`.${host}`)
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
 function ArticleContent() {
   const params = useSearchParams();
   const url = params.get("url");
 
   const [story, setStory] = useState<NewsStory | null>(null);
   const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
+  // Load the requested story from the existing news feed.
   useEffect(() => {
     let cancelled = false;
 
     async function loadStory() {
-      if (!url) {
+      setLoading(true);
+      setStory(null);
+      setSummaryLoading(false);
+
+      if (!url || !isAllowedArticleUrl(url)) {
         setLoading(false);
         return;
       }
 
       try {
-        const parsedUrl = new URL(url);
-
-        const allowed = allowedHosts.some(
-          (host) =>
-            parsedUrl.hostname === host ||
-            parsedUrl.hostname.endsWith(`.${host}`)
-        );
-
-        if (parsedUrl.protocol !== "https:" || !allowed) {
-          setLoading(false);
-          return;
-        }
-
         const response = await fetch("/api/news", {
           cache: "no-store",
         });
@@ -63,27 +85,30 @@ function ArticleContent() {
           throw new Error("Unable to load news");
         }
 
-        const data = await response.json();
-        const stories = data.stories as NewsStory[];
+        const data: NewsResponse = await response.json();
 
-        const found = stories.find((item) => {
+        const requestedUrl = new URL(url);
+
+        const found = data.stories.find((item) => {
           try {
             const itemUrl = new URL(item.link);
-            const requestedUrl = new URL(url);
 
             return (
-              itemUrl.hostname === requestedUrl.hostname &&
+              itemUrl.hostname.toLowerCase() ===
+                requestedUrl.hostname.toLowerCase() &&
               itemUrl.pathname === requestedUrl.pathname
             );
           } catch {
-            return item.link === url;
+            return false;
           }
         });
 
         if (!cancelled) {
-          setStory(found || null);
+          setStory(found ?? null);
         }
-      } catch {
+      } catch (error) {
+        console.error("Unable to load news article:", error);
+
         if (!cancelled) {
           setStory(null);
         }
@@ -94,12 +119,85 @@ function ArticleContent() {
       }
     }
 
-    loadStory();
+    void loadStory();
 
     return () => {
       cancelled = true;
     };
   }, [url]);
+
+  // Request a longer summary only after the story has loaded.
+  useEffect(() => {
+    if (!story || !isAllowedArticleUrl(story.link)) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const currentLink = story.link;
+
+    async function generateSummary() {
+      setSummaryLoading(true);
+
+      try {
+        const response = await fetch("/api/news/summary", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: story!.title,
+            sourceText:
+              story!.summary?.trim() ||
+              story!.feedSummary?.trim() ||
+              "",
+            url: currentLink,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Summary request failed: ${response.status}`
+          );
+        }
+
+        const data: SummaryResponse = await response.json();
+
+        if (
+          !cancelled &&
+          typeof data.articleSummary === "string" &&
+          data.articleSummary.trim()
+        ) {
+          setStory((current) => {
+            if (!current || current.link !== currentLink) {
+              return current;
+            }
+
+            return {
+              ...current,
+              feedSummary:
+                data.feedSummary?.trim() ||
+                current.feedSummary,
+              articleSummary: data.articleSummary!.trim(),
+            };
+          });
+        }
+      } catch (error) {
+        // Keep the RSS summary visible if Gemini is unavailable.
+        console.error("Article summary unavailable:", error);
+      } finally {
+        if (!cancelled) {
+          setSummaryLoading(false);
+        }
+      }
+    }
+
+    void generateSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [story?.link]);
 
   if (loading) {
     return (
@@ -118,6 +216,7 @@ function ArticleContent() {
         </Link>
 
         <h1>Story unavailable</h1>
+
         <p>
           This story may have expired from the feed.
           Please return to the latest news.
@@ -126,11 +225,17 @@ function ArticleContent() {
     );
   }
 
+  const articleText =
+    story.articleSummary?.trim() ||
+    story.feedSummary?.trim() ||
+    story.summary?.trim() ||
+    "A detailed summary is not available for this story yet.";
+
   return (
     <main className="news-page">
       <Link href="/app/news" className="news-read-button">
         <ArrowLeft size={16} />
-        Back to Sports News
+        Back
       </Link>
 
       <article
@@ -213,26 +318,30 @@ function ArticleContent() {
             Story Summary
           </h2>
 
-          {story.summary ? (
-            story.summary
-              .split(/\n{2,}/)
+          <div className="news-article-summary">
+            {articleText
+              .split(/\n\s*\n/)
+              .map((paragraph) => paragraph.trim())
+              .filter(Boolean)
               .map((paragraph, index) => (
-                <p
-                  key={index}
-                  style={{
-                    color: "#111111",
-                    margin: "0 0 22px",
-                    whiteSpace: "pre-line",
-                  }}
-                >
-                  {paragraph.trim()}
-                </p>
-              ))
-          ) : (
-            <p style={{ color: "#111111" }}>
-              A detailed summary is not available in the current news feed.
-            </p>
-          )}
+             <p
+              key={index}
+              className="mb-4 leading-7"
+             >
+               {paragraph}
+             </p>
+             ))}
+            {summaryLoading && (
+              <p
+                style={{
+                  color: "#666666",
+                  fontSize: 14,
+                }}
+              >
+                Preparing a more detailed story summary…
+              </p>
+            )}
+          </div>
 
           <a
             href={story.link}
