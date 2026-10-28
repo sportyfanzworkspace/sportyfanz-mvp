@@ -226,6 +226,7 @@ model User {
   newsComments            NewsComment[]
   newsViews               NewsView[]
   newsCommentLikes        NewsCommentLike[]
+  newsArticleLikes        NewsArticleLike[]
 
   @@index([status])
   @@index([createdAt])
@@ -1047,6 +1048,20 @@ model NewsView {
   @@index([articleUrl, createdAt])
   @@index([userId, articleUrl])
   @@map("news_views")
+}
+
+model NewsArticleLike {
+  id         Int      @id @default(autoincrement())
+  articleUrl String
+  userId     Int
+  createdAt  TimestamptzString @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([articleUrl, userId])
+  @@index([articleUrl])
+  @@index([userId])
+  @@map("news_article_likes")
 }
 
 // ============================================================

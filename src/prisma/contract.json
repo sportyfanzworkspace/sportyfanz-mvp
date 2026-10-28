@@ -48,6 +48,10 @@
       "model": "Match",
       "namespace": "public"
     },
+    "news_article_likes": {
+      "model": "NewsArticleLike",
+      "namespace": "public"
+    },
     "news_comment_likes": {
       "model": "NewsCommentLike",
       "namespace": "public"
@@ -2502,6 +2506,74 @@
               "table": "match_events"
             }
           },
+          "NewsArticleLike": {
+            "fields": {
+              "articleUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "articleUrl": {
+                  "column": "articleUrl"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "news_article_likes"
+            }
+          },
           "NewsComment": {
             "fields": {
               "articleUrl": {
@@ -4918,6 +4990,21 @@
                   "namespace": "public"
                 }
               },
+              "newsArticleLikes": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "NewsArticleLike",
+                  "namespace": "public"
+                }
+              },
               "newsCommentLikes": {
                 "cardinality": "1:N",
                 "on": {
@@ -7138,6 +7225,87 @@
                 {
                   "columns": [
                     "apiFootballFixtureId"
+                  ]
+                }
+              ]
+            },
+            "news_article_likes": {
+              "columns": {
+                "articleUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "news_article_likes"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "articleUrl"
+                  ],
+                  "name": "news_article_likes_articleUrl_idx_52fec833",
+                  "prefix": "news_article_likes_articleUrl_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "news_article_likes_userId_idx_a489d58a",
+                  "prefix": "news_article_likes_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "articleUrl",
+                    "userId"
                   ]
                 }
               ]
@@ -9778,7 +9946,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "fe094cb09127efe46faf0af9d2e636a1d998e0b4b21506d79640126e00446842"
+    "storageHash": "7947813d4472085a1c933b1413df8d6d1c445e94476229145b8621b4948a7dd6"
   },
   "execution": {
     "executionHash": "81e0b4cf2257ff83766064910f280ca8d53db6fc6a911e15ea4e51ead92be13a",

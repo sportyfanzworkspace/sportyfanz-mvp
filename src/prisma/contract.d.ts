@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'fe094cb09127efe46faf0af9d2e636a1d998e0b4b21506d79640126e00446842'>;
+  StorageHashBase<'7947813d4472085a1c933b1413df8d6d1c445e94476229145b8621b4948a7dd6'>;
 export type ExecutionHash =
   ExecutionHashBase<'81e0b4cf2257ff83766064910f280ca8d53db6fc6a911e15ea4e51ead92be13a'>;
 export type ProfileHash =
@@ -416,6 +416,12 @@ export type FieldOutputTypes = {
         | 'VAR'
         | 'PERIOD_START'
         | 'PERIOD_END';
+    };
+    readonly NewsArticleLike: {
+      readonly articleUrl: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly NewsComment: {
       readonly articleUrl: CodecTypes['pg/text@1']['output'];
@@ -807,6 +813,12 @@ export type FieldInputTypes = {
         | 'PERIOD_START'
         | 'PERIOD_END';
     };
+    readonly NewsArticleLike: {
+      readonly articleUrl: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
+    };
     readonly NewsComment: {
       readonly articleUrl: CodecTypes['pg/text@1']['input'];
       readonly body: CodecTypes['pg/text@1']['input'];
@@ -1197,6 +1209,12 @@ export type StorageColumnTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly venue: CodecTypes['pg/text@1']['output'] | null;
     };
+    readonly news_article_likes: {
+      readonly articleUrl: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
+    };
     readonly news_comment_likes: {
       readonly commentId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -1586,6 +1604,12 @@ export type StorageColumnInputTypes = {
       readonly status: 'SCHEDULED' | 'LIVE' | 'HALF_TIME' | 'FINISHED' | 'POSTPONED' | 'CANCELLED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly venue: CodecTypes['pg/text@1']['input'] | null;
+    };
+    readonly news_article_likes: {
+      readonly articleUrl: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly news_comment_likes: {
       readonly commentId: CodecTypes['pg/int4@1']['input'];
@@ -2009,6 +2033,14 @@ export namespace Models {
     player: public_Player | null;
     readonly [RelationKeys]?: 'match' | 'player';
   };
+  export type public_NewsArticleLike = {
+    articleUrl: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
   export type public_NewsComment = {
     articleUrl: CodecTypes['pg/text@1']['output'];
     body: CodecTypes['pg/text@1']['output'];
@@ -2265,6 +2297,7 @@ export namespace Models {
     followedPlayers: public_UserPlayerFollow[];
     followedSports: public_UserSportFollow[];
     followedTeams: public_UserTeamFollow[];
+    newsArticleLikes: public_NewsArticleLike[];
     newsCommentLikes: public_NewsCommentLike[];
     newsComments: public_NewsComment[];
     newsViews: public_NewsView[];
@@ -2284,6 +2317,7 @@ export namespace Models {
       | 'followedPlayers'
       | 'followedSports'
       | 'followedTeams'
+      | 'newsArticleLikes'
       | 'newsCommentLikes'
       | 'newsComments'
       | 'newsViews'
@@ -2345,6 +2379,7 @@ export declare const models: {
     FanRoomMessage: Models.public_FanRoomMessage;
     Match: Models.public_Match;
     MatchEvent: Models.public_MatchEvent;
+    NewsArticleLike: Models.public_NewsArticleLike;
     NewsComment: Models.public_NewsComment;
     NewsCommentLike: Models.public_NewsCommentLike;
     NewsView: Models.public_NewsView;
@@ -3677,6 +3712,65 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'teams';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly news_article_likes: {
+              columns: {
+                readonly articleUrl: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly userId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['articleUrl', 'userId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'news_article_likes_articleUrl_idx_52fec833';
+                  readonly prefix: 'news_article_likes_articleUrl_idx';
+                  readonly columns: readonly ['articleUrl'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'news_article_likes_userId_idx_a489d58a';
+                  readonly prefix: 'news_article_likes_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'news_article_likes';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -5737,6 +5831,10 @@ type ContractBase = Omit<
       readonly model: 'MatchEvent';
     };
     readonly matches: { readonly namespace: 'public' & NamespaceId; readonly model: 'Match' };
+    readonly news_article_likes: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'NewsArticleLike';
+    };
     readonly news_comment_likes: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'NewsCommentLike';
@@ -6919,6 +7017,50 @@ type ContractBase = Omit<
                 readonly second: { readonly column: 'second' };
                 readonly teamId: { readonly column: 'teamId' };
                 readonly type: { readonly column: 'type' };
+              };
+            };
+          };
+          readonly NewsArticleLike: {
+            readonly fields: {
+              readonly articleUrl: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'news_article_likes';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly articleUrl: { readonly column: 'articleUrl' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly userId: { readonly column: 'userId' };
               };
             };
           };
@@ -8442,6 +8584,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'UserTeamFollow';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
+              readonly newsArticleLikes: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'NewsArticleLike';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {

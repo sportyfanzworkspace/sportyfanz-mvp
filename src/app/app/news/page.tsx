@@ -4,7 +4,14 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MessageCircle, Eye } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+  Eye,
+  Heart,
+  Send,
+} from "lucide-react";
 
 type NewsStory = {
   id: string;
@@ -23,6 +30,22 @@ type NewsStory = {
 type NewsResponse = {
   stories: NewsStory[];
   updatedAt: string | null;
+};
+
+type NewsComment = {
+  id: number;
+  body: string;
+  createdAt: string;
+  author: string;
+  userId: number;
+};
+
+type Engagement = {
+  views: number;
+  likes: number;
+  likedByMe: boolean;
+  commentsCount: number;
+  comments: NewsComment[];
 };
 
 function categoryFor(story: NewsStory) {
@@ -101,6 +124,13 @@ export default function NewsPage() {
   const [commentStory, setCommentStory] = useState<NewsStory | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [engagement, setEngagement] = useState<
+  Record<string, Engagement>
+>({});
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [engagementError, setEngagementError] = useState("");
+  const [likeLoading, setLikeLoading] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -164,6 +194,14 @@ export default function NewsPage() {
     };
   }, [retryCount]);
 
+  useEffect(() => {
+  if (!stories.length) return;
+
+  stories.forEach((story) => {
+    void loadEngagement(story);
+  });
+}, [stories]);
+
   const featuredStories = stories
   .filter((story) => story.image)
   .slice(0, 7);
@@ -189,6 +227,102 @@ export default function NewsPage() {
   function retryLoadingNews() {
     setRetryCount((current) => current + 1);
   }
+
+  async function loadEngagement(story: NewsStory) {
+  try {
+    const response = await fetch(
+      `/api/news/engagement?url=${encodeURIComponent(story.link)}`,
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load engagement.");
+    }
+
+    setEngagement((current) => ({
+      ...current,
+      [story.link]: data,
+    }));
+  } catch (error) {
+    setEngagementError(
+      error instanceof Error ? error.message : "Unable to load comments."
+    );
+  }
+}
+
+async function toggleArticleLike(story: NewsStory) {
+  setLikeLoading(story.link);
+  setEngagementError("");
+
+  try {
+    const response = await fetch("/api/news/engagement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: story.link, action: "like" }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to update like.");
+    }
+
+    setEngagement((current) => ({
+      ...current,
+      [story.link]: {
+        ...(current[story.link] ?? {
+          views: 0,
+          commentsCount: 0,
+          comments: [],
+        }),
+        likes: data.likes,
+        likedByMe: data.likedByMe,
+      },
+    }));
+  } catch (error) {
+    setEngagementError(
+      error instanceof Error ? error.message : "Unable to update like."
+    );
+  } finally {
+    setLikeLoading(null);
+  }
+}
+
+async function postComment() {
+  if (!commentStory || !commentText.trim() || commentLoading) return;
+
+  setCommentLoading(true);
+  setEngagementError("");
+
+  try {
+    const response = await fetch("/api/news/engagement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: commentStory.link,
+        action: "comment",
+        text: commentText,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to post comment.");
+    }
+
+    await loadEngagement(commentStory);
+    setCommentText("");
+  } catch (error) {
+    setEngagementError(
+      error instanceof Error ? error.message : "Unable to post comment."
+    );
+  } finally {
+    setCommentLoading(false);
+  }
+}
 
   if (loading) {
     return (
@@ -381,14 +515,47 @@ export default function NewsPage() {
                 </div>
               </Link>
 
-              <button
-                type="button"
-                className="trending-comments"
-                aria-label={`View comments for ${story.title}`}
-                onClick={() => setCommentStory(story)}
+                <div className="trending-engagement">
+                  <span className="trending-views" title="Article views">
+                    <Eye size={15} />
+                    {(engagement[story.link]?.views ?? story.views ?? 0).toLocaleString()}
+                  </span>
+
+                <button
+                  type="button"
+                  className={`trending-like ${
+                    engagement[story.link]?.likedByMe ? "is-liked" : ""
+                  }`}
+                  aria-label={
+                  engagement[story.link]?.likedByMe
+                  ? "Unlike this story"
+                  : "Like this story"
+                }
+                 disabled={likeLoading === story.link}
+                 onClick={() => void toggleArticleLike(story)}
+                >
+                <Heart
+                 size={16}
+                 fill={engagement[story.link]?.likedByMe ? "currentColor" : "none"}
+                />
+                <span>{engagement[story.link]?.likes ?? 0}</span>
+              </button>
+
+             <button
+              type="button"
+              className="trending-comments"
+              aria-label={`View comments for ${story.title}`}
+              onClick={() => {
+                setCommentStory(story);
+                setCommentText("");
+                setEngagementError("");
+                void loadEngagement(story);
+              }}
               >
                 <MessageCircle size={15} />
+                <span>{engagement[story.link]?.commentsCount ?? 0}</span>
               </button>
+             </div>
             </div>
           ))}
         </div>
@@ -418,14 +585,46 @@ export default function NewsPage() {
             <h2>Fan Comments</h2>
             <p>{displayHeadline(commentStory)}</p>
 
-            <p className="news-comment-empty">
-              Comments for this story will appear here.
-            </p>
+               {engagementError && (
+                <p role="alert" className="news-comment-note">
+                  {engagementError}
+                </p>
+               )}
 
-            <p className="news-comment-note">
-              Comment posting will be enabled when the fan comments API is
-              connected.
-            </p>
+               {(engagement[commentStory.link]?.comments ?? []).map((comment) => (
+                <div key={comment.id} className="news-comment-item">
+                 <strong>{comment.author}</strong>
+                   <p>{comment.body}</p>
+                 <small>{new Date(comment.createdAt).toLocaleString()}</small>
+               </div>
+                ))}
+
+               {engagement[commentStory.link]?.comments.length === 0 && (
+               <p className="news-comment-empty">
+                 No comments yet. Start the conversation!
+               </p>
+              )}
+
+              <form
+               onSubmit={(event) => {
+                event.preventDefault();
+                void postComment();
+               }}
+              >
+              <textarea
+               value={commentText}
+               onChange={(event) => setCommentText(event.target.value)}
+               placeholder="Share your thoughts..."
+               maxLength={2000}
+               rows={3}
+               required
+             />
+
+            <button type="submit" disabled={commentLoading || !commentText.trim()}>
+              <Send size={15} />
+               {commentLoading ? "Posting..." : "Post comment"}
+            </button>
+           </form>
           </section>
         </div>
       )}

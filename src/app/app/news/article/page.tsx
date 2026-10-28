@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, Heart, Eye, MessageCircle, Send } from "lucide-react";
 
 type NewsStory = {
   id: string;
@@ -28,6 +28,22 @@ type SummaryResponse = {
   feedSummary?: string;
   articleSummary?: string;
   error?: string;
+};
+
+type NewsComment = {
+  id: number;
+  body: string;
+  createdAt: string;
+  author: string;
+  userId: number;
+};
+
+type Engagement = {
+  views: number;
+  likes: number;
+  likedByMe: boolean;
+  commentsCount: number;
+  comments: NewsComment[];
 };
 
 const allowedHosts = [
@@ -61,6 +77,18 @@ function ArticleContent() {
   const [story, setStory] = useState<NewsStory | null>(null);
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [engagement, setEngagement] = useState<Engagement>({
+  views: 0,
+  likes: 0,
+  likedByMe: false,
+  commentsCount: 0,
+  comments: [],
+});
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [engagementError, setEngagementError] = useState("");
 
   // Load the requested story from the existing news feed.
   useEffect(() => {
@@ -198,6 +226,146 @@ function ArticleContent() {
       cancelled = true;
     };
   }, [story?.link]);
+
+  // Record a view and load the current engagement for this article.
+useEffect(() => {
+  if (!story?.link) return;
+
+  let cancelled = false;
+
+  async function loadEngagement() {
+    try {
+      const viewResponse = await fetch("/api/news/engagement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: story!.link,
+          action: "view",
+        }),
+      });
+
+      // Continue loading engagement even if view recording fails.
+      const response = await fetch(
+        `/api/news/engagement?url=${encodeURIComponent(story!.link)}`,
+        { cache: "no-store" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to load article engagement.");
+      }
+
+      if (!cancelled) {
+        setEngagement(data);
+      }
+
+      if (!viewResponse.ok && viewResponse.status !== 401) {
+        console.warn("Unable to record article view.");
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setEngagementError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load article engagement."
+        );
+      }
+    }
+  }
+
+  void loadEngagement();
+
+  return () => {
+    cancelled = true;
+  };
+}, [story?.link]);
+
+async function toggleLike() {
+  if (!story || likeLoading) return;
+
+  setLikeLoading(true);
+  setEngagementError("");
+
+  try {
+    const response = await fetch("/api/news/engagement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: story.link,
+        action: "like",
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to update like.");
+    }
+
+    setEngagement((current) => ({
+      ...current,
+      likes: data.likes,
+      likedByMe: data.likedByMe,
+    }));
+  } catch (error) {
+    setEngagementError(
+      error instanceof Error ? error.message : "Unable to update like."
+    );
+  } finally {
+    setLikeLoading(false);
+  }
+}
+
+async function submitComment(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  if (!story || !commentText.trim() || commentLoading) return;
+
+  setCommentLoading(true);
+  setEngagementError("");
+
+  try {
+    const response = await fetch("/api/news/engagement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: story.link,
+        action: "comment",
+        text: commentText.trim(),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to post comment.");
+    }
+
+    setCommentText("");
+
+    // Reload counts and comments so both remain in sync.
+    const refreshResponse = await fetch(
+      `/api/news/engagement?url=${encodeURIComponent(story.link)}`,
+      { cache: "no-store" }
+    );
+
+    const refreshed = await refreshResponse.json();
+
+    if (!refreshResponse.ok) {
+      throw new Error(refreshed.error || "Comment posted, but refresh failed.");
+    }
+
+    setEngagement(refreshed);
+    setCommentsOpen(true);
+  } catch (error) {
+    setEngagementError(
+      error instanceof Error ? error.message : "Unable to post comment."
+    );
+  } finally {
+    setCommentLoading(false);
+  }
+}
 
   if (loading) {
     return (
@@ -343,16 +511,166 @@ function ArticleContent() {
             )}
           </div>
 
-          <a
-            href={story.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="news-read-button"
-            style={{ marginTop: 24 }}
+           <div
+  className="news-article-engagement"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 20,
+    padding: "18px 0",
+    marginTop: 12,
+    borderTop: "1px solid #e5e7eb",
+    borderBottom: "1px solid #e5e7eb",
+    fontSize: 14,
+  }}
+>
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      color: "#666",
+    }}
+    aria-label={`${engagement.views} views`}
+  >
+    <Eye size={18} />
+    {engagement.views.toLocaleString()} views
+  </span>
+
+  <button
+    type="button"
+    onClick={() => void toggleLike()}
+    disabled={likeLoading}
+    aria-pressed={engagement.likedByMe}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      border: 0,
+      background: "transparent",
+      cursor: likeLoading ? "wait" : "pointer",
+      color: engagement.likedByMe ? "#e04455" : "#444",
+      font: "inherit",
+    }}
+  >
+    <Heart
+      size={18}
+      fill={engagement.likedByMe ? "currentColor" : "none"}
+    />
+    {engagement.likes.toLocaleString()} Likes
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setCommentsOpen((open) => !open)}
+    aria-expanded={commentsOpen}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      border: 0,
+      background: "transparent",
+      cursor: "pointer",
+      color: "#444",
+      font: "inherit",
+    }}
+  >
+    <MessageCircle size={18} />
+    {engagement.commentsCount.toLocaleString()} Comments
+  </button>
+</div>
+
+{engagementError && (
+  <p role="alert" style={{ color: "#b91c1c", fontSize: 14 }}>
+    {engagementError}
+  </p>
+)}
+
+{commentsOpen && (
+  <section
+    aria-label="Article comments"
+    style={{
+      marginTop: 20,
+      padding: 18,
+      border: "1px solid #e5e7eb",
+      borderRadius: 12,
+      background: "#fff",
+    }}
+  >
+    <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>
+      Fan comments
+    </h3>
+
+    {engagement.comments.length === 0 ? (
+      <p style={{ color: "#666", marginBottom: 16 }}>
+        No comments yet. Be the first to share your thoughts.
+      </p>
+    ) : (
+      <div style={{ display: "grid", gap: 16, marginBottom: 20 }}>
+        {engagement.comments.map((comment) => (
+          <div
+            key={comment.id}
+            style={{
+              paddingBottom: 12,
+              borderBottom: "1px solid #eee",
+            }}
           >
-            Read the complete article
-            <ExternalLink size={16} />
-          </a>
+            <strong>{comment.author}</strong>
+            <p style={{ margin: "6px 0", whiteSpace: "pre-wrap" }}>
+              {comment.body}
+            </p>
+            <small style={{ color: "#777" }}>
+              {new Date(comment.createdAt).toLocaleString()}
+            </small>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <form onSubmit={submitComment}>
+      <textarea
+        value={commentText}
+        onChange={(event) => setCommentText(event.target.value)}
+        placeholder="Share your thoughts about this story..."
+        maxLength={2000}
+        rows={3}
+        required
+        style={{
+          width: "100%",
+          padding: 12,
+          border: "1px solid #d1d5db",
+          borderRadius: 8,
+          resize: "vertical",
+          font: "inherit",
+          marginBottom: 10,
+        }}
+      />
+
+      <button
+        type="submit"
+        disabled={commentLoading || !commentText.trim()}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "10px 16px",
+          border: 0,
+          borderRadius: 8,
+          background: "#f5b82e",
+          color: "#111",
+          fontWeight: 600,
+          cursor: commentLoading ? "wait" : "pointer",
+          opacity: commentLoading || !commentText.trim() ? 0.6 : 1,
+        }}
+      >
+        <Send size={16} />
+        {commentLoading ? "Posting..." : "Post comment"}
+      </button>
+    </form>
+  </section>
+)}
+          
         </div>
       </article>
     </main>

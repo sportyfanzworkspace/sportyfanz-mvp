@@ -4696,6 +4696,41 @@ button {
   font-size: 13px;
 }
 
+.trending-engagement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.trending-engagement button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.trending-engagement button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.trending-like.is-liked {
+  color: #e04455;
+}
+
+.trending-engagement .trending-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+  font-size: 12px;
+}
 
 /* =========================================================
    RESPONSIVE
