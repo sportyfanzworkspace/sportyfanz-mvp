@@ -16,6 +16,7 @@ import {
 type NewsStory = {
   id: string;
   title: string;
+  seoHeadline?: string;
   summary: string;
   category: string;
   source: string;
@@ -71,7 +72,7 @@ function categoryFor(story: NewsStory) {
 }
 
 function displayHeadline(story: NewsStory) {
-  const title = story.title
+  const title = (story.seoHeadline?.trim() || story.title)
     .replace(/^\s*(breaking|news update)\s*:\s*/i, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -228,8 +229,25 @@ export default function NewsPage() {
     setRetryCount((current) => current + 1);
   }
 
-  async function loadEngagement(story: NewsStory) {
+async function loadEngagement(story: NewsStory) {
   try {
+    const viewResponse = await fetch("/api/news/engagement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: story.link,
+        action: "view",
+      }),
+    });
+
+    const viewData = await viewResponse.json();
+
+    if (!viewResponse.ok) {
+      throw new Error(
+        viewData.error || "Unable to record article view."
+      );
+    }
+
     const response = await fetch(
       `/api/news/engagement?url=${encodeURIComponent(story.link)}`,
       { cache: "no-store" }
@@ -238,7 +256,9 @@ export default function NewsPage() {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Unable to load engagement.");
+      throw new Error(
+        data.error || "Unable to load engagement."
+      );
     }
 
     setEngagement((current) => ({
@@ -247,7 +267,9 @@ export default function NewsPage() {
     }));
   } catch (error) {
     setEngagementError(
-      error instanceof Error ? error.message : "Unable to load comments."
+      error instanceof Error
+        ? error.message
+        : "Unable to load engagement."
     );
   }
 }

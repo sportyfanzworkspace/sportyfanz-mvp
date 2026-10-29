@@ -51,6 +51,17 @@ type SportsResponse = {
   followedSportIds: number[];
 };
 
+type HomeHeroSlide = {
+  id: string;
+  type: "NEWS" | "ADVERTISEMENT" | "SPONSORED" | "PROMOTION";
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+  actionLabel: string;
+  href: string;
+};
+
 function getLagosDate(offsetDays = 0) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Lagos",

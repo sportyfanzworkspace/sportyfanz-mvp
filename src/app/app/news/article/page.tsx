@@ -10,6 +10,7 @@ import { ArrowLeft, Heart, Eye, MessageCircle, Send } from "lucide-react";
 type NewsStory = {
   id: string;
   title: string;
+  seoHeadline?: string;
   summary: string;
   category: string;
   source: string;
@@ -25,6 +26,7 @@ type NewsResponse = {
 };
 
 type SummaryResponse = {
+  seoHeadline?: string
   feedSummary?: string;
   articleSummary?: string;
   error?: string;
@@ -203,6 +205,8 @@ function ArticleContent() {
 
             return {
               ...current,
+              seoHeadline:
+                data.seoHeadline?.trim() || current.seoHeadline || current.title,
               feedSummary:
                 data.feedSummary?.trim() ||
                 current.feedSummary,
@@ -428,7 +432,7 @@ async function submitComment(event: React.FormEvent<HTMLFormElement>) {
             marginTop: 12,
           }}
         >
-          {story.title}
+          {story.seoHeadline?.trim() || story.title}
         </h1>
 
         <p

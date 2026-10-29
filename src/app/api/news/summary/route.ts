@@ -52,7 +52,7 @@ const getCachedArticleSummary = unstable_cache(
       source,
       articleUrl
     ),
-  ["sportyfanz-article-summary-v1"],
+  ["sportyfanz-article-summary-v3"],
   {
     revalidate: 86400,
   }

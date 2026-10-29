@@ -35,6 +35,7 @@ const FEEDS = [
 type NewsStory = {
   id: string;
   title: string;
+  seoHeadline: string;
   summary: string;
   feedSummary: string;
   articleSummary: string;
@@ -253,6 +254,7 @@ async function fetchFeed(
         return {
           id: `${feed.name}-${canonicalUrl(link) || title}`,
           title,
+          seoHeadline: title,
           summary,
           feedSummary: feedSummary || summary,
           articleSummary: articleSummary || summary,
