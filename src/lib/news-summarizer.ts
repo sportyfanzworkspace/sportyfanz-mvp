@@ -112,7 +112,7 @@ function isAllowedArticleUrl(value: string): boolean {
   }
 }
 
-async function extractArticleText(url: string): Promise<string> {
+export async function extractArticleText(url: string): Promise<string> {
   if (!isAllowedArticleUrl(url)) {
     throw new Error("Unsupported article URL");
   }
@@ -192,9 +192,12 @@ for (const selector of selectors) {
 }
 
 
-  // Avoid treating navigation or a short teaser as a full article.
-  if (bestText.length < 500) {
-    throw new Error("Could not extract sufficient article text");
+  const wordCount = bestText.split(/\s+/).filter(Boolean).length;
+
+  if (bestText.length < 1200 || wordCount < 180) {
+    throw new Error(
+      `Insufficient article content: ${wordCount} words extracted`
+    );
   }
 
   return bestText.slice(0, 18000);

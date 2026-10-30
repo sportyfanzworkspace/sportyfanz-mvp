@@ -52,7 +52,7 @@ const getCachedArticleSummary = unstable_cache(
       source,
       articleUrl
     ),
-  ["sportyfanz-article-summary-v3"],
+  ["sportyfanz-article-summary-v4-full-content"],
   {
     revalidate: 86400,
   }
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     if (
       !title ||
       title.length > 500 ||
-      sourceText.length > 5000 ||
+      sourceText.length > 18000 ||
       !articleUrl ||
       articleUrl.length > 2048
     ) {

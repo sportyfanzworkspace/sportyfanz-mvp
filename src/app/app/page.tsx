@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Crown,
   Plus,
   Target,
@@ -62,6 +63,20 @@ type HomeHeroSlide = {
   href: string;
 };
 
+type HomeNewsStory = {
+  id: string;
+  title: string;
+  seoHeadline?: string;
+  feedSummary: string;
+  category: string;
+  link: string;
+  image: string | null;
+};
+
+type HomeNewsResponse = {
+  stories: HomeNewsStory[];
+};
+
 function getLagosDate(offsetDays = 0) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Lagos",
@@ -98,7 +113,75 @@ export default function HomePage() {
   const [sportsError, setSportsError] = useState("");
   const [selectedDate, setSelectedDate] = useState(getLagosDate);
   const [selectedSportSlug, setSelectedSportSlug] = useState("football");
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [featuredNews, setFeaturedNews] =
+  useState<HomeNewsStory | null>(null);
 
+  const homeHeroSlides: HomeHeroSlide[] = [
+   {
+    id: "news",
+    type: "NEWS",
+    eyebrow: featuredNews?.category || "SPORTS NEWS",
+    title: featuredNews
+      ? featuredNews.seoHeadline?.trim() || featuredNews.title
+      : "Latest Sports Stories",
+    description: featuredNews?.feedSummary ||
+      "Catch the latest sports headlines, match updates and stories that matter to fans.",
+    image: featuredNews?.image ||
+      "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=85",
+    actionLabel: "Explore Sports News",
+    href: featuredNews
+     ? `/app/news/article?url=${encodeURIComponent(featuredNews.link)}`
+     : "/app/news",
+   },
+  {
+    id: "advertisement",
+    type: "ADVERTISEMENT",
+    eyebrow: "ADVERTISEMENT",
+    title: "Connect Your Brand with Sports Fans",
+    description:
+      "Discover opportunities to reach an engaged sports community on SportyFanz.",
+    image:
+      "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1400&q=85",
+    actionLabel: "Explore SportyFanz",
+    href: "/app/discover",
+  },
+  {
+    id: "sponsored",
+    type: "SPONSORED",
+    eyebrow: "SPONSORED CAMPAIGN",
+    title: "Where Brands Meet the Fans",
+    description:
+      "Bring your sports campaign closer to the people who live and breathe the game.",
+    image:
+      "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1400&q=85",
+    actionLabel: "Discover More",
+    href: "/app/discover",
+  },
+  {
+    id: "promotion",
+    type: "PROMOTION",
+    eyebrow: "FAN REWARDS",
+    title: "Your Passion Deserves Rewards",
+    description:
+      "Explore rewards and discover more ways to participate in your sports world.",
+    image:
+      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1400&q=85",
+    actionLabel: "Explore Rewards",
+    href: "/app/rewards",
+  },
+];
+
+const activeHero =
+  homeHeroSlides[activeHeroSlide % homeHeroSlides.length];
+
+function moveHomeHero(direction: number) {
+  setActiveHeroSlide(
+    (current) =>
+      (current + direction + homeHeroSlides.length) %
+      homeHeroSlides.length
+  );
+}
   
   useEffect(() => {
     let active = true;  
@@ -258,6 +341,39 @@ useEffect(() => {
    };
   }, [selectedDate, selectedSportSlug]);
 
+  useEffect(() => {
+  let active = true;
+
+  async function loadFeaturedNews() {
+    try {
+      const response = await fetch("/api/news", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to load featured news.");
+      }
+
+      const data: HomeNewsResponse = await response.json();
+
+      const featured = (data.stories ?? []).find(
+        (story) => story.image && story.link && story.title
+      );
+
+      if (active) {
+        setFeaturedNews(featured ?? null);
+      }
+    } catch (error) {
+      console.error("Unable to load home featured news:", error);
+    }
+  }
+
+  void loadFeaturedNews();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
   return (
     <div className="page">
@@ -287,46 +403,70 @@ useEffect(() => {
       {/* HOME GRID */}
       <section className="home-grid">
 
-        {/* HERO */}
-        <div
-          className="hero-card"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1400&q=85)",
-          }}
+       {/* HOME HERO CAROUSEL */}
+       <section
+         className="hero-card"
+         aria-label="Featured SportyFanz content"
+         style={{
+           backgroundImage: `url("${activeHero.image}")`,
+         }}
         >
-          <div className="hero-overlay" />
+        <div className="hero-overlay" />
 
-          <div className="hero-content">
+        <div className="hero-content">
+           <span className="home-hero-eyebrow">
+           <span className="home-hero-mark">S</span>
+            {activeHero.eyebrow}
+           </span>
 
-            <span className="live-pill">
-              <span />
-              LIVE NOW
-            </span>
+          <h1>{activeHero.title}</h1>
 
-            <h1>
-              Real Fans.
-              <br />
-              Real Sports.
-              <br />
-              <span>Real Rewards.</span>
-            </h1>
+          <p>{activeHero.description}</p>
 
-            <p>
-              Watch, participate, connect and earn rewards
-              for being the fan you already are.
-            </p>
+          <Link
+            href={activeHero.href}
+            className="home-hero-button"
+          >
+           {activeHero.actionLabel}
+           <ArrowRight size={16} />
+          </Link>
+         </div>
 
-            <Link
-              href="/app/live"
-              className="primary-button"
-            >
-              Explore Live Matches
-              <ArrowRight size={16} />
-            </Link>
-
+         <div className="home-hero-controls">
+           <div className="home-hero-dots">
+             {homeHeroSlides.map((slide, index) => (
+           <button
+             key={slide.id}
+             type="button"
+             aria-label={`Show ${slide.eyebrow} slide`}
+             aria-current={activeHeroSlide === index}
+             className={activeHeroSlide === index ? "active" : ""}
+             onClick={() => setActiveHeroSlide(index)}
+            />
+           ))}
           </div>
+
+          <span className="home-hero-count">
+            {activeHeroSlide + 1}/{homeHeroSlides.length}
+          </span>
+
+          <button
+           type="button"
+           aria-label="Previous featured content"
+           onClick={() => moveHomeHero(-1)}
+          >
+         <ChevronLeft size={16} />
+        </button>
+
+        <button
+         type="button"
+         aria-label="Next featured content"
+         onClick={() => moveHomeHero(1)}
+         >
+          <ChevronRight size={16} />
+         </button>
         </div>
+       </section>
 
         {/* FAN KINGDOM */}
         <div className="fan-kingdom-card">

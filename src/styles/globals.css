@@ -687,53 +687,46 @@ button {
 
 .hero-card {
   grid-area: hero;
-
   position: relative;
-
-  min-height: 235px;
-
+  isolation: isolate;
+  min-height: 300px;
   overflow: hidden;
-
-  border-radius: 12px;
-
-  background:
-    linear-gradient(
-      110deg,
-      rgba(3, 32, 51, 0.95),
-      rgba(3, 32, 51, 0.28)
-    ),
-    url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=85")
-      center / cover;
+  border: 1px solid rgba(60, 148, 217, 0.65);
+  border-radius: 14px;
+  background-color: #041522;
+  background-position: center;
+  background-size: cover;
+  transition: background-image 0.25s ease;
 }
 
 .hero-overlay {
   position: absolute;
+  z-index: 0;
   inset: 0;
-
-  background:
-    radial-gradient(
-      circle at 85% 30%,
-      rgba(53, 211, 125, 0.25),
-      transparent 30%
-    );
+  background: linear-gradient(
+    90deg,
+    rgba(3, 17, 29, 0.97) 0%,
+    rgba(3, 17, 29, 0.85) 38%,
+    rgba(3, 17, 29, 0.24) 75%,
+    rgba(3, 17, 29, 0.05) 100%
+  );
 }
 
 .hero-content {
   position: relative;
-
-  width: 60%;
-
-  padding: 25px 24px;
-
+  z-index: 1;
+  width: min(70%, 540px);
+  padding: 24px 24px 70px;
   color: white;
 }
 
 .hero-content h1 {
-  margin: 13px 0 8px;
-
-  font-size: 27px;
-  line-height: 0.98;
-  letter-spacing: -1px;
+  margin: 12px 0 9px;
+  color: #fff;
+  font-size: clamp(22px, 2.5vw, 34px);
+  line-height: 1.1;
+  letter-spacing: -0.6px;
+  font-weight: 900;
 }
 
 .hero-content h1 span {
@@ -742,31 +735,105 @@ button {
 
 .hero-content p {
   max-width: 390px;
-
   margin: 0 0 17px;
-
   color: #d1e0e8;
-
   font-size: 10px;
   line-height: 1.5;
+}
+
+.home-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #e9f3f8;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.home-hero-mark {
+  color: #35d37d;
+  font-size: 23px;
+  font-weight: 900;
+  font-style: italic;
+}
+
+.home-hero-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  background: #35d37d;
+  color: #062b20;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.home-hero-controls {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 12px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.home-hero-dots {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-hero-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+}
+
+.home-hero-dots button.active {
+  width: 20px;
+  background: #35d37d;
+}
+
+.home-hero-count {
+  min-width: 28px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.home-hero-controls > button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(53, 211, 125, 0.4);
+  border-radius: 8px;
+  background: rgba(4, 31, 50, 0.95);
+  color: #fff;
+  cursor: pointer;
 }
 
 .live-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-
   padding: 4px 7px;
-
   border-radius: 5px;
-
   background: rgba(237, 93, 99, 0.15);
-
   color: #ff737a;
-
   font-size: 8px;
   font-weight: 900;
-
   letter-spacing: 0.5px;
 }
 
@@ -4868,6 +4935,23 @@ grid-template-columns: repeat(2, minmax(0, 1fr));
   .sf-footer-links {
     gap: 14px;
   }
+
+  .hero-card {
+  min-height: 330px;
+}
+
+.hero-content {
+  width: 88%;
+  padding: 20px 16px 70px;
+}
+
+.hero-overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(3, 17, 29, 0.96),
+    rgba(3, 17, 29, 0.67)
+  );
+}
 }
 
 @media (max-width: 600px) {
