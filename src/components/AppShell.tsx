@@ -97,6 +97,54 @@ export default function SportyFanzShell({
     };
   }, [pathname]);
 
+    useEffect(() => {
+    const INACTIVITY_LIMIT = 10 * 60 * 1000;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const logoutForInactivity = async () => {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+        });
+      } finally {
+        window.location.replace("/login?reason=timeout");
+      }
+    };
+
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(
+        () => void logoutForInactivity(),
+        INACTIVITY_LIMIT
+      );
+    };
+
+    const activityEvents = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click",
+    ] as const;
+
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetTimer, {
+        passive: true,
+      });
+    });
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeout);
+
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, []);
+  
   return (
     <main className="sf-app">
       {/* SIDEBAR */}
