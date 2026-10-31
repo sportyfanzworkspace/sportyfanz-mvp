@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { useState, type FormEvent } from "react";
 import {
   AtSign,
@@ -63,16 +64,7 @@ export default function LoginPage() {
         <section className="brandPanel">
           <div className="brandContent">
             <div className="logo">
-              <div className="logoMark">
-                <Crown size={24} strokeWidth={2.5} />
-              </div>
-
-              <div className="logoText">
-                <strong className="logoName">SportyFanz</strong>
-                <span className="logoTagline">
-                  Every Sport. Every Fan. Every Moment.
-                </span>
-              </div>
+              <Logo />
             </div>
 
             <h2 className="brandTitle">

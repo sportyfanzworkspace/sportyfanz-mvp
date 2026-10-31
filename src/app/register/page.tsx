@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { useState, type FormEvent } from "react";
 import { Crown, Gift, Trophy, Users } from "lucide-react";
 
@@ -57,11 +58,7 @@ export default function RegisterPage() {
     <div className="auth-page">
       <section className="auth-brand-panel">
         <div className="auth-logo">
-          <div className="auth-logo-mark">
-            <Crown size={25} />
-          </div>
-
-          <strong>SportyFanz</strong>
+          <Logo />
         </div>
 
         <h1>Your sports world starts here.</h1>

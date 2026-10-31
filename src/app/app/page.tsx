@@ -114,8 +114,12 @@ export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState(getLagosDate);
   const [selectedSportSlug, setSelectedSportSlug] = useState("football");
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
-  const [featuredNews, setFeaturedNews] =
-  useState<HomeNewsStory | null>(null);
+  const [featuredNews, setFeaturedNews] =useState<HomeNewsStory | null>(null);
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkedInToday, setCheckedInToday] = useState(false);
+  const [checkInMessage, setCheckInMessage] = useState("");
+  const [progressionPoints, setProgressionPoints] = useState(0);
+  const [fanLevel, setFanLevel] = useState("NEW_FAN");
 
   const homeHeroSlides: HomeHeroSlide[] = [
    {
@@ -374,6 +378,52 @@ useEffect(() => {
     active = false;
   };
 }, []);
+
+async function handleDailyCheckIn() {
+  if (checkInLoading || checkedInToday) return;
+
+  setCheckInLoading(true);
+  setCheckInMessage("");
+
+  try {
+    const response = await fetch("/api/progression/check-in", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to check in.");
+    }
+
+    setCheckedInToday(true);
+
+    if (typeof data.progressionPoints === "number") {
+      setProgressionPoints(data.progressionPoints);
+    }
+
+    if (data.fanLevel) {
+      setFanLevel(data.fanLevel);
+    }
+
+    setCheckInMessage(
+      data.alreadyCheckedIn
+        ? "You've already checked in today."
+        : "Success! You earned 5 progression points."
+    );
+  } catch (error) {
+    setCheckInMessage(
+      error instanceof Error
+        ? error.message
+        : "Unable to complete check-in."
+    );
+  } finally {
+    setCheckInLoading(false);
+  }
+}
 
   return (
     <div className="page">

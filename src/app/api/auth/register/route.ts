@@ -91,6 +91,7 @@ export async function POST(request: Request) {
           fanLevel: "NEW_FAN",
           totalPoints: 0,
           currentPoints: 0,
+          progressionPoints: 0,
           matchesWatched: 0,
           challengesCompleted: 0,
           fanRoomsJoined: 0,

@@ -19,6 +19,7 @@ type Fan = {
   totalPoints?: number;
   currentPoints?: number;
   fanLevel?: string;
+  avatarUrl?: string | null;
 };
 
 export default function UserProfile() {
@@ -28,42 +29,55 @@ export default function UserProfile() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    let active = true;
+  let active = true;
 
-    async function loadProfile() {
-      try {
-        const response = await fetch("/api/auth/me", {
-          cache: "no-store",
-        });
+  async function loadProfile() {
+    try {
+      const response = await fetch("/api/profile", {
+        cache: "no-store",
+      });
 
-        if (response.status === 401) {
-          if (active) router.replace("/login");
-          return;
-        }
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-
-        if (active && data.user) {
-          setFan(data.user);
-        }
-      } catch (error) {
-        console.error("Unable to load fan profile:", error);
+      if (response.status === 401) {
+        if (active) router.replace("/login");
+        return;
       }
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      if (active && data.user) {
+        setFan(data.user);
+      }
+    } catch (error) {
+      console.error("Unable to load fan profile:", error);
     }
+  }
 
-    loadProfile();
+  function handleProfileUpdate() {
+    void loadProfile();
+  }
 
-    return () => {
-      active = false;
-    };
-  }, [router]);
+  void loadProfile();
+
+  window.addEventListener(
+    "sportyfanz:profile-updated",
+    handleProfileUpdate
+  );
+
+  return () => {
+    active = false;
+    window.removeEventListener(
+      "sportyfanz:profile-updated",
+      handleProfileUpdate
+    );
+  };
+}, [router]);
 
   const displayName =
-    fan?.name?.trim() ||
     fan?.username ||
-    fan?.email ||
+    fan?.email?.split("@")[0] ||
+    fan?.name?.trim() ||
     "SportyFanz Fan";
 
   const initials =
@@ -108,8 +122,21 @@ export default function UserProfile() {
         aria-label="Open profile menu"
       >
         <span className="sf-avatar">
-          {initials}
-        </span>
+         {fan?.avatarUrl ? (
+         <img
+          src={fan.avatarUrl}
+          alt="Fan avatar"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "50%",
+          }}
+        />
+        ) : (
+         initials
+        )}
+       </span>
 
         <span className="sf-profile-identity">
           <strong>{displayName}</strong>

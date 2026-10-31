@@ -96,6 +96,10 @@
       "model": "Prediction",
       "namespace": "public"
     },
+    "progression_awards": {
+      "model": "ProgressionAward",
+      "namespace": "public"
+    },
     "reward_redemptions": {
       "model": "RewardRedemption",
       "namespace": "public"
@@ -1318,6 +1322,13 @@
                   "kind": "scalar"
                 }
               },
+              "progressionPoints": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "timezone": {
                 "nullable": true,
                 "type": {
@@ -1405,6 +1416,9 @@
                 },
                 "matchesWatched": {
                   "column": "matchesWatched"
+                },
+                "progressionPoints": {
+                  "column": "progressionPoints"
                 },
                 "timezone": {
                   "column": "timezone"
@@ -3860,6 +3874,94 @@
               "table": "predictions"
             }
           },
+          "ProgressionAward": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "points": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "taskKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "points": {
+                  "column": "points"
+                },
+                "taskKey": {
+                  "column": "taskKey"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "progression_awards"
+            }
+          },
           "Reward": {
             "fields": {
               "category": {
@@ -5126,6 +5228,21 @@
                   "namespace": "public"
                 }
               },
+              "progressionAwards": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "ProgressionAward",
+                  "namespace": "public"
+                }
+              },
               "reactions": {
                 "cardinality": "1:N",
                 "on": {
@@ -6203,6 +6320,15 @@
                   "nullable": false
                 },
                 "matchesWatched": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "progressionPoints": {
                   "codecId": "pg/int4@1",
                   "default": {
                     "kind": "literal",
@@ -8514,6 +8640,98 @@
                 }
               ]
             },
+            "progression_awards": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "points": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "taskKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "progression_awards"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId",
+                    "createdAt"
+                  ],
+                  "name": "progression_awards_userId_createdAt_idx_f726f04a",
+                  "prefix": "progression_awards_userId_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "progression_awards_userId_idx_a489d58a",
+                  "prefix": "progression_awards_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId",
+                    "taskKey"
+                  ]
+                }
+              ]
+            },
             "reward_redemptions": {
               "checks": [
                 {
@@ -9946,7 +10164,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7947813d4472085a1c933b1413df8d6d1c445e94476229145b8621b4948a7dd6"
+    "storageHash": "30bbaa65b0f8060286a8d617600fd074efeaa4ade6e0deb6aeda5bd4cd747205"
   },
   "execution": {
     "executionHash": "81e0b4cf2257ff83766064910f280ca8d53db6fc6a911e15ea4e51ead92be13a",

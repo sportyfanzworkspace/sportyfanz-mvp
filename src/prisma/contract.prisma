@@ -203,6 +203,7 @@ model User {
   profile                 FanProfile?
 
   pointTransactions       PointTransaction[]
+  progressionAwards       ProgressionAward[]
   rewardRedemptions       RewardRedemption[]
 
   challengeParticipations ChallengeParticipation[]
@@ -248,6 +249,7 @@ model FanProfile {
 
   totalPoints         Int                        @default(0)
   currentPoints       Int                        @default(0)
+  progressionPoints   Int                        @default(0)
 
   matchesWatched      Int                        @default(0)
   challengesCompleted Int                        @default(0)
@@ -1062,6 +1064,26 @@ model NewsArticleLike {
   @@index([articleUrl])
   @@index([userId])
   @@map("news_article_likes")
+}
+
+// ============================================================
+// FAN PROGRESSION AWARDS (NON-REDEEMABLE)
+// ============================================================
+model ProgressionAward {
+  id          Int      @id @default(autoincrement())
+
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  taskKey     String
+  points      Int
+  description String?
+
+  createdAt   TimestamptzString @default(now())
+
+  @@unique([userId, taskKey])
+  @@index([userId, createdAt])
+  @@map("progression_awards")
 }
 
 // ============================================================

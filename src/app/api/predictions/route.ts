@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { getFanLevel } from "@/lib/progression";
 
 const PREDICTION_POINTS = 50;
 
@@ -245,6 +246,8 @@ export async function POST(request: Request) {
 
       let challengeBonus = 0;
       let challengesCompletedNow = 0;
+      let progressionBonus = 0;
+      let nextProgressionBalance = profile.progressionPoints;
       let nextChallengeBalance =
         profile.currentPoints + PREDICTION_POINTS;
       let nextChallengeTotal =
@@ -309,6 +312,30 @@ export async function POST(request: Request) {
           challengeBonus += challenge.pointsReward;
           challengesCompletedNow += 1;
 
+          const progressionTaskKey =
+            `CHALLENGE_COMPLETED:${participation.id}`;
+
+          const existingProgressionAward =
+            await tx.orm.public.ProgressionAward
+              .where({
+                userId,
+                taskKey: progressionTaskKey,
+              })
+              .first();
+
+          if (!existingProgressionAward) {
+            await tx.orm.public.ProgressionAward.create({
+              userId,
+              taskKey: progressionTaskKey,
+              points: 5,
+              description: `Progression reward: completed ${challenge.title}`,
+              createdAt: now,
+            });
+
+            progressionBonus += 5;
+            nextProgressionBalance += 5;
+          }
+
           nextChallengeBalance += challenge.pointsReward;
           nextChallengeTotal += challenge.pointsReward;
 
@@ -335,6 +362,9 @@ export async function POST(request: Request) {
           totalPoints: nextChallengeTotal,
           challengesCompleted:
             profile.challengesCompleted + challengesCompletedNow,
+          progressionPoints: nextProgressionBalance,
+          fanLevel: getFanLevel(nextProgressionBalance),
+          updatedAt: now,
         });
 
       /*
@@ -352,6 +382,9 @@ export async function POST(request: Request) {
         balance: nextChallengeBalance,
         totalPoints: nextChallengeTotal,
         challengesCompletedNow,
+        progressionBonus,
+        progressionPoints: nextProgressionBalance,
+        fanLevel: getFanLevel(nextProgressionBalance),
       };
     });
 
@@ -382,6 +415,9 @@ export async function POST(request: Request) {
       balance: result.balance,
       totalPoints: result.totalPoints,
       challengesCompletedNow: result.challengesCompletedNow,
+      progressionBonus: result.progressionBonus,
+      progressionPoints: result.progressionPoints,
+      fanLevel: result.fanLevel,
     });
   } catch (error) {
     console.error("POST /api/predictions error:", error);

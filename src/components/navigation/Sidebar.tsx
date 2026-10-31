@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/Logo";
 
 import {
   Award,
@@ -123,17 +124,7 @@ useEffect(() => {
     <aside className="sf-sidebar">
       {/* LOGO */}
       <div className="sf-logo">
-        <div className="sf-logo-mark">
-          <Crown size={25} strokeWidth={2.5} />
-        </div>
-
-        <div>
-          <div className="sf-logo-name">SportyFanz</div>
-
-          <div className="sf-logo-tagline">
-            Every Sport. Every Fan. Every Moment.
-          </div>
-        </div>
+        <Logo small />
       </div>
 
       <div className="sf-sidebar-divider" />

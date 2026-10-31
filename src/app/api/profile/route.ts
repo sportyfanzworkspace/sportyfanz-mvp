@@ -71,3 +71,77 @@ export async function GET() {
     );
   }
 }
+
+
+const APPROVED_AVATARS = new Set([
+  "/avatars/fan-1.svg",
+  "/avatars/fan-2.svg",
+  "/avatars/fan-3.svg",
+  "/avatars/fan-4.svg",
+  "/avatars/fan-5.svg",
+  "/avatars/fan-6.svg",
+]);
+
+export async function PATCH(request: Request) {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Please sign in again." },
+        { status: 401 }
+      );
+    }
+
+    const user = await db.orm.public.User.first({
+      id: userId,
+    });
+
+    if (!user || user.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "Your account is unavailable." },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const avatarUrl = body.avatarUrl;
+
+    if (
+      typeof avatarUrl !== "string" ||
+      !APPROVED_AVATARS.has(avatarUrl)
+    ) {
+      return NextResponse.json(
+        { error: "Please select an approved SportyFanz avatar." },
+        { status: 400 }
+      );
+    }
+
+    const profile = await db.orm.public.FanProfile
+      .where({ userId })
+      .first();
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: "Fan profile not found." },
+        { status: 404 }
+      );
+    }
+
+    await db.orm.public.FanProfile
+      .where({ userId })
+      .update({ avatarUrl });
+
+    return NextResponse.json({
+      success: true,
+      avatarUrl,
+    });
+  } catch (error) {
+    console.error("Avatar update error:", error);
+
+    return NextResponse.json(
+      { error: "Unable to update your avatar." },
+      { status: 500 }
+    );
+  }
+}
