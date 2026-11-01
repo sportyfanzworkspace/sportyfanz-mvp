@@ -13,3 +13,4 @@ node_modules/
 .env.production.local
 dist/
 .env.local
+public/15841345_1440_2560_30fps.mp4
