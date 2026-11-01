@@ -425,6 +425,34 @@ async function handleDailyCheckIn() {
   }
 }
 
+useEffect(() => {
+  async function loadCheckInStatus() {
+    try {
+      const response = await fetch("/api/progression/check-in", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      setCheckedInToday(data.checkedInToday === true);
+
+      if (typeof data.progressionPoints === "number") {
+        setProgressionPoints(data.progressionPoints);
+      }
+
+      if (data.fanLevel) {
+        setFanLevel(data.fanLevel);
+      }
+    } catch (error) {
+      console.error("Unable to load daily check-in status:", error);
+    }
+  }
+
+  loadCheckInStatus();
+}, []);
+
   return (
     <div className="page">
 
@@ -562,6 +590,56 @@ async function handleDailyCheckIn() {
 
         </div>
 
+        {/* DAILY FAN CHECK-IN */}
+        <div className="daily-checkin-card">
+          <div className="checkin-heading">
+            <div>
+              <span>DAILY REWARD</span>
+              <h3>Daily Fan Check-in</h3>
+            </div>
+            <CalendarDays size={22} />
+          </div>
+
+          <p>
+            Show up every day and earn progression points as you grow
+            through the SportyFanz fan levels.
+          </p>
+
+          <div className="checkin-reward">
+            <strong>+5</strong>
+            <span>Progression Points</span>
+          </div>
+
+          <button
+            type="button"
+            className="checkin-button"
+            onClick={handleDailyCheckIn}
+            disabled={checkInLoading || checkedInToday}
+          >
+            {checkInLoading
+              ? "Checking in..."
+              : checkedInToday
+                ? "Already Checked In"
+                : "Claim Daily Points"}
+          </button>
+
+          {checkInMessage && (
+            <p className="checkin-message" role="status">
+              {checkInMessage}
+            </p>
+          )}
+
+          <div className="checkin-level">
+            <span>Progression balance</span>
+            <strong>{progressionPoints.toLocaleString()} pts</strong>
+          </div>
+
+          <div className="checkin-level">
+            <span>Fan Level</span>
+            <strong>{fanLevel.replaceAll("_", " ")}</strong>
+          </div>
+        </div>
+        
         {/* LIVE MATCHES */}
         <div className="section-block live-block">
          <div className="section-title">

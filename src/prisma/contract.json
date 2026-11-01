@@ -40,6 +40,10 @@
       "model": "FanRoom",
       "namespace": "public"
     },
+    "kyc_submissions": {
+      "model": "KycSubmission",
+      "namespace": "public"
+    },
     "match_events": {
       "model": "MatchEvent",
       "namespace": "public"
@@ -288,6 +292,36 @@
               {
                 "name": "ARCHIVED",
                 "value": "ARCHIVED"
+              }
+            ]
+          },
+          "KycSex": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "FEMALE",
+                "value": "FEMALE"
+              },
+              {
+                "name": "MALE",
+                "value": "MALE"
+              }
+            ]
+          },
+          "KycStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
               }
             ]
           },
@@ -1927,6 +1961,176 @@
               },
               "namespaceId": "public",
               "table": "fan_room_messages"
+            }
+          },
+          "KycSubmission": {
+            "fields": {
+              "country": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dateOfBirth": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "rejectionReason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sex": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "KycSex",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "state": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "KycStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "whatsappNumber": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "country": {
+                  "column": "country"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dateOfBirth": {
+                  "column": "dateOfBirth"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "rejectionReason": {
+                  "column": "rejectionReason"
+                },
+                "reviewedAt": {
+                  "column": "reviewedAt"
+                },
+                "reviewedByUserId": {
+                  "column": "reviewedByUserId"
+                },
+                "sex": {
+                  "column": "sex"
+                },
+                "state": {
+                  "column": "state"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                },
+                "whatsappNumber": {
+                  "column": "whatsappNumber"
+                }
+              },
+              "namespaceId": "public",
+              "table": "kyc_submissions"
             }
           },
           "Match": {
@@ -5092,6 +5296,21 @@
                   "namespace": "public"
                 }
               },
+              "kycSubmissions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "KycSubmission",
+                  "namespace": "public"
+                }
+              },
               "newsArticleLikes": {
                 "cardinality": "1:N",
                 "on": {
@@ -6903,6 +7122,163 @@
                   ]
                 }
               ]
+            },
+            "kyc_submissions": {
+              "checks": [
+                {
+                  "expression": "\"sex\" IN ('FEMALE', 'MALE')",
+                  "name": "kyc_submissions_sex_check_c47af510",
+                  "prefix": "kyc_submissions_sex_check"
+                },
+                {
+                  "expression": "\"status\" IN ('PENDING', 'APPROVED', 'REJECTED')",
+                  "name": "kyc_submissions_status_check_56005a61",
+                  "prefix": "kyc_submissions_status_check"
+                }
+              ],
+              "columns": {
+                "country": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dateOfBirth": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "rejectionReason": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "reviewedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "reviewedByUserId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "sex": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "KycSex",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "state": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "KycStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "whatsappNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "kyc_submissions"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "status",
+                    "createdAt"
+                  ],
+                  "name": "kyc_submissions_status_createdAt_idx_58610442",
+                  "prefix": "kyc_submissions_status_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "createdAt"
+                  ],
+                  "name": "kyc_submissions_userId_createdAt_idx_f726f04a",
+                  "prefix": "kyc_submissions_userId_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "kyc_submissions_userId_idx_a489d58a",
+                  "prefix": "kyc_submissions_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "match_events": {
               "checks": [
@@ -10028,6 +10404,21 @@
                 "ARCHIVED"
               ]
             },
+            "KycSex": {
+              "kind": "valueSet",
+              "values": [
+                "FEMALE",
+                "MALE"
+              ]
+            },
+            "KycStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            },
             "MatchEventType": {
               "kind": "valueSet",
               "values": [
@@ -10164,10 +10555,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "30bbaa65b0f8060286a8d617600fd074efeaa4ade6e0deb6aeda5bd4cd747205"
+    "storageHash": "1aa22efdf25108d39106e09390f2c382e7007baec95bcb8e8dae892cb1fdd95d"
   },
   "execution": {
-    "executionHash": "81e0b4cf2257ff83766064910f280ca8d53db6fc6a911e15ea4e51ead92be13a",
+    "executionHash": "d5ae6a1f96f6f4420b2f34f715e08c58b8cbc9cfc36c99d4123c337c3bac6600",
     "mutations": {
       "defaults": [
         {
@@ -10271,6 +10662,21 @@
           },
           "ref": {
             "entry": "fan_rooms",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "kyc_submissions",
             "field": "updatedAt",
             "namespace": "public"
           }

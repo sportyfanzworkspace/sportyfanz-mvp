@@ -23,6 +23,21 @@ enum UserStatus {
   DELETED = "DELETED"
 }
 
+enum KycStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  APPROVED = "APPROVED"
+  REJECTED = "REJECTED"
+}
+
+enum KycSex {
+  @@type("pg/text@1")
+
+  FEMALE = "FEMALE"
+  MALE = "MALE"
+}
+
 enum FanLevel {
   @@type("pg/text@1")
 
@@ -202,6 +217,8 @@ model User {
 
   profile                 FanProfile?
 
+  kycSubmissions KycSubmission[]
+
   pointTransactions       PointTransaction[]
   progressionAwards       ProgressionAward[]
   rewardRedemptions       RewardRedemption[]
@@ -265,6 +282,35 @@ model FanProfile {
   @@index([fanLevel])
   @@index([totalPoints])
   @@map("fan_profiles")
+}
+
+// ============================================================
+// FAN KYC SUBMISSIONS
+// ============================================================
+model KycSubmission {
+  id                Int          @id @default(autoincrement())
+
+  userId            Int
+  user              User         @relation(fields: [userId], references: [id])
+
+  whatsappNumber   String
+  country           String
+  state             String
+  sex               KycSex
+  dateOfBirth       String
+
+  status            KycStatus    @default(PENDING)
+
+  reviewedByUserId  Int?
+  reviewedAt        TimestamptzString?
+  rejectionReason   String?
+
+  createdAt         TimestamptzString @default(now())
+  updatedAt         temporal.updatedAtString()
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("kyc_submissions")
 }
 
 // ============================================================

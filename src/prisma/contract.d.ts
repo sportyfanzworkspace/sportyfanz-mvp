@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'30bbaa65b0f8060286a8d617600fd074efeaa4ade6e0deb6aeda5bd4cd747205'>;
+  StorageHashBase<'1aa22efdf25108d39106e09390f2c382e7007baec95bcb8e8dae892cb1fdd95d'>;
 export type ExecutionHash =
-  ExecutionHashBase<'81e0b4cf2257ff83766064910f280ca8d53db6fc6a911e15ea4e51ead92be13a'>;
+  ExecutionHashBase<'d5ae6a1f96f6f4420b2f34f715e08c58b8cbc9cfc36c99d4123c337c3bac6600'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -362,6 +362,21 @@ export type FieldOutputTypes = {
       readonly replyToId: CodecTypes['pg/int4@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly KycSubmission: {
+      readonly country: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly dateOfBirth: CodecTypes['pg/text@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['output'] | null;
+      readonly reviewedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly reviewedByUserId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly sex: 'FEMALE' | 'MALE';
+      readonly state: CodecTypes['pg/text@1']['output'];
+      readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly whatsappNumber: CodecTypes['pg/text@1']['output'];
     };
     readonly Match: {
       readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
@@ -768,6 +783,21 @@ export type FieldInputTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
+    readonly KycSubmission: {
+      readonly country: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly dateOfBirth: CodecTypes['pg/text@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['input'] | null;
+      readonly reviewedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly reviewedByUserId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly sex: 'FEMALE' | 'MALE';
+      readonly state: CodecTypes['pg/text@1']['input'];
+      readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly whatsappNumber: CodecTypes['pg/text@1']['input'];
+    };
     readonly Match: {
       readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly awayCorners: CodecTypes['pg/int4@1']['input'] | null;
@@ -1173,6 +1203,21 @@ export type StorageColumnTypes = {
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
+    readonly kyc_submissions: {
+      readonly country: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly dateOfBirth: CodecTypes['pg/text@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['output'] | null;
+      readonly reviewedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly reviewedByUserId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly sex: 'FEMALE' | 'MALE';
+      readonly state: CodecTypes['pg/text@1']['output'];
+      readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly whatsappNumber: CodecTypes['pg/text@1']['output'];
+    };
     readonly match_events: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
@@ -1577,6 +1622,21 @@ export type StorageColumnInputTypes = {
       readonly slug: CodecTypes['pg/text@1']['input'];
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly kyc_submissions: {
+      readonly country: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly dateOfBirth: CodecTypes['pg/text@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly rejectionReason: CodecTypes['pg/text@1']['input'] | null;
+      readonly reviewedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly reviewedByUserId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly sex: 'FEMALE' | 'MALE';
+      readonly state: CodecTypes['pg/text@1']['input'];
+      readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly whatsappNumber: CodecTypes['pg/text@1']['input'];
     };
     readonly match_events: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -2004,6 +2064,23 @@ export namespace Models {
     user: public_User;
     readonly [RelationKeys]?: 'fanRoom' | 'user';
   };
+  export type public_KycSubmission = {
+    country: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    dateOfBirth: CodecTypes['pg/text@1']['output'];
+    id: CodecTypes['pg/int4@1']['output'];
+    rejectionReason: CodecTypes['pg/text@1']['output'] | null;
+    reviewedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+    reviewedByUserId: CodecTypes['pg/int4@1']['output'] | null;
+    sex: 'FEMALE' | 'MALE';
+    state: CodecTypes['pg/text@1']['output'];
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    whatsappNumber: CodecTypes['pg/text@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
   export type public_Match = {
     apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
     awayCorners: CodecTypes['pg/int4@1']['output'] | null;
@@ -2344,6 +2421,7 @@ export namespace Models {
     followedPlayers: public_UserPlayerFollow[];
     followedSports: public_UserSportFollow[];
     followedTeams: public_UserTeamFollow[];
+    kycSubmissions: public_KycSubmission[];
     newsArticleLikes: public_NewsArticleLike[];
     newsCommentLikes: public_NewsCommentLike[];
     newsComments: public_NewsComment[];
@@ -2365,6 +2443,7 @@ export namespace Models {
       | 'followedPlayers'
       | 'followedSports'
       | 'followedTeams'
+      | 'kycSubmissions'
       | 'newsArticleLikes'
       | 'newsCommentLikes'
       | 'newsComments'
@@ -2426,6 +2505,7 @@ export declare const models: {
     FanRoom: Models.public_FanRoom;
     FanRoomMember: Models.public_FanRoomMember;
     FanRoomMessage: Models.public_FanRoomMessage;
+    KycSubmission: Models.public_KycSubmission;
     Match: Models.public_Match;
     MatchEvent: Models.public_MatchEvent;
     NewsArticleLike: Models.public_NewsArticleLike;
@@ -3402,6 +3482,120 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'matches';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly kyc_submissions: {
+              columns: {
+                readonly country: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly dateOfBirth: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly rejectionReason: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly reviewedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: true;
+                };
+                readonly reviewedByUserId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly sex: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly state: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly status: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'PENDING'>;
+                  };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                };
+                readonly userId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly whatsappNumber: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'kyc_submissions_status_createdAt_idx_58610442';
+                  readonly prefix: 'kyc_submissions_status_createdAt_idx';
+                  readonly columns: readonly ['status', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'kyc_submissions_userId_createdAt_idx_f726f04a';
+                  readonly prefix: 'kyc_submissions_userId_createdAt_idx';
+                  readonly columns: readonly ['userId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'kyc_submissions_userId_idx_a489d58a';
+                  readonly prefix: 'kyc_submissions_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'kyc_submissions';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -5818,6 +6012,14 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['ACTIVE', 'CLOSED', 'ARCHIVED'];
             };
+            readonly KycSex: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['FEMALE', 'MALE'];
+            };
+            readonly KycStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['PENDING', 'APPROVED', 'REJECTED'];
+            };
             readonly MatchEventType: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -5954,6 +6156,10 @@ type ContractBase = Omit<
       readonly model: 'FanRoomMessage';
     };
     readonly fan_rooms: { readonly namespace: 'public' & NamespaceId; readonly model: 'FanRoom' };
+    readonly kyc_submissions: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'KycSubmission';
+    };
     readonly match_events: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'MatchEvent';
@@ -6810,6 +7016,101 @@ type ContractBase = Omit<
                 readonly replyToId: { readonly column: 'replyToId' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly KycSubmission: {
+            readonly fields: {
+              readonly country: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly dateOfBirth: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly rejectionReason: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reviewedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly reviewedByUserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly sex: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly state: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly whatsappNumber: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'kyc_submissions';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly country: { readonly column: 'country' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly dateOfBirth: { readonly column: 'dateOfBirth' };
+                readonly id: { readonly column: 'id' };
+                readonly rejectionReason: { readonly column: 'rejectionReason' };
+                readonly reviewedAt: { readonly column: 'reviewedAt' };
+                readonly reviewedByUserId: { readonly column: 'reviewedByUserId' };
+                readonly sex: { readonly column: 'sex' };
+                readonly state: { readonly column: 'state' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly userId: { readonly column: 'userId' };
+                readonly whatsappNumber: { readonly column: 'whatsappNumber' };
               };
             };
           };
@@ -8782,6 +9083,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
+              readonly kycSubmissions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'KycSubmission';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
               readonly newsArticleLikes: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -9220,6 +9532,21 @@ type ContractBase = Omit<
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
+          readonly KycSex: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'FEMALE'; readonly value: 'FEMALE' },
+              { readonly name: 'MALE'; readonly value: 'MALE' },
+            ];
+          };
+          readonly KycStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PENDING'; readonly value: 'PENDING' },
+              { readonly name: 'APPROVED'; readonly value: 'APPROVED' },
+              { readonly name: 'REJECTED'; readonly value: 'REJECTED' },
+            ];
+          };
           readonly MatchEventType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -9438,6 +9765,15 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'fan_rooms';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'kyc_submissions';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };
