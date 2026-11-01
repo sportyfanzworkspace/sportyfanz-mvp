@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Logo } from "@/components/Logo";
 
 import {
   ArrowRight,
   Check,
-  Crown,
 } from "lucide-react";
 
 const sportsVideos = [
@@ -24,13 +24,7 @@ export default function OnboardingPage() {
       <div className="onboarding-left">
 
         <div className="onboarding-brand">
-
-          <Crown size={27} />
-
-          <strong>
-            SportyFanz
-          </strong>
-
+          <Logo />
         </div>
 
         <span className="onboarding-small">
