@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import Sidebar from "./navigation/Sidebar";
+import { Logo } from "./Logo";
 import SearchBar from "./topbar/search-bar";
 import Notifications from "./topbar/notification";
 import UserProfile from "./topbar/userProfile";
@@ -251,14 +252,17 @@ function dismissKycWelcome() {
       <footer className="sf-site-footer">
         <div className="sf-footer-top">
          <div className="sf-footer-brand">
-        <div className="sf-footer-logo">
-          <Crown size={23} strokeWidth={2.4} />
-       </div>
+      <Logo small />
+      <span>Every Sport. Every Fan. Every Moment.</span>
+    </div>
 
-       <div>
-        <strong>SportyFanz</strong>
-        <span>Every Sport. Every Fan. Every Moment.</span>
-      </div>
+    <div className="sf-footer-social">
+      <strong>FOLLOW SPORTYFANZ</strong>
+      <a href="https://web.facebook.com/sportyfanz1/" target="_blank" rel="noopener noreferrer">Facebook</a>
+      <a href="https://x.com/sportyfanz1" target="_blank" rel="noopener noreferrer">X</a>
+      <a href="https://www.instagram.com/sportyfanz_official/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="https://www.tiktok.com/@sportyfanz" target="_blank" rel="noopener noreferrer">TikTok</a>
+      <a href="https://www.youtube.com/@sportyfanz" target="_blank" rel="noopener noreferrer">YouTube</a>
     </div>
 
     <p className="sf-footer-message">

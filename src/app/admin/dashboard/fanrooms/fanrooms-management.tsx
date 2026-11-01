@@ -3,6 +3,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+
+type MatchOption = {
+  id: number;
+  fixtureId: number;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string | null;
+  scheduledAt: string;
+  status: string;
+};
+
 type FanRoom = {
   id: number;
   name: string;
@@ -10,10 +21,19 @@ type FanRoom = {
   description: string | null;
   status: "ACTIVE" | "CLOSED" | "ARCHIVED";
   coverImageUrl: string | null;
+  matchId: number | null;
+  matchDetails?: {
+    fixtureId: number | null;
+    homeTeam: string;
+    awayTeam: string;
+    competition: string | null;
+    scheduledAt: string;
+  } | null;
   memberCount: number;
   messageCount: number;
   createdAt: string;
 };
+
 
 type Summary = {
   totalRooms: number;
@@ -27,6 +47,7 @@ const emptyForm = {
   description: "",
   coverImageUrl: "",
   status: "ACTIVE" as "ACTIVE" | "CLOSED",
+  matchId: "",
 };
 
 const inputStyle: React.CSSProperties = {
@@ -81,6 +102,7 @@ export default function FanRoomsManagement() {
   const [notice, setNotice] = useState("");
   const [filter, setFilter] = useState("ALL");
   const [showForm, setShowForm] = useState(false);
+  const [availableMatches, setAvailableMatches] = useState<MatchOption[]>([]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -98,6 +120,7 @@ export default function FanRoomsManagement() {
       }
 
       setRooms(data.rooms ?? []);
+      setAvailableMatches(data.availableMatches ?? []);
       setSummary(data.summary ?? {
         totalRooms: 0,
         activeRooms: 0,
@@ -317,6 +340,40 @@ export default function FanRoomsManagement() {
             />
           </label>
 
+           
+<label style={{ display: "grid", gap: 7 }}>
+  <span>Link to a Live Match (optional)</span>
+  <select
+    value={form.matchId}
+    onChange={(event) =>
+      setForm({ ...form, matchId: event.target.value })
+    }
+    style={inputStyle}
+  >
+    <option value="">General Fan Room — no match linked</option>
+    {availableMatches
+      .filter(
+        (match) =>
+          !rooms.some(
+            (room) => room.matchId === match.id
+           )
+          )
+          .map((match) => (
+            <option key={match.id} value={String(match.id)}>
+             {match.homeTeam} vs {match.awayTeam}
+              {" · "}
+              {match.competition || "Football"}
+              {" · "}
+              {formatDate(match.scheduledAt)}
+             </option>
+            ))}
+          </select>
+            <small style={{ color: "#a4abc0" }}>
+                Only fully synced API-Football matches are available.
+               Leave this blank to create a general Fan Room.
+            </small>
+          </label>
+
           <label style={{ display: "grid", gap: 7 }}>
             <span>Cover image URL (optional)</span>
             <input
@@ -480,6 +537,19 @@ export default function FanRoomsManagement() {
                   <p style={{ color: "#a4abc0", margin: "8px 0" }}>
                     {room.description || "No description provided."}
                   </p>
+                  {room.matchDetails && (
+                    <p style={{
+                      color: "#f5b82e",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      margin: "8px 0",
+                     }}>
+                      ⚽ {room.matchDetails.homeTeam} vs {room.matchDetails.awayTeam}
+                      {room.matchDetails.competition
+                       ? ` · ${room.matchDetails.competition}`
+                       : ""}
+                       </p>
+                     )}
                   <p style={{
                     color: "#a4abc0",
                     fontSize: 12,

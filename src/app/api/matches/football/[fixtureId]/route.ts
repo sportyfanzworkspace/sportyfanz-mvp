@@ -108,7 +108,14 @@ export async function GET(
       );
     }
 
-    const [eventsResult, statisticsResult, lineupsResult] =
+    const fixtureData = fixture as {
+      league?: { id?: number; season?: number };
+    };
+
+    const leagueId = fixtureData.league?.id;
+    const season = fixtureData.league?.season;
+
+    const [eventsResult, statisticsResult, lineupsResult, playersResult, standingsResult] =
       await Promise.all([
         fetchFootballData(
           `fixtures/events?fixture=${fixtureId}`,
@@ -122,6 +129,16 @@ export async function GET(
           `fixtures/lineups?fixture=${fixtureId}`,
           apiKey
         ),
+        fetchFootballData(
+          `fixtures/players?fixture=${fixtureId}`,
+          apiKey
+        ),
+        typeof leagueId === "number" && typeof season === "number"
+          ? fetchFootballData(
+              `standings?league=${leagueId}&season=${season}`,
+              apiKey
+            )
+          : Promise.resolve({ data: [], available: false }),
       ]);
 
     return NextResponse.json(
@@ -131,10 +148,14 @@ export async function GET(
         events: eventsResult.data,
         statistics: statisticsResult.data,
         lineups: lineupsResult.data,
+        players: playersResult.data,
+        standings: standingsResult.data,
         dataAvailability: {
           events: eventsResult.available,
           statistics: statisticsResult.available,
           lineups: lineupsResult.available,
+          players: playersResult.available,
+          standings: standingsResult.available,
         },
         updatedAt: new Date().toISOString(),
       },
