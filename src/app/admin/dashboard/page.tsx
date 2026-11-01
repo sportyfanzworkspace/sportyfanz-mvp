@@ -72,6 +72,15 @@ const sections: {
     href: "/admin/dashboard/staff",
     permission: "staff:manage",
   },
+    {
+    title: "KYC Management",
+    description:
+      "Review fan verification submissions, approve or reject KYC, and manage verification rewards.",
+    status: "KYC review system",
+    icon: "✓",
+    href: "/admin/dashboard/kyc",
+    permission: "kyc:manage",
+  },
   {
   title: "Players Management",
   description:

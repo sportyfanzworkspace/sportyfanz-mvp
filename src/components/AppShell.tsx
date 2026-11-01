@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +24,7 @@ import Sidebar from "./navigation/Sidebar";
 import SearchBar from "./topbar/search-bar";
 import Notifications from "./topbar/notification";
 import UserProfile from "./topbar/userProfile";
+import KycReminder from "./KycReminder";
 
 type Props = {
   children: ReactNode;
@@ -67,11 +68,86 @@ const navItems = [
   },
 ];
 
+type KycNoticeStatus =
+  | "LOADING"
+  | "NOT_SUBMITTED"
+  | "PENDING"
+  | "REJECTED"
+  | "APPROVED";
 
 export default function SportyFanzShell({
   children,
 }: Props) {
   const pathname = usePathname();
+
+  const [kycStatus, setKycStatus] =
+  useState<KycNoticeStatus>("LOADING");
+
+const [kycRejectionReason, setKycRejectionReason] =
+  useState("");
+
+const [showKycWelcome, setShowKycWelcome] =
+  useState(false);
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadKycStatus() {
+    try {
+      const response = await fetch("/api/kyc", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      if (cancelled) return;
+
+      const latest =
+        data.latestSubmission ??
+        data.submissions?.[0] ??
+        null;
+
+      if (data.hasApprovedSubmission === true) {
+        setKycStatus("APPROVED");
+        return;
+      }
+
+      if (data.hasPendingSubmission === true) {
+        setKycStatus("PENDING");
+        return;
+      }
+
+      if (latest?.status === "REJECTED") {
+        setKycStatus("REJECTED");
+        setKycRejectionReason(latest.rejectionReason || "");
+      } else {
+        setKycStatus("NOT_SUBMITTED");
+      }
+
+      const dismissed =
+        sessionStorage.getItem("sportyfanz-kyc-dismissed");
+
+      if (!dismissed) {
+        setShowKycWelcome(true);
+      }
+    } catch (error) {
+      console.error("Unable to load KYC status:", error);
+    }
+  }
+
+  void loadKycStatus();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+function dismissKycWelcome() {
+  sessionStorage.setItem("sportyfanz-kyc-dismissed", "true");
+  setShowKycWelcome(false);
+}
 
   useEffect(() => {
     let cancelled = false;
@@ -163,6 +239,8 @@ export default function SportyFanzShell({
         </header>
 
         {/* PAGE CONTENT — RENDERED ONCE */}
+        <KycReminder />
+
         <div className="sf-content">
           {children}
         </div>

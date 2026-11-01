@@ -1,10 +1,23 @@
+"use client";
+
+import { useState } from "react";
+
 import {
   ArrowRight,
   Check,
   Crown,
 } from "lucide-react";
 
+const sportsVideos = [
+  { name: "Football", src: "/videos/football.mp4" },
+  { name: "Basketball", src: "/videos/basketball.mp4" },
+  { name: "Cricket", src: "/videos/cricket.mp4" },
+];
+
 export default function OnboardingPage() {
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const activeVideo = sportsVideos[activeVideoIndex];
+
   return (
     <div className="onboarding-page">
 
@@ -81,6 +94,28 @@ export default function OnboardingPage() {
       <div className="onboarding-right">
 
         <div className="onboarding-image-card">
+
+          <video
+            key={activeVideo.src}
+            className="onboarding-background-video"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            aria-label={`${activeVideo.name} footage playing in the background`}
+            onEnded={() => {
+              setActiveVideoIndex(
+                (current) => (current + 1) % sportsVideos.length
+              );
+            }}
+            onError={() => {
+              setActiveVideoIndex(
+                (current) => (current + 1) % sportsVideos.length
+              );
+            }}
+          >
+            <source src={activeVideo.src} type="video/mp4" />
+          </video>
 
           <div className="onboarding-image-overlay" />
 
