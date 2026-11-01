@@ -82,6 +82,18 @@ export default function OnboardingPage() {
 
         <div className="onboarding-image-card">
 
+          <video
+            className="onboarding-background-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-label="Football highlights playing in the background"
+          >
+            <source src="/videos/football.mp4" type="video/mp4" />
+          </video>
+
           <div className="onboarding-image-overlay" />
 
           <div className="onboarding-sports">

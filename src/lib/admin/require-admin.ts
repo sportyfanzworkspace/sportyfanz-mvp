@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { getCurrentAdminUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
@@ -18,7 +19,8 @@ export type AdminPermission =
   | "fanrooms:manage"
   | "content:moderate"
   | "fans:support"
-  | "players:manage";
+  | "players:manage"
+  | "kyc:manage";
 
 const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
   SUPER_ADMIN: [
@@ -32,10 +34,12 @@ const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
     "content:moderate",
     "fans:support",
     "players:manage",
+    "kyc:manage",
   ],
   OPERATIONS: [
     "rewards:manage",
     "predictions:manage",
+    "kyc:manage",
   ],
   CONTENT_MODERATION: [
     "trivia:manage",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import KycVerification from "./kyc-verification";
 import {
   Shield,
   Trophy,
@@ -219,7 +220,7 @@ export default function MyKingdomPage() {
             >
               Edit Profile
             </button>
-
+            
           </div>
 
           {/* REAL DATABASE STATS */}
@@ -259,6 +260,7 @@ export default function MyKingdomPage() {
 
           </div>
 
+         
         </div>
 
         {/* KINGDOM DETAILS */}
@@ -274,21 +276,21 @@ export default function MyKingdomPage() {
            <div className="sports-grid">
                {sportsLoading ? (
             <p>Loading your sports...</p>
-          ) : mySports.length > 0 ? (
-          mySports.map((sport) => {
-         const sportIcons: Record<string, string> = {
-          football: "⚽",
-          basketball: "🏀",
-          tennis: "🎾",
-          boxing: "🥊",
-          cricket: "🏏",
-          rugby: "🏉",
-          volleyball: "🏐",
-          baseball: "⚾",
-          badminton: "🏸",
-          "formula-1": "🏎️",
-           athletics: "🏃",
-         };
+              ) : mySports.length > 0 ? (
+                mySports.map((sport) => {
+              const sportIcons: Record<string, string> = {
+                 football: "⚽",
+                 basketball: "🏀",
+                 tennis: "🎾",
+                 boxing: "🥊",
+                 cricket: "🏏",
+                 rugby: "🏉",
+                 volleyball: "🏐",
+                 baseball: "⚾",
+                 badminton: "🏸",
+                 "formula-1": "🏎️",
+                 athletics: "🏃",
+                 };
 
         return (
          <div className="my-sport" key={sport.id}>
@@ -379,7 +381,9 @@ export default function MyKingdomPage() {
           </div>
 
         </div>
-
+       
+         {/* KYC VERIFICATION */}
+        <KycVerification />
       </div>
     </div>
   );
