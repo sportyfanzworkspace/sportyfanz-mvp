@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, RefreshCw } from "lucide-react";
+import { MessageCircle, RefreshCw, Send, Users } from "lucide-react";
 
 type Fixture = {
   id: number;
@@ -47,6 +47,27 @@ type MatchDetails = {
     players: boolean;
     standings: boolean;
   };
+};
+
+
+type MatchFanRoomMessage = {
+  id: number;
+  message: string;
+  createdAt: string;
+  userId: number;
+  username: string;
+  avatarUrl: string | null;
+  isEdited: boolean;
+};
+
+type MatchFanRoomData = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  memberCount: number;
+  isJoined: boolean;
+  messages: MatchFanRoomMessage[];
 };
 
 type MatchTab = "overview" | "stats" | "lineups" | "players" | "table";
@@ -356,6 +377,12 @@ export default function MatchesPage() {
                 <h3>No fixtures available</h3>
                 <p>There are no live or upcoming professional fixtures to display.</p>
               </div>
+            )}
+
+            {selectedMatch && (
+              <MatchFanRoom
+                fixtureId={selectedMatch.fixtureId ?? selectedMatch.id}
+              />
             )}
 
             <section className="white-panel fixture-list-panel">
@@ -822,6 +849,335 @@ function TableTab({
           </tbody>
         </table>
       </div>
+    </section>
+  );
+}
+
+function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
+  const [room, setRoom] = useState<MatchFanRoomData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [membershipBusy, setMembershipBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRoom() {
+      try {
+        const response = await fetch(
+          `/api/fanrooms/match/${fixtureId}`,
+          { cache: "no-store" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.error ?? "Unable to load the match Fan Room."
+          );
+        }
+
+        if (!cancelled) {
+          setRoom(data.room ?? null);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load the match Fan Room."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    setLoading(true);
+    setRoom(null);
+    setError("");
+    setNotice("");
+
+    void loadRoom();
+
+    const interval = window.setInterval(() => {
+      void loadRoom();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [fixtureId]);
+
+  async function toggleMembership() {
+    if (!room || membershipBusy) return;
+
+    const action = room.isJoined ? "leave" : "join";
+
+    setMembershipBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/fanrooms/membership", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: room.id,
+          action,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error ?? "Unable to update membership.");
+      }
+
+      setRoom((current) =>
+        current
+          ? {
+              ...current,
+              isJoined: data.isJoined,
+              memberCount: Math.max(
+                0,
+                current.memberCount + (data.isJoined ? 1 : -1)
+              ),
+              messages: data.isJoined ? current.messages : [],
+            }
+          : current
+      );
+
+      setNotice(data.message ?? "");
+
+      if (data.isJoined) {
+        const refreshResponse = await fetch(
+          `/api/fanrooms/match/${fixtureId}`,
+          { cache: "no-store" }
+        );
+
+        const refreshData = await refreshResponse.json();
+
+        if (refreshResponse.ok && refreshData.success) {
+          setRoom(refreshData.room ?? null);
+        }
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update membership."
+      );
+    } finally {
+      setMembershipBusy(false);
+    }
+  }
+
+  async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!room || !room.isJoined || !message.trim() || sending) return;
+
+    const text = message.trim();
+
+    setSending(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/fanrooms/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: room.id,
+          message: text,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error ?? "Unable to send your message.");
+      }
+
+      setRoom((current) =>
+        current
+          ? {
+              ...current,
+              messages: [...current.messages, data.message].slice(-50),
+            }
+          : current
+      );
+
+      setMessage("");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to send your message."
+      );
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <section className="match-fan-room">
+      <div className="match-fan-room-heading">
+        <div>
+          <span className="match-fan-room-kicker">
+            <MessageCircle size={15} />
+            LIVE MATCH DISCUSSION
+          </span>
+          <h3>Match Fan Room</h3>
+          <p>Share your thoughts and discuss the action with fellow fans.</p>
+        </div>
+        {room && (
+          <div className="match-fan-room-member-count">
+            <Users size={17} />
+            <span>{room.memberCount} fans</span>
+          </div>
+        )}
+      </div>
+
+      {loading && (
+        <div className="match-fan-room-state">
+          <RefreshCw size={17} />
+          Loading match Fan Room...
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="match-fan-room-error">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && !room && (
+        <div className="match-fan-room-empty">
+          <MessageCircle size={25} />
+          <strong>No Fan Room linked to this match yet</strong>
+          <p>
+            A match-specific Fan Room will appear here when an admin
+            links one to this fixture.
+          </p>
+          <a href="/app/fanroom">Explore other Fan Rooms →</a>
+        </div>
+      )}
+
+      {!loading && room && (
+        <>
+          <div className="match-fan-room-details">
+            <div>
+              <strong>{room.name}</strong>
+              {room.description && <p>{room.description}</p>}
+            </div>
+
+            <button
+              type="button"
+              className={
+                room.isJoined
+                  ? "match-fan-room-leave"
+                  : "match-fan-room-join"
+              }
+              onClick={toggleMembership}
+              disabled={membershipBusy}
+            >
+              {membershipBusy
+                ? "Please wait..."
+                : room.isJoined
+                  ? "Leave Room"
+                  : "Join Fan Room"}
+            </button>
+          </div>
+
+          {notice && (
+            <p className="match-fan-room-notice">{notice}</p>
+          )}
+
+          {room.isJoined ? (
+            <>
+              <div className="match-fan-room-messages" aria-live="polite">
+                {room.messages.length === 0 ? (
+                  <div className="match-fan-room-no-messages">
+                    <MessageCircle size={22} />
+                    <strong>Start the conversation</strong>
+                    <span>Be the first to share your match thoughts.</span>
+                  </div>
+                ) : (
+                  room.messages.map((item) => (
+                    <article
+                      key={item.id}
+                      className="match-fan-room-message"
+                    >
+                      {item.avatarUrl ? (
+                        <img
+                          src={item.avatarUrl}
+                          alt=""
+                          className="match-fan-room-avatar"
+                        />
+                      ) : (
+                        <span className="match-fan-room-avatar-placeholder">
+                          {item.username.slice(0, 1).toUpperCase()}
+                        </span>
+                      )}
+
+                      <div className="match-fan-room-message-content">
+                        <div className="match-fan-room-message-meta">
+                          <strong>{item.username}</strong>
+                          <time dateTime={item.createdAt}>
+                            {new Date(item.createdAt).toLocaleTimeString(
+                              "en-NG",
+                              { hour: "2-digit", minute: "2-digit" }
+                            )}
+                          </time>
+                          {item.isEdited && <small>Edited</small>}
+                        </div>
+                        <p>{item.message}</p>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              <form
+                className="match-fan-room-composer"
+                onSubmit={sendMessage}
+              >
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(event) => setMessage(event.target.value)}
+                  placeholder="Share your thoughts about the match..."
+                  maxLength={1000}
+                  aria-label="Your match discussion message"
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !message.trim()}
+                  aria-label="Send message"
+                >
+                  <Send size={17} />
+                  {sending ? "Sending..." : "Send"}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="match-fan-room-join-prompt">
+              <MessageCircle size={22} />
+              <p>
+                Join this Fan Room to read messages and take part in
+                the match discussion.
+              </p>
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

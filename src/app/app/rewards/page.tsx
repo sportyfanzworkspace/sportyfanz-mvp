@@ -264,44 +264,6 @@ export default function RewardPage() {
             <a href={activePromo.href}>{activePromo.action} <span aria-hidden="true">→</span></a>
           </div>
 
-          <div className="rewards-ad-controls">
-            <button
-              type="button"
-              aria-label="Previous promotion"
-              onClick={() =>
-                setActivePromoIndex((current) =>
-                  (current - 1 + rewardPromotions.length) % rewardPromotions.length
-                )
-              }
-            >
-              ‹
-            </button>
-
-            <div className="rewards-ad-dots">
-              {rewardPromotions.map((promo, index) => (
-                <button
-                  type="button"
-                  key={promo.title}
-                  aria-label={`Show promotion ${index + 1}`}
-                  aria-current={activePromoIndex === index ? "true" : undefined}
-                  className={activePromoIndex === index ? "active" : ""}
-                  onClick={() => setActivePromoIndex(index)}
-                />
-              ))}
-            </div>
-
-            <button
-              type="button"
-              aria-label="Next promotion"
-              onClick={() =>
-                setActivePromoIndex((current) =>
-                  (current + 1) % rewardPromotions.length
-                )
-              }
-            >
-              ›
-            </button>
-          </div>
         </div>
 
       </div>
