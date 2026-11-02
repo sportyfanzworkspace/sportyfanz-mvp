@@ -8,6 +8,10 @@ type KycSex = "FEMALE" | "MALE";
 type KycSubmission = {
   id: number;
   userId: number;
+  user: {
+    name: string | null;
+    username: string | null;
+  };
   whatsappNumber: string;
   country: string;
   state: string;
@@ -53,6 +57,10 @@ export default function KycManagement() {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [pendingReview, setPendingReview] = useState<{
+    submissionId: number;
+    decision: "APPROVED" | "REJECTED";
+  } | null>(null);
 
   const loadSubmissions = useCallback(async () => {
     setLoading(true);
@@ -100,13 +108,6 @@ export default function KycManagement() {
       return;
     }
 
-    const confirmation =
-      decision === "APPROVED"
-        ? "Approve this KYC submission and award 40 progression points?"
-        : "Reject this KYC submission?";
-
-    if (!window.confirm(confirmation)) return;
-
     setBusyId(submissionId);
 
     try {
@@ -129,6 +130,8 @@ export default function KycManagement() {
       if (!response.ok) {
         throw new Error(data.error || "Unable to review this submission.");
       }
+
+      setPendingReview(null);
 
       setMessage(
         decision === "APPROVED"
@@ -193,6 +196,11 @@ export default function KycManagement() {
             <article className="kyc-card" key={submission.id}>
               <div className="kyc-card-top">
                 <div>
+                  <p className="kyc-account-name">
+                    {submission.user.name ||
+                      submission.user.username ||
+                      "Name not provided"}
+                  </p>
                   <p className="kyc-submission-id">
                     Submission #{submission.id} · Fan #{submission.userId}
                   </p>
@@ -269,9 +277,18 @@ export default function KycManagement() {
                     <button
                       type="button"
                       className="kyc-reject"
-                      onClick={() =>
-                        void reviewSubmission(submission.id, "REJECTED")
-                      }
+                      onClick={() => {
+                        setError("");
+                        setMessage("");
+                        if (!(rejectionReasons[submission.id]?.trim())) {
+                          setError("Enter a rejection reason before rejecting this submission.");
+                          return;
+                        }
+                        setPendingReview({
+                          submissionId: submission.id,
+                          decision: "REJECTED",
+                        });
+                      }}
                       disabled={busyId !== null}
                     >
                       {busyId === submission.id ? "Reviewing…" : "Reject"}
@@ -280,9 +297,14 @@ export default function KycManagement() {
                     <button
                       type="button"
                       className="kyc-approve"
-                      onClick={() =>
-                        void reviewSubmission(submission.id, "APPROVED")
-                      }
+                      onClick={() => {
+                        setError("");
+                        setMessage("");
+                        setPendingReview({
+                          submissionId: submission.id,
+                          decision: "APPROVED",
+                        });
+                      }}
                       disabled={busyId !== null}
                     >
                       {busyId === submission.id ? "Reviewing…" : "Approve · +40"}
@@ -295,7 +317,160 @@ export default function KycManagement() {
         </div>
       )}
 
+      {pendingReview && (() => {
+        const selectedSubmission = submissions.find(
+          (item) => item.id === pendingReview.submissionId
+        );
+
+        if (!selectedSubmission) return null;
+
+        const approving = pendingReview.decision === "APPROVED";
+        const fanName =
+          selectedSubmission.user.name ||
+          selectedSubmission.user.username ||
+          "this fan";
+
+        return (
+          <div className="kyc-modal-overlay">
+            <section
+              className="kyc-confirm-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="kyc-confirm-title"
+            >
+              <div className="kyc-modal-icon">
+                {approving ? "✓" : "!"}
+              </div>
+
+              <h2 id="kyc-confirm-title">
+                {approving ? "Approve KYC submission?" : "Reject KYC submission?"}
+              </h2>
+
+              <p className="kyc-modal-fan">{fanName}</p>
+
+              <p className="kyc-modal-description">
+                {approving
+                  ? "You are about to approve this fan's KYC details. This will award 40 progression points if the KYC reward has not already been issued."
+                  : "You are about to reject this fan's KYC submission. The rejection reason you provided will be recorded."}
+              </p>
+
+              <div className="kyc-modal-actions">
+                <button
+                  type="button"
+                  className="kyc-modal-cancel"
+                  onClick={() => setPendingReview(null)}
+                  disabled={busyId !== null}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className={approving ? "kyc-modal-confirm" : "kyc-modal-reject"}
+                  onClick={() =>
+                    void reviewSubmission(
+                      pendingReview.submissionId,
+                      pendingReview.decision
+                    )
+                  }
+                  disabled={busyId !== null}
+                >
+                  {busyId === pendingReview.submissionId
+                    ? "Processing…"
+                    : approving
+                      ? "Confirm Approval"
+                      : "Confirm Rejection"}
+                </button>
+              </div>
+            </section>
+          </div>
+        );
+      })()}
+
       <style>{`
+        .kyc-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 10000;
+          display: grid;
+          place-items: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, .75);
+          backdrop-filter: blur(4px);
+        }
+        .kyc-confirm-modal {
+          width: 100%;
+          max-width: 440px;
+          box-sizing: border-box;
+          padding: 30px;
+          border: 1px solid #353b4d;
+          border-radius: 18px;
+          background: #151925;
+          color: #f7f8fc;
+          text-align: center;
+          box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+        }
+        .kyc-modal-icon {
+          display: grid;
+          place-items: center;
+          width: 48px;
+          height: 48px;
+          margin: 0 auto 18px;
+          border-radius: 50%;
+          background: #3c3219;
+          color: #f5b82e;
+          font-size: 25px;
+          font-weight: 800;
+        }
+        .kyc-confirm-modal h2 {
+          margin: 0 0 12px;
+          font-size: 20px;
+        }
+        .kyc-modal-fan {
+          margin: 0 0 10px;
+          color: #f5b82e;
+          font-size: 16px;
+          font-weight: 800;
+        }
+        .kyc-modal-description {
+          margin: 0;
+          color: #a3a9bd;
+          font-size: 13px;
+          line-height: 1.7;
+        }
+        .kyc-modal-actions {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 26px;
+        }
+        .kyc-modal-actions button {
+          min-height: 42px;
+          padding: 10px 16px;
+          border: 1px solid #3a3e4e;
+          border-radius: 9px;
+          font: inherit;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .kyc-modal-cancel {
+          background: #191d2a;
+          color: #f7f8fc;
+        }
+        .kyc-modal-confirm {
+          border-color: #f5b82e !important;
+          background: #f5b82e;
+          color: #10121b;
+        }
+        .kyc-modal-reject {
+          border-color: #a44354 !important;
+          background: #a44354;
+          color: white;
+        }
+        .kyc-modal-actions button:disabled {
+          opacity: .55;
+          cursor: not-allowed;
+        }
         .kyc-management { color: #f7f8fc; }
         .kyc-toolbar {
           display: flex;

@@ -17,7 +17,12 @@ type ApiFixture = {
     };
     venue?: { name?: string | null };
   };
-  league?: { name?: string; country?: string };
+  league?: {
+    id?: number;
+    name?: string;
+    country?: string;
+    season?: number;
+  };
   teams?: {
     home?: {
       id?: number;
@@ -235,6 +240,10 @@ function mapFixture(fixture: ApiFixture) {
   return {
     id,
     fixtureId: id,
+    leagueId: fixture.league?.id ?? null,
+    season: fixture.league?.season ?? null,
+    homeTeamId: home.id ?? null,
+    awayTeamId: away.id ?? null,
     homeTeam: home.name,
     awayTeam: away.name,
     homeTeamShortName: home.name,

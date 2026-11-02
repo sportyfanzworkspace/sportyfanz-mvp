@@ -49,10 +49,26 @@ export async function GET(request: NextRequest) {
           new Date(a.createdAt).getTime()
       );
 
+    const submissionsWithUsers = await Promise.all(
+      filtered.map(async (submission) => {
+        const user = await db.orm.public.User
+          .where({ id: submission.userId })
+          .first();
+
+        return {
+          ...submission,
+          user: {
+            name: user?.name ?? null,
+            username: user?.username ?? null,
+          },
+        };
+      })
+    );
+
     return NextResponse.json(
       {
-        submissions: filtered,
-        total: filtered.length,
+        submissions: submissionsWithUsers,
+        total: submissionsWithUsers.length,
       },
       {
         headers: {

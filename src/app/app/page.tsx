@@ -77,6 +77,7 @@ type HomeNewsResponse = {
   stories: HomeNewsStory[];
 };
 
+
 function getLagosDate(offsetDays = 0) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Lagos",
@@ -545,50 +546,6 @@ useEffect(() => {
          </button>
         </div>
        </section>
-
-        {/* FAN KINGDOM */}
-        <div className="fan-kingdom-card">
-
-          <div className="kingdom-card-header">
-
-            <div className="sf-avatar large">
-              {fanInitials}
-            </div>
-
-            <div>
-              <span>Fan Kingdom</span>
-              <strong>{fanName}</strong>
-            </div>
-
-            <ChevronDown size={16} />
-          </div>
-
-          <div className="kingdom-card-stats">
-
-            <div>
-              <span>Fan Score</span>
-              <strong>{fanPoints.toLocaleString()}</strong>
-            </div>
-
-            <div>
-              <span>Sports IQ</span>
-              <strong>—</strong>
-            </div>
-
-            <div className="add-score">
-              <Plus size={17} />
-            </div>
-
-          </div>
-
-          <Link
-            href="/app/kingdom"
-            className="primary-button"
-          >
-            View My Kingdom
-          </Link>
-
-        </div>
 
         {/* DAILY FAN CHECK-IN */}
         <div className="daily-checkin-card">

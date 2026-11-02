@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CircleDollarSign,
   Gift,
   Package,
   Radio,
@@ -45,6 +44,30 @@ type RewardsResponse = {
   rewards: Reward[];
   history: Redemption[];
 };
+
+const rewardPromotions = [
+  {
+    eyebrow: "PLAY • PREDICT • EARN",
+    title: "Make every match count",
+    description: "Take part in trivia, polls and predictions to earn points.",
+    action: "Explore participation",
+    href: "/app/participate",
+  },
+  {
+    eyebrow: "CONNECT WITH FANS",
+    title: "Your Fan Room is waiting",
+    description: "Join conversations and share your passion for sport.",
+    action: "Visit Fan Rooms",
+    href: "/app/fanroom",
+  },
+  {
+    eyebrow: "YOUR FAN JOURNEY",
+    title: "Build your Fan Kingdom",
+    description: "Keep progressing and see how far your fan journey takes you.",
+    action: "View your Kingdom",
+    href: "/app/kingdom",
+  },
+];
 
 const iconMap = [
   Ticket,
@@ -94,6 +117,19 @@ export default function RewardPage() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
+  const activePromo = rewardPromotions[activePromoIndex];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActivePromoIndex((current) =>
+        (current + 1) % rewardPromotions.length
+      );
+    }, 6500);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
 
   async function loadRewards() {
     try {
@@ -220,8 +256,14 @@ export default function RewardPage() {
           </small>
         </div>
 
-        <div className="balance-icon">
-          <CircleDollarSign size={35} />
+        <div className="rewards-ad-carousel" aria-label="SportyFanz promotions">
+          <div className="rewards-ad-copy">
+            <span>{activePromo.eyebrow}</span>
+            <strong>{activePromo.title}</strong>
+            <p>{activePromo.description}</p>
+            <a href={activePromo.href}>{activePromo.action} <span aria-hidden="true">→</span></a>
+          </div>
+
         </div>
 
       </div>
