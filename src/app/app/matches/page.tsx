@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 
-type FootballMatch = {
+type MatchFixture = {
   id: number;
   fixtureId: number;
   homeTeam: string;
@@ -27,10 +27,11 @@ type FootballMatch = {
   kickoffTimeConfirmed?: boolean;
 };
 
-type FootballFeed = {
-  liveMatches: FootballMatch[];
-  upcomingMatches: FootballMatch[];
-  matches: FootballMatch[];
+type MatchesFeed = {
+  success?: boolean;
+  liveMatches: MatchFixture[];
+  upcomingMatches: MatchFixture[];
+  matches: MatchFixture[];
 };
 
 function getLagosDate(offsetDays = 0) {
@@ -64,9 +65,21 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
   () => searchParams.get("sport") || "football"
  );
   const [matchDay, setMatchDay] = useState<"today" | "tomorrow" | "custom">(
-    "today"
-  );
-  const [matches, setMatches] = useState<FootballMatch[]>([]);
+  () => {
+    const initialDate = searchParams.get("date");
+
+    if (!initialDate || initialDate === getLagosDate()) {
+      return "today";
+    }
+
+    if (initialDate === getLagosDate(1)) {
+      return "tomorrow";
+    }
+
+    return "custom";
+  }
+);
+  const [matches, setMatches] = useState<MatchFixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -84,7 +97,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
           { cache: "no-store" }
         );
 
-        const data: FootballFeed = await response.json();
+        const data: MatchesFeed = await response.json();
 
         if (!response.ok || !data) {
           throw new Error("Unable to load matches.");
@@ -253,11 +266,11 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
        </div>
         <div className="upcoming-list">
           {loading ? (
-            <p>Loading football fixtures...</p>
+            <p>Loading {selectedSportSlug} fixtures...</p>
           ) : error ? (
             <p>{error}</p>
           ) : matches.length === 0 ? (
-            <p>No football fixtures scheduled for this date.</p>
+            <p>No {selectedSportSlug} fixtures scheduled for this date.</p>
           ) : (
             matches.map((match) => {
               const isLive =
@@ -293,7 +306,7 @@ const [selectedSportSlug, setSelectedSportSlug] = useState(
 
               return (
                <Link
-                 href={`/app/matches/${match.fixtureId}?sport=${encodeURIComponent(selectedSportSlug)}`}
+                href={`/app/live?sport=${encodeURIComponent(selectedSportSlug)}&fixtureId=${match.fixtureId}&date=${encodeURIComponent(selectedDate)}`}
                  className="upcoming-card"
                  key={match.id}
                  style={{

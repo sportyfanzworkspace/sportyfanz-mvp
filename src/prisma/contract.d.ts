@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1aa22efdf25108d39106e09390f2c382e7007baec95bcb8e8dae892cb1fdd95d'>;
+  StorageHashBase<'78767cc44c9ec49bebee2fe4dcd8dfd1783187b41e0543fc7484496caa455992'>;
 export type ExecutionHash =
   ExecutionHashBase<'d5ae6a1f96f6f4420b2f34f715e08c58b8cbc9cfc36c99d4123c337c3bac6600'>;
 export type ProfileHash =
@@ -334,6 +334,7 @@ export type FieldOutputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly FanRoom: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
@@ -341,7 +342,9 @@ export type FieldOutputTypes = {
       readonly matchId: CodecTypes['pg/int4@1']['output'] | null;
       readonly memberCount: CodecTypes['pg/int4@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
+      readonly providerFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly slug: CodecTypes['pg/text@1']['output'];
+      readonly sport: CodecTypes['pg/text@1']['output'];
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -754,6 +757,7 @@ export type FieldInputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly FanRoom: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly coverImageUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly description: CodecTypes['pg/text@1']['input'] | null;
@@ -761,7 +765,9 @@ export type FieldInputTypes = {
       readonly matchId: CodecTypes['pg/int4@1']['input'] | null;
       readonly memberCount: CodecTypes['pg/int4@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
+      readonly providerFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly slug: CodecTypes['pg/text@1']['input'];
+      readonly sport: CodecTypes['pg/text@1']['input'];
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -1192,6 +1198,7 @@ export type StorageColumnTypes = {
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly fan_rooms: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
@@ -1199,7 +1206,9 @@ export type StorageColumnTypes = {
       readonly matchId: CodecTypes['pg/int4@1']['output'] | null;
       readonly memberCount: CodecTypes['pg/int4@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
+      readonly providerFixtureId: CodecTypes['pg/int4@1']['output'] | null;
       readonly slug: CodecTypes['pg/text@1']['output'];
+      readonly sport: CodecTypes['pg/text@1']['output'];
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -1612,6 +1621,7 @@ export type StorageColumnInputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly fan_rooms: {
+      readonly apiFootballFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly coverImageUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly description: CodecTypes['pg/text@1']['input'] | null;
@@ -1619,7 +1629,9 @@ export type StorageColumnInputTypes = {
       readonly matchId: CodecTypes['pg/int4@1']['input'] | null;
       readonly memberCount: CodecTypes['pg/int4@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
+      readonly providerFixtureId: CodecTypes['pg/int4@1']['input'] | null;
       readonly slug: CodecTypes['pg/text@1']['input'];
+      readonly sport: CodecTypes['pg/text@1']['input'];
       readonly status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -2025,6 +2037,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'user';
   };
   export type public_FanRoom = {
+    apiFootballFixtureId: CodecTypes['pg/int4@1']['output'] | null;
     coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     description: CodecTypes['pg/text@1']['output'] | null;
@@ -2032,7 +2045,9 @@ export namespace Models {
     matchId: CodecTypes['pg/int4@1']['output'] | null;
     memberCount: CodecTypes['pg/int4@1']['output'];
     name: CodecTypes['pg/text@1']['output'];
+    providerFixtureId: CodecTypes['pg/int4@1']['output'] | null;
     slug: CodecTypes['pg/text@1']['output'];
+    sport: CodecTypes['pg/text@1']['output'];
     status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     match: public_Match | null;
@@ -3386,6 +3401,11 @@ type ContractBase = Omit<
             };
             readonly fan_rooms: {
               columns: {
+                readonly apiFootballFixtureId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly coverImageUrl: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -3430,10 +3450,24 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                 };
+                readonly providerFixtureId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly slug: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                };
+                readonly sport: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'football'>;
+                  };
                 };
                 readonly status: {
                   readonly nativeType: 'text';
@@ -3451,7 +3485,11 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['slug'] }];
+              uniques: readonly [
+                { readonly columns: readonly ['slug'] },
+                { readonly columns: readonly ['apiFootballFixtureId'] },
+                { readonly columns: readonly ['sport', 'providerFixtureId'] },
+              ];
               indexes: readonly [
                 {
                   readonly name: 'fan_rooms_createdAt_idx_9575dbd7';
@@ -6771,6 +6809,10 @@ type ContractBase = Omit<
           };
           readonly FanRoom: {
             readonly fields: {
+              readonly apiFootballFixtureId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly coverImageUrl: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -6802,7 +6844,15 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly providerFixtureId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly slug: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sport: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -6858,6 +6908,7 @@ type ContractBase = Omit<
               readonly table: 'fan_rooms';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly apiFootballFixtureId: { readonly column: 'apiFootballFixtureId' };
                 readonly coverImageUrl: { readonly column: 'coverImageUrl' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly description: { readonly column: 'description' };
@@ -6865,7 +6916,9 @@ type ContractBase = Omit<
                 readonly matchId: { readonly column: 'matchId' };
                 readonly memberCount: { readonly column: 'memberCount' };
                 readonly name: { readonly column: 'name' };
+                readonly providerFixtureId: { readonly column: 'providerFixtureId' };
                 readonly slug: { readonly column: 'slug' };
+                readonly sport: { readonly column: 'sport' };
                 readonly status: { readonly column: 'status' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };

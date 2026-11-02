@@ -523,28 +523,36 @@ model MatchEvent {
 // FAN ROOMS
 // ============================================================
 model FanRoom {
-  id            Int                        @id @default(autoincrement())
+  id                  Int                        @id @default(autoincrement())
 
-  name          String
-  slug          String                     @unique
+  name                String
+  slug                String                     @unique
 
-  description   String?
+  description         String?
 
-  status        FanRoomStatus              @default(ACTIVE)
+  status              FanRoomStatus              @default(ACTIVE)
 
-  matchId       Int?
-  match         Match?                     @relation(fields: [matchId], references: [id])
+  matchId             Int?
+  match               Match?                     @relation(fields: [matchId], references: [id])
 
-  coverImageUrl String?
+  // Preserve existing football room links.
+  apiFootballFixtureId Int?                      @unique
 
-  memberCount   Int                        @default(0)
+  // Sport-aware provider fixture identification.
+  sport               String                     @default("football")
+  providerFixtureId   Int?
 
-  createdAt     TimestamptzString          @default(now())
-  updatedAt     temporal.updatedAtString()
+  coverImageUrl       String?
 
-  members       FanRoomMember[]
-  messages      FanRoomMessage[]
+  memberCount         Int                        @default(0)
 
+  createdAt           TimestamptzString          @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  members             FanRoomMember[]
+  messages            FanRoomMessage[]
+
+  @@unique([sport, providerFixtureId])
   @@index([matchId])
   @@index([status])
   @@index([createdAt])

@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, RefreshCw, Send, Users } from "lucide-react";
+
+function getLagosDate() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
+}
 
 type Fixture = {
   id: number;
@@ -67,10 +82,17 @@ type MatchFanRoomData = {
   description: string | null;
   memberCount: number;
   isJoined: boolean;
+  hasMembershipRecord: boolean;
   messages: MatchFanRoomMessage[];
 };
 
-type MatchTab = "overview" | "stats" | "lineups" | "players" | "table";
+type MatchTab =
+  | "overview"
+  | "stats"
+  | "lineups"
+  | "players"
+  | "table"
+  | "fanroom";
 
 function formatKickoff(date: string) {
   return new Date(date).toLocaleString("en-NG", {
@@ -129,6 +151,7 @@ function getPlayerName(player: MatchRecord): string {
 
 export default function MatchesPage() {
   const [fixtures, setFixtures] = useState<FixturesResponse | null>(null);
+  const [selectedSport, setSelectedSport] = useState("football");
   const [selectedMatch, setSelectedMatch] = useState<Fixture | null>(null);
   const [details, setDetails] = useState<MatchDetails | null>(null);
   const [activeTab, setActiveTab] = useState<MatchTab>("overview");
@@ -137,42 +160,94 @@ export default function MatchesPage() {
   const [error, setError] = useState("");
   const [detailsError, setDetailsError] = useState("");
 
-  useEffect(() => {
+    useEffect(() => {
     let cancelled = false;
 
     async function loadFixtures() {
       try {
-        const response = await fetch("/api/matches/football", {
+        const searchParams = new URLSearchParams(window.location.search);
+
+        const requestedSport = (
+          searchParams.get("sport") ?? "football"
+        ).toLowerCase();
+
+        const requestedDate =
+          searchParams.get("date") ?? getLagosDate();
+
+        setSelectedSport(requestedSport);
+
+        const fixturesUrl =
+          requestedSport === "football"
+            ? searchParams.get("date")
+              ? `/api/matches/football?date=${encodeURIComponent(requestedDate)}`
+              : "/api/matches/football"
+            : `/api/matches/${encodeURIComponent(requestedSport)}?date=${encodeURIComponent(requestedDate)}`;
+
+        const response = await fetch(fixturesUrl, {
           cache: "no-store",
         });
 
         if (!response.ok) {
-          throw new Error("Unable to load football fixtures.");
+          throw new Error("Unable to load fixtures.");
         }
 
-        const data: FixturesResponse = await response.json();
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message ?? "Unable to load fixtures.");
+        }
 
         if (!cancelled) {
-          setFixtures(data);
-          const allMatches = [
-            ...(data.liveMatches ?? []),
-            ...(data.upcomingMatches ?? []),
-          ];
+          const live = data.liveMatches ?? [];
+          const upcoming = data.upcomingMatches ?? [];
 
-          setSelectedMatch((current) => {
-            if (current && allMatches.some((match) => match.id === current.id)) {
-              return allMatches.find((match) => match.id === current.id) ?? current;
-            }
-            return allMatches[0] ?? null;
+          setFixtures({
+            success: true,
+            liveMatches: live,
+            upcomingMatches: upcoming,
           });
-          setError("");
+
+          const allMatches: Fixture[] = Array.isArray(data.matches)
+           ? data.matches
+           : [...live, ...upcoming];
+
+          const requestedFixtureId = searchParams.get("fixtureId");
+
+          const requestedMatch = requestedFixtureId
+            ? allMatches.find(
+                (match: Fixture) =>
+                  String(match.fixtureId ?? match.id) ===
+                  requestedFixtureId
+              )
+            : null;
+
+          if (requestedFixtureId) {
+            if (requestedMatch) {
+              setSelectedMatch(requestedMatch);
+              setError("");
+            } else {
+              setSelectedMatch(null);
+              setError(
+                "The selected match could not be found for this sport and date. Please return to the fixtures list and try again."
+              );
+            }
+          } else {
+            setSelectedMatch(allMatches[0] ?? null);
+            setError("");
+          }
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          setError("Football fixtures are temporarily unavailable.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Fixtures are temporarily unavailable."
+          );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -198,17 +273,43 @@ export default function MatchesPage() {
 
       try {
         const response = await fetch(
-          `/api/matches/football/${selectedMatch!.fixtureId ?? selectedMatch!.id}`,
-          { cache: "no-store" }
-        );
+          selectedSport === "football"
+           ? `/api/matches/football/${selectedMatch!.fixtureId ?? selectedMatch!.id}`
+           : `/api/matches/${encodeURIComponent(selectedSport)}/${selectedMatch!.fixtureId ?? selectedMatch!.id}`,
+           { cache: "no-store" }
+         );
 
-        const data: MatchDetails = await response.json();
+        const data = await response.json();
 
         if (!response.ok || !data.success) {
           throw new Error("Unable to load match details.");
         }
 
-        if (!cancelled) setDetails(data);
+        if (!cancelled) {
+           if (selectedSport === "football") {
+            setDetails(data);
+        } else {
+         setDetails({
+           success: data.success,
+           fixture: data.game ?? {},
+           events: [],
+            statistics: data.statistics ?? [],
+            lineups: [],
+            players: [],
+            standings: [],
+            dataAvailability: {
+            events: false,
+            statistics:
+          data.dataAvailability?.statistics === true &&
+          Array.isArray(data.statistics) &&
+          data.statistics.length > 0,
+            lineups: false,
+            players: false,
+            standings: false,
+        },
+        });
+       }
+      }
       } catch {
         if (!cancelled) {
           setDetailsError("Match details are temporarily unavailable.");
@@ -223,13 +324,37 @@ export default function MatchesPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedMatch]);
+  }, [selectedMatch, selectedSport]);
 
   const liveMatches = fixtures?.liveMatches ?? [];
   const upcomingMatches = fixtures?.upcomingMatches ?? [];
   const isLive =
     selectedMatch?.status === "LIVE" ||
     selectedMatch?.status === "HALF_TIME";
+
+    
+  const matchTabs: [MatchTab, string][] =
+    selectedSport === "football"
+      ? [
+          ["overview", "Overview"],
+          ["stats", "Stats"],
+          ["lineups", "Lineups"],
+          ["players", "Player Performance"],
+          ["table", "League Table"],
+          ["fanroom", "Fan Room"],
+        ]
+      : selectedSport === "basketball" &&
+          details?.dataAvailability?.statistics
+        ? [
+            ["overview", "Overview"],
+            ["stats", "Stats"],
+            ["fanroom", "Fan Room"],
+          ]
+        : [
+            ["overview", "Overview"],
+            ["fanroom", "Fan Room"],
+          ];
+
 
   function selectMatch(match: Fixture) {
     setSelectedMatch(match);
@@ -242,12 +367,16 @@ export default function MatchesPage() {
         <div>
           <span>MATCH CENTRE</span>
           <h1>Live & Matches</h1>
-          <p>Follow fixtures, match events, statistics and player performances.</p>
+          <p>
+            Follow {selectedSport} fixtures, scores and available match information.
+         </p>
         </div>
       </div>
 
       {loading && (
-        <div className="white-panel">Loading football fixtures...</div>
+        <div className="white-panel">
+          Loading {selectedSport} fixtures...
+        </div>
       )}
 
       {error && (
@@ -313,13 +442,7 @@ export default function MatchesPage() {
                 </div>
 
                 <div className="match-tabs" role="tablist" aria-label="Match information">
-                  {([
-                    ["overview", "Overview"],
-                    ["stats", "Stats"],
-                    ["lineups", "Lineups"],
-                    ["players", "Player Performance"],
-                    ["table", "League Table"],
-                  ] as [MatchTab, string][]).map(([tab, label]) => (
+                  {matchTabs.map(([tab, label]) => (
                     <button
                       key={tab}
                       type="button"
@@ -330,59 +453,74 @@ export default function MatchesPage() {
                     >
                       {label}
                     </button>
-                  ))}
-                </div>
+                   ))}
+                 </div>
 
                 <div className="match-tab-content">
-                  {detailsLoading && (
-                    <div className="match-data-message">
-                      <RefreshCw size={17} />
-                      Loading match information...
-                    </div>
-                  )}
+                  {activeTab === "fanroom" && (
+                  <MatchFanRoom
+                    fixtureId={selectedMatch.fixtureId ?? selectedMatch.id}
+                     sport={selectedSport}
+                  />
+                )}
 
-                  {!detailsLoading && detailsError && (
-                    <div className="match-data-message">{detailsError}</div>
-                  )}
-
-                  {!detailsLoading && !detailsError && details && (
-                    <>
-                      {activeTab === "overview" && (
-                        <OverviewTab
-                          details={details}
-                          selectedMatch={selectedMatch}
-                        />
-                      )}
-                      {activeTab === "stats" && (
-                        <StatsTab details={details} />
-                      )}
-                      {activeTab === "lineups" && (
-                        <LineupsTab details={details} />
-                      )}
-                      {activeTab === "players" && (
-                        <PlayersTab details={details} />
-                      )}
-                      {activeTab === "table" && (
-                        <TableTab
-                          details={details}
-                          selectedMatch={selectedMatch}
-                        />
-                      )}
-                    </>
-                  )}
+                {activeTab !== "fanroom" && detailsLoading && (
+                <div className="match-data-message">
+                 <RefreshCw size={17} />
+                   Loading match information...
                 </div>
+                )}
+
+  {activeTab !== "fanroom" && !detailsLoading && detailsError && (
+    <div className="match-data-message">{detailsError}</div>
+  )}
+
+  {activeTab !== "fanroom" &&
+    !detailsLoading &&
+    !detailsError &&
+    details && (
+      <>
+        {activeTab === "overview" && (
+         selectedSport === "football" ? (
+          <OverviewTab
+           details={details}
+           selectedMatch={selectedMatch}
+           />
+          ) : (
+          <SportOverviewTab
+           selectedMatch={selectedMatch}
+           sport={selectedSport}
+          />
+         )
+         )}
+
+        {activeTab === "stats" && (
+          <StatsTab details={details} />
+        )}
+
+        {activeTab === "lineups" && (
+          <LineupsTab details={details} />
+        )}
+
+        {activeTab === "players" && (
+          <PlayersTab details={details} />
+        )}
+
+        {activeTab === "table" && (
+          <TableTab
+            details={details}
+            selectedMatch={selectedMatch}
+          />
+        )}
+      </>
+    )}
+</div>
               </section>
             ) : (
               <div className="white-panel">
                 <h3>No fixtures available</h3>
                 <p>There are no live or upcoming professional fixtures to display.</p>
               </div>
-            )}
-
-            {selectedMatch && (
-              <MatchFanRoom
-                fixtureId={selectedMatch.fixtureId ?? selectedMatch.id}
-              />
             )}
 
             <section className="white-panel fixture-list-panel">
@@ -436,6 +574,7 @@ export default function MatchesPage() {
               </div>
             </div>
           </aside>
+          
         </div>
       )}
     </div>
@@ -564,6 +703,56 @@ function OverviewTab({
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function SportOverviewTab({
+  selectedMatch,
+  sport,
+}: {
+  selectedMatch: Fixture;
+  sport: string;
+}) {
+  const sportNames: Record<string, string> = {
+    basketball: "Basketball",
+    baseball: "Baseball",
+    rugby: "Rugby",
+    volleyball: "Volleyball",
+  };
+
+  const sportName = sportNames[sport] ?? "Match";
+
+  return (
+    <div className="match-overview-content">
+      <div className="match-overview-summary">
+        <div>
+          <span>COMPETITION</span>
+          <strong>{selectedMatch.competition}</strong>
+        </div>
+
+        <div>
+          <span>VENUE</span>
+          <strong>{selectedMatch.venue ?? "Not provided"}</strong>
+        </div>
+
+        <div>
+          <span>DATE & TIME</span>
+          <strong>{formatKickoff(selectedMatch.scheduledAt)}</strong>
+        </div>
+      </div>
+
+      <div className="match-section-heading">
+        <div>
+          <h3>{sportName} Match Information</h3>
+          <p>Match status and fixture information</p>
+        </div>
+      </div>
+
+      <div className="match-empty-state">
+        Detailed match events and play-by-play information are not
+        currently available for this fixture.
+      </div>
     </div>
   );
 }
@@ -853,7 +1042,13 @@ function TableTab({
   );
 }
 
-function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
+function MatchFanRoom({
+  fixtureId,
+  sport,
+}: {
+  fixtureId: number;
+  sport: string;
+}) {
   const [room, setRoom] = useState<MatchFanRoomData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -861,58 +1056,132 @@ function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
   const [sending, setSending] = useState(false);
   const [membershipBusy, setMembershipBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [unavailableStatus, setUnavailableStatus] = useState("");
+  const autoJoinAttempted = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+  let cancelled = false;
+  let loadingRequest = false;
 
-    async function loadRoom() {
-      try {
-        const response = await fetch(
-          `/api/fanrooms/match/${fixtureId}`,
+  autoJoinAttempted.current = false;
+
+  async function loadRoom() {
+    if (loadingRequest) return;
+
+    loadingRequest = true;
+
+    try {
+      const response = await fetch(
+        `/api/fanrooms/match/${fixtureId}?sport=${encodeURIComponent(sport)}`,
+        { cache: "no-store" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error ?? "Unable to load the match Fan Room."
+        );
+      }
+
+      if (cancelled) return;
+
+      setUnavailableStatus(
+        data.unavailable ? data.roomStatus ?? "CLOSED" : ""
+      );
+
+      setRoom(data.room ?? null);
+      setError("");
+
+      // Automatically join only fans who have never joined this room.
+      // A previous deliberate leave is respected.
+      if (
+        data.room &&
+        !data.room.isJoined &&
+        !data.room.hasMembershipRecord &&
+        !autoJoinAttempted.current
+      ) {
+        autoJoinAttempted.current = true;
+
+        const joinResponse = await fetch(
+          "/api/fanrooms/membership",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              roomId: data.room.id,
+              action: "join",
+            }),
+          }
+        );
+
+        const joinData = await joinResponse.json();
+
+        if (!joinResponse.ok || !joinData.success) {
+          throw new Error(
+            joinData.error ?? "Unable to join the match Fan Room."
+          );
+        }
+
+        if (cancelled) return;
+
+        setNotice("You've joined the match Fan Room.");
+
+        // Load the messages immediately after joining.
+        const refreshResponse = await fetch(
+          `/api/fanrooms/match/${fixtureId}?sport=${encodeURIComponent(sport)}`,
           { cache: "no-store" }
         );
 
-        const data = await response.json();
+        const refreshData = await refreshResponse.json();
 
-        if (!response.ok || !data.success) {
-          throw new Error(
-            data.error ?? "Unable to load the match Fan Room."
+        if (
+          refreshResponse.ok &&
+          refreshData.success &&
+          !cancelled
+        ) {
+          setRoom(refreshData.room ?? null);
+          setUnavailableStatus(
+            refreshData.unavailable
+              ? refreshData.roomStatus ?? "CLOSED"
+              : ""
           );
         }
+      }
+    } catch (err) {
+      if (!cancelled) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load the match Fan Room."
+        );
+      }
+    } finally {
+      loadingRequest = false;
 
-        if (!cancelled) {
-          setRoom(data.room ?? null);
-          setError("");
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Unable to load the match Fan Room."
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
       }
     }
+  }
 
-    setLoading(true);
-    setRoom(null);
-    setError("");
-    setNotice("");
+  setLoading(true);
+  setRoom(null);
+  setError("");
+  setNotice("");
+  setUnavailableStatus("");
 
+  void loadRoom();
+
+  const interval = window.setInterval(() => {
     void loadRoom();
+  }, 5000);
 
-    const interval = window.setInterval(() => {
-      void loadRoom();
-    }, 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [fixtureId]);
+  return () => {
+    cancelled = true;
+    window.clearInterval(interval);
+   };
+  }, [fixtureId, sport]);
 
   async function toggleMembership() {
     if (!room || membershipBusy) return;
@@ -957,7 +1226,7 @@ function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
 
       if (data.isJoined) {
         const refreshResponse = await fetch(
-          `/api/fanrooms/match/${fixtureId}`,
+          `/api/fanrooms/match/${fixtureId}?sport=${encodeURIComponent(sport)}`,
           { cache: "no-store" }
         );
 
@@ -1027,7 +1296,7 @@ function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
   }
 
   return (
-    <section className="match-fan-room">
+    <section id="match-fan-room" className="match-fan-room">
       <div className="match-fan-room-heading">
         <div>
           <span className="match-fan-room-kicker">
@@ -1052,10 +1321,32 @@ function MatchFanRoom({ fixtureId }: { fixtureId: number }) {
         </div>
       )}
 
-      {!loading && error && (
-        <div className="match-fan-room-error">
-          {error}
-        </div>
+      {!loading && !error && !room && (
+      <div className="match-fan-room-empty">
+       <MessageCircle size={25} />
+
+      {unavailableStatus ? (
+       <>
+        <strong>
+          This Fan Room is {unavailableStatus.toLowerCase()}.
+        </strong>
+        <p>
+          An administrator has made this match discussion room
+          unavailable.
+        </p>
+       </>
+       ) : (
+        <>
+          <strong>Match Fan Room unavailable</strong>
+         <p>
+           We couldn't find or create a discussion room for this
+           fixture. Please try again shortly.
+          </p>
+         </>
+        )}
+
+        <a href="/app/fanroom">Explore other Fan Rooms →</a>
+       </div>
       )}
 
       {!loading && !error && !room && (

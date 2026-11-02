@@ -938,7 +938,7 @@ useEffect(() => {
                 
                 return (
                   <Link
-                   href={`/app/matches/${match.fixtureId}?sport=${encodeURIComponent(selectedSportSlug)}`}
+                   href={`/app/live?sport=${encodeURIComponent(selectedSportSlug)}&fixtureId=${match.fixtureId}&date=${encodeURIComponent(selectedDate)}`}
                    className="upcoming-card"
                    key={`${selectedSportSlug}-${match.id}`}
                    style={{

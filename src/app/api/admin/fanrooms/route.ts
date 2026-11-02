@@ -208,35 +208,44 @@ export async function POST(request: Request) {
       );
     }
 
-    if (matchId !== null) {
-      const match = await db.orm.public.Match
-        .where({ id: matchId })
-        .first();
+    let apiFootballFixtureId: number | null = null;
 
-      if (
-        !match ||
-        match.matchDataSource !== "API_FOOTBALL" ||
-        typeof match.apiFootballFixtureId !== "number" ||
-        match.apiFootballFixtureId < 1
-      ) {
-        return NextResponse.json(
-          { error: "This match is not a fully synced API-Football fixture." },
-          { status: 400 }
-        );
-      }
+if (matchId !== null) {
+  const match = await db.orm.public.Match
+    .where({ id: matchId })
+    .first();
 
-      const existingRoom = await db.orm.public.FanRoom
-        .where({ matchId })
-        .first();
+  if (
+    !match ||
+    match.matchDataSource !== "API_FOOTBALL" ||
+    typeof match.apiFootballFixtureId !== "number" ||
+    match.apiFootballFixtureId < 1
+  ) {
+    return NextResponse.json(
+      {
+        error: "This match is not a fully synced API-Football fixture.",
+      },
+      { status: 400 }
+    );
+  }
 
-      if (existingRoom) {
-        return NextResponse.json(
-          { error: "A Fan Room is already linked to this match." },
-          { status: 409 }
-        );
-      }
-    }
+  apiFootballFixtureId = match.apiFootballFixtureId;
 
+  const existingByMatch = await db.orm.public.FanRoom
+    .where({ matchId })
+    .first();
+
+  const existingByFixture = await db.orm.public.FanRoom
+    .where({ apiFootballFixtureId })
+    .first();
+
+  if (existingByMatch || existingByFixture) {
+    return NextResponse.json(
+      { error: "A Fan Room is already linked to this match." },
+      { status: 409 }
+    );
+  }
+}
     const baseSlug = makeSlug(name);
 
     if (!baseSlug) {
@@ -261,6 +270,7 @@ export async function POST(request: Request) {
       coverImageUrl: coverImageUrl || null,
       status: requestedStatus,
       matchId,
+      apiFootballFixtureId,
     });
 
     return NextResponse.json(
