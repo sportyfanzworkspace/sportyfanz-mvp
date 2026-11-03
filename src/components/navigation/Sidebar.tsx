@@ -162,37 +162,20 @@ useEffect(() => {
         </div>
 
         <Link
-          href="/onboarding"
-          className={`sf-nav-item ${
-            pathname.startsWith("/onboarding")
-              ? "active"
-              : ""
-          }`}
-        >
-          <Users size={17} />
-          <span>Join SportyFanz</span>
-        </Link>
-
-        <Link
-          href="/participate"
+          href="/app/participate"
           className="sf-nav-item"
         >
           <Award size={17} />
           <span>Challenges</span>
         </Link>
 
-        <button className="sf-nav-item" type="button">
-          <Trophy size={17} />
-          <span>Leaderboards</span>
-        </button>
-      </div>
-
-      {/* BOTTOM */}
-      <div className="sf-sidebar-bottom">
-        <button className="sf-nav-item" type="button">
-          <Settings size={17} />
-          <span>Settings</span>
-        </button>
+        <Link
+          href="/app/leaderboard"
+          className="sf-nav-item"
+        >
+         <Trophy size={17} />
+         <span>Leaderboards</span>
+        </Link>
       </div>
     </aside>
   );

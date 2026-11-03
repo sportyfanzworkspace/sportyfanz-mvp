@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import KycVerification from "./kyc-verification";
+import SocialFollowEarn from "./social-follow-earn";
 import {
   Shield,
   Trophy,
@@ -382,6 +383,9 @@ export default function MyKingdomPage() {
 
         </div>
        
+        {/* SOCIAL FOLLOW & EARN */}
+        <SocialFollowEarn />
+
          {/* KYC VERIFICATION */}
         <KycVerification />
       </div>

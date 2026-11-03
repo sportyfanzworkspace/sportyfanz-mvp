@@ -37,7 +37,7 @@ export default function LoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: String(formData.get("email") || "").trim().toLowerCase(),
+         identifier: String(formData.get("identifier") || "").trim().toLowerCase(),
           password: String(formData.get("password") || ""),
         }),
       });
@@ -49,8 +49,13 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = "/app";
-    } catch {
+      const isNewFanJourney =
+       new URLSearchParams(window.location.search).get("welcome") === "1";
+
+       window.location.href = isNewFanJourney
+        ? "/app?welcome=1"
+        : "/app";
+      } catch {
       setError("We couldn't connect to SportyFanz. Please try again.");
     } finally {
       setLoading(false);
@@ -117,27 +122,27 @@ export default function LoginPage() {
             </div>
 
             <form className="form" onSubmit={handleSubmit}>
-              {/* EMAIL */}
-              <div className="fieldGroup">
-                <label htmlFor="email" className="label">
-                  Email address
-                </label>
+                               {/* USERNAME OR EMAIL */}
+<div className="fieldGroup">
+  <label htmlFor="identifier" className="label">
+    Username or email
+  </label>
 
-                <div className="inputWrapper">
-                  <AtSign size={17} className="inputIcon" />
+  <div className="inputWrapper">
+    <AtSign size={17} className="inputIcon" />
 
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className="input"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
+    <input
+      id="identifier"
+      name="identifier"
+      type="text"
+      className="input"
+      placeholder="Username or email address"
+      autoComplete="username"
+      required
+      disabled={loading}
+    />
+  </div>
+</div>
 
               {/* PASSWORD */}
               <div className="fieldGroup">

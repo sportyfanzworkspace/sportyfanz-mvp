@@ -470,27 +470,23 @@ async function submitComment(event: React.FormEvent<HTMLFormElement>) {
 
         <div
           className="news-article-body"
-          style={{
-            color: "#111111",
-            background: "#ffffff",
-            fontSize: 18,
-            lineHeight: 1.9,
-            maxWidth: 760,
-            margin: "0 auto",
-          }}
+         style={{
+           color: "#111111",
+           background: "#ffffff",
+           fontSize: 18,
+           lineHeight: 1.9,
+           maxWidth: 760,
+           margin: "0 auto",
+           textAlign: "left",
+         }}
         >
-          <h2
-            style={{
-              color: "#111111",
-              fontSize: 26,
-              lineHeight: 1.3,
-              marginBottom: 18,
-            }}
-          >
-            Story Summary
-          </h2>
 
-          <div className="news-article-summary">
+          <div 
+          className="news-article-summary" 
+          style={{
+              width: "100%",
+              textAlign: "left",
+              }}>
             {articleText
               .split(/\n\s*\n/)
               .map((paragraph) => paragraph.trim())

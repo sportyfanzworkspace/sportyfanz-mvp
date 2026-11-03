@@ -28,6 +28,7 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           name: String(formData.get("name") || "").trim(),
+          username: String(formData.get("username") || "").trim().toLowerCase(),
           email: String(formData.get("email") || "").trim().toLowerCase(),
           password: String(formData.get("password") || ""),
         }),
@@ -116,6 +117,24 @@ export default function RegisterPage() {
                 disabled={loading}
               />
             </div>
+
+            <div className="auth-field">
+  <label htmlFor="username">Username</label>
+
+  <input
+    id="username"
+    name="username"
+    type="text"
+    placeholder="Choose your fan username"
+    autoComplete="username"
+    minLength={3}
+    maxLength={20}
+    pattern="[A-Za-z0-9_]+"
+    title="Use 3–20 letters, numbers or underscores."
+    required
+    disabled={loading}
+  />
+</div>
 
             <div className="auth-field">
               <label htmlFor="email">Email address</label>

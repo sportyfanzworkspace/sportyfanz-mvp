@@ -770,7 +770,7 @@ const handlePollVote = async (pollId: number, optionId: number) => {
                 </div>
               )}
             </div>
-             <div className="white-panel top-fans-panel">
+             <div id="leaderboard" className="white-panel top-fans-panel">
                <div className="panel-title">
                  <h3>Top Fans</h3>
                  <span>Leaderboard</span>

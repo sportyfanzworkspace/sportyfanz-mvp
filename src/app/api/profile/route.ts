@@ -47,6 +47,7 @@ export async function GET() {
 
         totalPoints: profile.totalPoints,
         currentPoints: profile.currentPoints,
+        progressionPoints: profile.progressionPoints,
 
         matchesWatched: profile.matchesWatched,
         challengesCompleted:

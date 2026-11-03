@@ -9,37 +9,33 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const email =
-      typeof body.email === "string"
-        ? body.email.trim().toLowerCase()
-        : "";
+    const identifier =
+      typeof body.identifier === "string"
+      ? body.identifier.trim().toLowerCase()
+      : "";
+
 
     const password =
       typeof body.password === "string"
         ? body.password
         : "";
-
-    if (!email || !password) {
-      return NextResponse.json(
-        {
-          error: "Email and password are required.",
-        },
-        { status: 400 }
-      );
+      if (!identifier || !password) {
+        return NextResponse.json(
+       {
+        error: "Username or email and password are required.",
+       },
+      { status: 400 }
+     );
     }
 
-    const user =
-      await db.orm.public.User.first({
-        email,
-      });
+   let user = await db.orm.public.User.first({
+    email: identifier,
+   });
 
     if (!user) {
-      return NextResponse.json(
-        {
-          error: "Invalid email or password.",
-        },
-        { status: 401 }
-      );
+      user = await db.orm.public.User.first({
+      username: identifier,
+     });
     }
 
     if (user.status !== "ACTIVE") {

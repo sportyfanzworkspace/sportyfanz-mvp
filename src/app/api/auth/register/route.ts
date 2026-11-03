@@ -17,9 +17,9 @@ export async function POST(request: Request) {
         : "";
 
     const username =
-      typeof body.username === "string"
-        ? body.username.trim()
-        : "";
+     typeof body.username === "string"
+     ? body.username.trim().toLowerCase()
+     : "";
 
     const name =
       typeof body.name === "string"
@@ -57,22 +57,31 @@ export async function POST(request: Request) {
       );
     }
 
-    if (username) {
-      const existingUsername =
-        await db.orm.public.User.first({
-          username,
-        });
+   const existingUsername = await db.orm.public.User.first({
+    username,
+   });
 
-      if (existingUsername) {
-        return NextResponse.json(
-          {
-            error: "That username is already taken.",
-          },
-          { status: 409 }
-        );
-      }
-    }
+if (existingUsername) {
+  return NextResponse.json(
+    { error: "That username is already taken. Please choose another." },
+    { status: 409 }
+  );
+} 
+    if (!username) {
+  return NextResponse.json(
+    { error: "A username is required." },
+    { status: 400 }
+  );
+}
 
+if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+  return NextResponse.json(
+    {
+      error: "Username must be 3–20 characters and contain only letters, numbers or underscores.",
+    },
+    { status: 400 }
+  );
+}
     const passwordHash = await hashPassword(password);
 
     const result = await db.transaction(async (tx) => {
@@ -87,7 +96,7 @@ export async function POST(request: Request) {
       const profile =
         await tx.orm.public.FanProfile.create({
           userId: user.id,
-          displayName: name || username || null,
+          displayName: username,
           fanLevel: "NEW_FAN",
           totalPoints: 0,
           currentPoints: 0,
