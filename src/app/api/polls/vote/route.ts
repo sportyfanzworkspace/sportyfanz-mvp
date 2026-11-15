@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
+import { cookies } from "next/headers";
+import {
+  GUEST_POLL_COOKIE,
+  createGuestPollToken,
+  guestPollCookieOptions,
+  hashGuestPollToken,
+  isValidGuestPollToken,
+} from "@/lib/guest-poll-vote";
 
 const POLL_VOTE_CHALLENGE = "daily-fan-participation";
 
 export async function POST(request: Request) {
   try {
     const userId = await getCurrentUserId();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to vote." },
-        { status: 401 }
-      );
-    }
 
     let body: { pollId?: unknown; optionId?: unknown };
 
@@ -39,6 +40,107 @@ export async function POST(request: Request) {
         { error: "Select a valid poll option." },
         { status: 400 }
       );
+    }
+
+    if (!userId) {
+      const origin = request.headers.get("origin");
+      const allowedOrigins = new Set([
+        "https://sportyfanz.com",
+        "https://www.sportyfanz.com",
+        ...(process.env.NODE_ENV !== "production"
+          ? [
+              "http://localhost:3000",
+              "http://127.0.0.1:3000",
+            ]
+          : []),
+        ...(process.env.CORS_ALLOWED_ORIGINS ?? "")
+          .split(",")
+          .map((value) => value.trim().replace(/\/+$/, ""))
+          .filter(Boolean),
+      ]);
+
+      if (!origin || !allowedOrigins.has(origin)) {
+        return NextResponse.json(
+          { error: "Voting request origin is not allowed." },
+          { status: 403 }
+        );
+      }
+
+      const cookieStore = await cookies();
+      const existingToken =
+        cookieStore.get(GUEST_POLL_COOKIE)?.value;
+
+      const hasValidToken =
+        isValidGuestPollToken(existingToken);
+
+      const token = hasValidToken
+        ? existingToken
+        : createGuestPollToken();
+
+      const guestTokenHash = hashGuestPollToken(token);
+
+      await db.transaction(async (tx) => {
+        const poll = await tx.orm.public.Poll
+          .where({ id: pollId })
+          .first();
+
+        if (!poll || poll.status !== "ACTIVE") {
+          throw new Error("POLL_NOT_AVAILABLE");
+        }
+
+        const now = Date.now();
+
+        if (
+          (poll.startsAt &&
+            now < new Date(poll.startsAt).getTime()) ||
+          (poll.endsAt &&
+            now >= new Date(poll.endsAt).getTime())
+        ) {
+          throw new Error("POLL_NOT_OPEN");
+        }
+
+        const option = await tx.orm.public.PollOption
+          .where({ id: optionId })
+          .first();
+
+        if (!option || option.pollId !== pollId) {
+          throw new Error("INVALID_OPTION");
+        }
+
+        const existingVote =
+          await tx.orm.public.GuestPollVote
+            .where({ pollId, guestTokenHash })
+            .first();
+
+        if (existingVote) {
+          throw new Error("ALREADY_VOTED");
+        }
+
+        await tx.orm.public.GuestPollVote.create({
+          pollId,
+          optionId,
+          guestTokenHash,
+        });
+      });
+
+      const response = NextResponse.json({
+        success: true,
+        message: "Your vote has been submitted!",
+        pointsEarned: 0,
+        balance: null,
+        totalPoints: null,
+        isGuestVote: true,
+      });
+
+      if (!hasValidToken) {
+        response.cookies.set(
+          GUEST_POLL_COOKIE,
+          token,
+          guestPollCookieOptions()
+        );
+      }
+
+      return response;
     }
 
     const result = await db.transaction(async (tx) => {

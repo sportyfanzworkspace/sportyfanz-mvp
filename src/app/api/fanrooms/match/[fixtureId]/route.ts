@@ -171,29 +171,24 @@ export async function GET(
   try {
     const userId = await getCurrentUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to access the Fan Room." },
-        { status: 401 }
-      );
-    }
+    const user = userId
+      ? await db.orm.public.User.where({ id: userId }).first()
+      : null;
 
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
-
-    if (!user || user.status !== "ACTIVE") {
+    if (userId && (!user || user.status !== "ACTIVE")) {
       return NextResponse.json(
         { error: "Your account is not active." },
         { status: 403 }
       );
     }
 
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
+    const profile = userId
+      ? await db.orm.public.FanProfile
+          .where({ userId })
+          .first()
+      : null;
 
-    if (!profile) {
+    if (userId && !profile) {
       return NextResponse.json(
         { error: "Fan profile not found." },
         { status: 404 }
@@ -241,62 +236,66 @@ export async function GET(
       });
     }
 
-    const membership = await db.orm.public.FanRoomMember
-      .where({ fanRoomId: room.id, userId })
-      .first();
+    const membership = userId
+      ? await db.orm.public.FanRoomMember
+          .where({ fanRoomId: room.id, userId })
+          .first()
+      : null;
 
     const isJoined =
       membership != null && membership.leftAt === null;
 
-    let formattedMessages: {
-      id: number;
-      message: string;
-      createdAt: string;
-      userId: number;
-      username: string;
-      avatarUrl: string | null;
-      isEdited: boolean;
-    }[] = [];
+    const messages = await db.orm.public.FanRoomMessage
+      .where({ fanRoomId: room.id, isDeleted: false })
+      .limit(50)
+      .all();
 
-    if (isJoined) {
-      const messages = await db.orm.public.FanRoomMessage
-        .where({ fanRoomId: room.id, isDeleted: false })
-        .limit(50)
-        .all();
+    const visibleMessages = messages.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() -
+        new Date(b.createdAt).getTime()
+    );
 
-      const visibleMessages = messages.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() -
-          new Date(b.createdAt).getTime()
-      );
-
-      formattedMessages = await Promise.all(
-        visibleMessages.map(async (message) => {
-          const [messageUser, messageProfile] = await Promise.all([
-            db.orm.public.User
-              .where({ id: message.userId })
-              .first(),
-            db.orm.public.FanProfile
-              .where({ userId: message.userId })
-              .first(),
-          ]);
-
+    const formattedMessages = await Promise.all(
+      visibleMessages.map(async (message) => {
+        if (message.userId === null) {
           return {
             id: message.id,
             message: message.message,
             createdAt: message.createdAt,
-            userId: message.userId,
-            username:
-              messageUser?.username ??
-              messageProfile?.displayName ??
-              messageUser?.name ??
-              "Fan",
-            avatarUrl: messageProfile?.avatarUrl ?? null,
+            userId: null,
+            username: message.guestName ?? "Guest",
+            avatarUrl: null,
+            isGuest: true,
             isEdited: message.isEdited,
           };
-        })
-      );
-    }
+        }
+
+        const [messageUser, messageProfile] = await Promise.all([
+          db.orm.public.User
+            .where({ id: message.userId })
+            .first(),
+          db.orm.public.FanProfile
+            .where({ userId: message.userId })
+            .first(),
+        ]);
+
+        return {
+          id: message.id,
+          message: message.message,
+          createdAt: message.createdAt,
+          userId: message.userId,
+          username:
+            messageUser?.username ??
+            messageProfile?.displayName ??
+            messageUser?.name ??
+            "Fan",
+          avatarUrl: messageProfile?.avatarUrl ?? null,
+          isGuest: false,
+          isEdited: message.isEdited,
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
@@ -310,9 +309,9 @@ export async function GET(
         hasMembershipRecord: membership != null,
         messages: formattedMessages,
       },
-      profile: {
-        fanRoomsJoined: profile.fanRoomsJoined,
-      },
+      profile: profile
+        ? { fanRoomsJoined: profile.fanRoomsJoined }
+        : null,
     });
   } catch (error) {
     console.error("GET /api/fanrooms/match/[fixtureId] error:", error);

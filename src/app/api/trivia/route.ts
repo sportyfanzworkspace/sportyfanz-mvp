@@ -6,39 +6,38 @@ export async function GET() {
   try {
     const userId = await getCurrentUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to play Trivia." },
-        { status: 401 }
-      );
-    }
+    let profile = null;
 
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
 
-    if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Your account is not active." },
-        { status: 403 }
-      );
-    }
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Your account is not active." },
+          { status: 403 }
+        );
+      }
 
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
+      profile = await db.orm.public.FanProfile
+        .where({ userId })
+        .first();
 
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Fan profile not found." },
-        { status: 404 }
-      );
+      if (!profile) {
+        return NextResponse.json(
+          { error: "Fan profile not found." },
+          { status: 404 }
+        );
+      }
     }
 
     const now = Date.now();
 
+    // Independent Trivia questions only.
+    // Continuous quiz questions are served through the quiz API.
     const activeQuestions = await db.orm.public.TriviaQuestion
-      .where({ status: "ACTIVE" })
+      .where({ status: "ACTIVE", quizId: null })
       .all();
 
     // Close expired questions when the fan Trivia API is requested.
@@ -77,9 +76,11 @@ export async function GET() {
        new Date(b.createdAt).getTime() -
        new Date(a.createdAt).getTime()
      );
-    const attempts = await db.orm.public.TriviaAttempt
-      .where({ userId })
-      .all();
+    const attempts = userId
+      ? await db.orm.public.TriviaAttempt
+          .where({ userId })
+          .all()
+      : [];
 
     const attemptedQuestionIds = new Set(
       attempts.map((attempt) => attempt.questionId)
@@ -95,8 +96,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      balance: profile.currentPoints,
-      totalPoints: profile.totalPoints,
+      balance: profile?.currentPoints ?? null,
+      totalPoints: profile?.totalPoints ?? null,
       roundSize: unansweredQuestions.length,
       questions: unansweredQuestions.map((question) => ({
         id: question.id,
@@ -108,6 +109,9 @@ export async function GET() {
           { value: "D", label: question.optionD },
         ],
         pointsReward: question.pointsReward,
+        quizId: question.quizId,
+        questionOrder: question.questionOrder,
+        imageUrl: question.imageUrl,
         attempted: false,
       })),
       attemptedCount: attempts.length,

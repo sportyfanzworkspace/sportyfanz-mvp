@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
@@ -7,58 +6,53 @@ export async function GET() {
   try {
     const userId = await getCurrentUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to access Fan Rooms." },
-        { status: 401 }
-      );
-    }
+    let profile: {
+      fanRoomsJoined: number;
+    } | null = null;
 
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
+    let joinedRoomIds = new Set<number>();
 
-    if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Your account is not active." },
-        { status: 403 }
-      );
-    }
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
 
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Your account is not active." },
+          { status: 403 }
+        );
+      }
 
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Fan profile not found." },
-        { status: 404 }
+      const fanProfile = await db.orm.public.FanProfile
+        .where({ userId })
+        .first();
+
+      if (!fanProfile) {
+        return NextResponse.json(
+          { error: "Fan profile not found." },
+          { status: 404 }
+        );
+      }
+
+      profile = {
+        fanRoomsJoined: fanProfile.fanRoomsJoined,
+      };
+
+      const memberships = await db.orm.public.FanRoomMember
+        .where({ userId })
+        .all();
+
+      joinedRoomIds = new Set(
+        memberships
+          .filter((membership) => membership.leftAt === null)
+          .map((membership) => membership.fanRoomId)
       );
     }
 
     const rooms = await db.orm.public.FanRoom
       .where({ status: "ACTIVE" })
       .all();
-
-    const memberships = await db.orm.public.FanRoomMember
-      .where({ userId })
-      .all();
-
-    const activeMemberships = memberships.filter(
-      (membership) => membership.leftAt === null
-    );
-
-    const activeRoomIds = new Set(
-      rooms.map((room) => room.id)
-    );
-
-    const joinedRoomIds = new Set(
-      activeMemberships
-        .filter((membership) =>
-          activeRoomIds.has(membership.fanRoomId)
-        )
-        .map((membership) => membership.fanRoomId)
-    );
 
     const roomMessages = await Promise.all(
       rooms.map(async (room) => {
@@ -67,15 +61,27 @@ export async function GET() {
           .limit(50)
           .all();
 
-        const visibleMessages = messages
-          .sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime()
-          );
+        const visibleMessages = messages.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() -
+            new Date(b.createdAt).getTime()
+        );
 
         const formattedMessages = await Promise.all(
           visibleMessages.map(async (message) => {
+            if (message.userId === null) {
+              return {
+                id: message.id,
+                message: message.message,
+                createdAt: message.createdAt,
+                userId: null,
+                username: message.guestName ?? "Guest",
+                avatarUrl: null,
+                isGuest: true,
+                isEdited: message.isEdited,
+              };
+            }
+
             const messageUser = await db.orm.public.User
               .where({ id: message.userId })
               .first();
@@ -95,6 +101,7 @@ export async function GET() {
                 messageUser?.name ??
                 "Fan",
               avatarUrl: messageProfile?.avatarUrl ?? null,
+              isGuest: false,
               isEdited: message.isEdited,
             };
           })
@@ -102,7 +109,9 @@ export async function GET() {
 
         return {
           ...room,
-          isJoined: joinedRoomIds.has(room.id),
+          isJoined: userId
+            ? joinedRoomIds.has(room.id)
+            : false,
           messages: formattedMessages,
         };
       })
@@ -110,10 +119,9 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      isAuthenticated: Boolean(userId),
       rooms: roomMessages,
-      profile: {
-        fanRoomsJoined: profile.fanRoomsJoined,
-      },
+      profile,
     });
   } catch (error) {
     console.error("GET /api/fanrooms error:", error);

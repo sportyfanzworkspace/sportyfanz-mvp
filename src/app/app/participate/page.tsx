@@ -605,7 +605,7 @@ useEffect(() => {
     setMessage(
       `${result.message} You earned ${formatPoints(
         result.pointsEarned
-      )} Sporty Points.`
+      )} Fan Points.`
     );
 
     await Promise.all([
@@ -668,7 +668,7 @@ async function handleTriviaAnswer(questionId: number) {
       answerResult.isCorrect
         ? `Correct! You earned ${formatPoints(
             answerResult.pointsAwarded
-          )} Sporty Points.`
+          )} Fan Points.`
         : "Not quite! No points were awarded."
     );
 
@@ -979,7 +979,7 @@ async function handleTriviaAnswer(questionId: number) {
        *
        * This is important because submitting the prediction
        * can complete the "Predict the Match" challenge and
-       * award the user's Sporty Points.
+       * award the user's Fan Points.
        */
 
       await Promise.all([
@@ -1032,7 +1032,7 @@ async function handleTriviaAnswer(questionId: number) {
 
           <p>
             Put your sports knowledge to work and earn
-            Sporty Points.
+            Fan Points.
           </p>
         </div>
       </div>
@@ -1498,7 +1498,7 @@ async function handleTriviaAnswer(questionId: number) {
 
               <p>
                 Share your opinion on the biggest moments in
-                sports. Cast your vote and earn Sporty Points.
+                sports. Cast your vote and earn Fan Points.
               </p>
             </div>
 
@@ -1724,7 +1724,7 @@ async function handleTriviaAnswer(questionId: number) {
 
       <p>
         Answer each question correctly to earn
-        Sporty Points. Each question can only be
+        Fan Points. Each question can only be
         attempted once.
       </p>
 
@@ -1732,7 +1732,7 @@ async function handleTriviaAnswer(questionId: number) {
         <p>
           <strong>
             Your balance:{" "}
-            {formatPoints(triviaData.balance)} Sporty Points
+            {formatPoints(triviaData.balance)} Fan Points
           </strong>
         </p>
       )}
@@ -1764,7 +1764,7 @@ async function handleTriviaAnswer(questionId: number) {
 
           <p>
             Earn {formatPoints(question.pointsReward)}{" "}
-            Sporty Points for a correct answer.
+            Fan Points for a correct answer.
           </p>
 
           <div
@@ -2148,7 +2148,7 @@ async function handleTriviaAnswer(questionId: number) {
 
             <div className="progress-stat">
               <span>
-                Sporty Points
+                Fan Points
               </span>
 
               <strong>

@@ -40,13 +40,7 @@ async function getActiveUser() {
 
 export async function GET() {
   try {
-    const auth = await getActiveUser();
-
-    if (!auth.userId) {
-      return auth.response;
-    }
-
-    const userId = auth.userId;
+    const userId = await getCurrentUserId();
 
     const [
       allSports,
@@ -162,17 +156,23 @@ export async function GET() {
         success: true,
         sports,
         teams,
-        players: [],
+        players,
         competitions,
-        followedSportIds: sportFollows
-          .filter((item) => item.userId === userId)
-          .map((item) => item.sportId),
-        followedTeamIds: teamFollows
-          .filter((item) => item.userId === userId)
-          .map((item) => item.teamId),
-        followedPlayerIds: playerFollows
-          .filter((item) => item.userId === userId)
-          .map((item) => item.playerId),
+        followedSportIds: userId
+          ? sportFollows
+              .filter((item) => item.userId === userId)
+              .map((item) => item.sportId)
+          : [],
+        followedTeamIds: userId
+          ? teamFollows
+              .filter((item) => item.userId === userId)
+              .map((item) => item.teamId)
+          : [],
+        followedPlayerIds: userId
+          ? playerFollows
+              .filter((item) => item.userId === userId)
+              .map((item) => item.playerId)
+          : [],
       },
       {
         headers: {

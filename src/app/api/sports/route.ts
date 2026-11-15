@@ -26,17 +26,7 @@ export async function GET() {
   try {
     const userId = await getActiveUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { message: "Please log in." },
-        { status: 401 }
-      );
-    }
-
-    const [allSports, allFollows] = await Promise.all([
-      db.orm.public.Sport.all(),
-      db.orm.public.UserSportFollow.all(),
-    ]);
+    const allSports = await db.orm.public.Sport.all();
 
     const sports = allSports
       .filter((sport) => sport.isActive)
@@ -46,9 +36,11 @@ export async function GET() {
         slug: sport.slug,
       }));
 
-    const followedSportIds = allFollows
-      .filter((follow) => follow.userId === userId)
-      .map((follow) => follow.sportId);
+    const followedSportIds = userId
+      ? (await db.orm.public.UserSportFollow.all())
+          .filter((follow) => follow.userId === userId)
+          .map((follow) => follow.sportId)
+      : [];
 
     return NextResponse.json({
       success: true,

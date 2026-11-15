@@ -103,7 +103,7 @@ export default function LoginPage() {
               <div className="featureIcon">
                 <Sparkles size={16} />
               </div>
-              <span>Continue earning Sporty Points</span>
+              <span>Continue earning Fan Points</span>
             </div>
           </div>
         </section>

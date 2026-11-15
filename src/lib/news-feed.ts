@@ -1,5 +1,4 @@
 import Parser from "rss-parser";
-import { extractArticleText } from "@/lib/news-summarizer";
 import { unstable_cache } from "next/cache";
 
 
@@ -220,62 +219,46 @@ async function fetchFeed(
     const xml = await response.text();
     const parsed = await parser.parseString(xml);
 
-    const stories = await Promise.all(
-  parsed.items.map(async (rawItem): Promise<NewsStory | null> => {
-    const item = rawItem as FeedItem;
-    const title = (item.title || "Sports news").trim();
-    const link = (item.link || "").trim();
+    const stories: NewsStory[] = parsed.items.flatMap((rawItem) => {
+      const item = rawItem as FeedItem;
+      const title = (item.title || "Sports news").trim();
+      const link = (item.link || "").trim();
 
-    if (!link) {
-      return null;
-    }
+      if (!link) {
+        return [];
+      }
 
-    let articleText: string;
+      const rawDate = item.isoDate || item.pubDate;
+      const date = rawDate ? new Date(rawDate) : null;
 
-    try {
-      articleText = await extractArticleText(link);
-    } catch (error) {
-      console.warn(
-        `SportyFanz excluded inaccessible article (${feed.name}):`,
+      const publishedAt =
+        date && !Number.isNaN(date.getTime())
+          ? date.toISOString()
+          : null;
+
+      const summary = extractSummary(item);
+
+      const feedSummary = summary
+        .split(/\s+/)
+        .slice(0, 45)
+        .join(" ");
+
+      return [{
+        id: `${feed.name}-${canonicalUrl(link) || title}`,
         title,
-        error instanceof Error ? error.message : error
-      );
+        seoHeadline: title,
+        summary,
+        feedSummary,
+        articleSummary: "",
+        category: getCategory(title, item.categories),
+        source: feed.name,
+        publishedAt,
+        link,
+        image: getImage(item),
+      }];
+    });
 
-      return null;
-    }
-
-    const rawDate = item.isoDate || item.pubDate;
-    const date = rawDate ? new Date(rawDate) : null;
-
-    const publishedAt =
-      date && !Number.isNaN(date.getTime())
-        ? date.toISOString()
-        : null;
-
-    const feedSummary = articleText
-      .trim()
-      .split(/\s+/)
-      .slice(0, 45)
-      .join(" ");
-
-    return {
-      id: `${feed.name}-${canonicalUrl(link) || title}`,
-      title,
-      seoHeadline: title,
-      summary: articleText,
-      feedSummary,
-      articleSummary: articleText,
-      category: getCategory(title, item.categories),
-      source: feed.name,
-      publishedAt,
-      link,
-      image: getImage(item),
-    };
-  })
-);
-    return stories.filter(
-      (story): story is NewsStory => story !== null
-    );
+    return stories;
   } catch (error) {
     console.error(`SportyFanz news feed error (${feed.name}):`, error);
     return [];
@@ -322,7 +305,7 @@ export const getCachedNews = unstable_cache(
       updatedAt: new Date().toISOString(),
     };
   },
-  ["sportyfanz-cached-news-feed-v3-full-articles"],
+  ["sportyfanz-cached-news-feed-v4-rss-listing"],
   {
     revalidate: 600,
     tags: ["sportyfanz-news"],

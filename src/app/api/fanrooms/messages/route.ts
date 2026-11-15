@@ -1,32 +1,44 @@
-
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import {
+  FANROOM_GUEST_COOKIE,
+  createFanRoomGuestToken,
+  fanRoomGuestCookieOptions,
+  isValidFanRoomGuestToken,
+  hashFanRoomGuestToken,
+} from "@/lib/fanroom-guest-security";
+import {
+  checkFanRoomRateLimit,
+} from "@/lib/fanroom-rate-limit";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const userId = await getCurrentUserId();
+    const origin = request.headers.get("origin");
 
-    if (!userId) {
+    const allowedOrigins = new Set([
+      "https://sportyfanz.com",
+      "https://www.sportyfanz.com",
+      ...(process.env.NODE_ENV !== "production"
+        ? ["http://localhost:3000", "http://127.0.0.1:3000"]
+        : []),
+      ...(process.env.CORS_ALLOWED_ORIGINS ?? "")
+        .split(",")
+        .map((value) => value.trim().replace(/\/+$/, ""))
+        .filter(Boolean),
+    ]);
+
+    if (!origin || !allowedOrigins.has(origin)) {
       return NextResponse.json(
-        { error: "Please log in to send messages." },
-        { status: 401 }
-      );
-    }
-
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
-
-    if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Your account is not active." },
+        { error: "Request origin is not allowed." },
         { status: 403 }
       );
     }
 
+    const userId = await getCurrentUserId();
     const body = await request.json().catch(() => null);
-    const roomId = Number(body?.roomId);
+
+    const roomId = body?.roomId;
     const message =
       typeof body?.message === "string"
         ? body.message.trim()
@@ -57,49 +69,136 @@ export async function POST(request: Request) {
       );
     }
 
-    const membership = await db.orm.public.FanRoomMember
-      .where({ fanRoomId: roomId, userId })
-      .first();
+    let username = "";
+    let avatarUrl: string | null = null;
+    let guestId: string | null = null;
+    let guestName: string | null = null;
 
-    if (!membership || membership.leftAt !== null) {
-      return NextResponse.json(
-        { error: "Join this Fan Room before sending messages." },
-        { status: 403 }
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Your account is not active." },
+          { status: 403 }
+        );
+      }
+
+      const profile = await db.orm.public.FanProfile
+        .where({ userId })
+        .first();
+
+      username =
+        user.username ??
+        profile?.displayName ??
+        user.name ??
+        "Fan";
+
+      avatarUrl = profile?.avatarUrl ?? null;
+    } else {
+      guestId =
+        typeof body?.guestId === "string"
+          ? body.guestId.trim()
+          : "";
+
+      guestName =
+        typeof body?.guestName === "string"
+          ? body.guestName.trim()
+          : "";
+
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(guestId) ||
+        !/^Fan[0-9]{4,8}$/.test(guestName)
+      ) {
+        return NextResponse.json(
+          { error: "A valid guest identity is required." },
+          { status: 400 }
+        );
+      }
+
+      username = guestName;
+    }
+
+    const existingGuestToken = !userId
+      ? request.cookies.get(FANROOM_GUEST_COOKIE)?.value
+      : undefined;
+
+    const guestToken = !userId
+      ? isValidFanRoomGuestToken(existingGuestToken)
+        ? existingGuestToken
+        : createFanRoomGuestToken()
+      : null;
+
+    const senderIdentifier = userId
+      ? `user:${userId}`
+      : `guest:${hashFanRoomGuestToken(guestToken!)}`;
+
+    function messageResponse(
+      payload: Record<string, unknown>,
+      status: number
+    ) {
+      const response = NextResponse.json(payload, { status });
+
+      if (!userId && guestToken) {
+        response.cookies.set(
+          FANROOM_GUEST_COOKIE,
+          guestToken,
+          fanRoomGuestCookieOptions()
+        );
+      }
+
+      return response;
+    }
+
+    const rateLimit = await checkFanRoomRateLimit(
+      senderIdentifier
+    );
+
+    if (!rateLimit.allowed) {
+      const response = messageResponse(
+        {
+          error: `Please wait ${rateLimit.retryAfterSeconds} seconds before sending another message.`,
+        },
+        429
       );
+
+      response.headers.set(
+        "Retry-After",
+        String(rateLimit.retryAfterSeconds)
+      );
+
+      return response;
     }
 
     const created = await db.orm.public.FanRoomMessage.create({
       fanRoomId: roomId,
-      userId,
+      userId: userId ?? null,
+      guestId,
+      guestName,
       message,
       replyToId: null,
       isEdited: false,
       isDeleted: false,
     });
 
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
-
-    return NextResponse.json(
+    return messageResponse(
       {
         success: true,
         message: {
           id: created.id,
           roomId: created.fanRoomId,
           userId: created.userId,
-          username:
-            user.username ??
-            profile?.displayName ??
-            user.name ??
-            "Fan",
-          avatarUrl: profile?.avatarUrl ?? null,
+          username,
+          avatarUrl,
+          isGuest: !userId,
           message: created.message,
           createdAt: created.createdAt,
           isEdited: created.isEdited,
         },
       },
-      { status: 201 }
+      201
     );
   } catch (error) {
     console.error("POST /api/fanrooms/messages error:", error);

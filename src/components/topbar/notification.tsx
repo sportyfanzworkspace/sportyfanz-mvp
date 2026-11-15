@@ -37,7 +37,7 @@ export default function Notifications() {
             <div>
               <strong>Reward unlocked</strong>
               <p>
-                You earned 250 Sporty Points.
+                You earned 250 Fan Points.
               </p>
             </div>
           </div>

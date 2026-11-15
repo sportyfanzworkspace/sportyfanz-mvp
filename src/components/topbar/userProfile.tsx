@@ -172,7 +172,7 @@ export default function UserProfile() {
 
             <div className="sf-dropdown-points">
               <Crown size={17} />
-              <span>Sporty Points</span>
+              <span>Fan Points</span>
               <strong>
                 {(fan?.totalPoints ?? 0).toLocaleString()}
               </strong>

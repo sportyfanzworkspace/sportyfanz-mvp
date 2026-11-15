@@ -210,7 +210,7 @@ const handlePollVote = async (pollId: number, optionId: number) => {
     setPollMessage(
       `${result.message || "Your vote has been recorded."} You earned ${formatPoints(
         result.pointsEarned ?? 0
-      )} Sporty Points.`
+      )} Fan Points.`
     );
 
     await loadPolls();

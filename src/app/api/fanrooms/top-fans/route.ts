@@ -1,29 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
-import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const userId = await getCurrentUserId();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to view Top Fans." },
-        { status: 401 }
-      );
-    }
-
-    const currentUser = await db.orm.public.User
-      .where({ id: userId })
-      .first();
-
-    if (!currentUser || currentUser.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Your account is not active." },
-        { status: 403 }
-      );
-    }
-
     const [users, profiles] = await Promise.all([
       db.orm.public.User.select(
         "id",
@@ -58,7 +37,6 @@ export async function GET() {
             user.username ||
             user.name ||
             "Fan",
-          username: user.username,
           avatarUrl: profile?.avatarUrl ?? null,
           totalPoints: profile?.totalPoints ?? 0,
           fanLevel: profile?.fanLevel ?? "NEW_FAN",

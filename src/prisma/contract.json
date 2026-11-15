@@ -20,6 +20,10 @@
       "model": "Challenge",
       "namespace": "public"
     },
+    "email_verification_codes": {
+      "model": "EmailVerificationCode",
+      "namespace": "public"
+    },
     "fan_profiles": {
       "model": "FanProfile",
       "namespace": "public"
@@ -38,6 +42,10 @@
     },
     "fan_rooms": {
       "model": "FanRoom",
+      "namespace": "public"
+    },
+    "guest_poll_votes": {
+      "model": "GuestPollVote",
       "namespace": "public"
     },
     "kyc_submissions": {
@@ -126,6 +134,10 @@
     },
     "trivia_questions": {
       "model": "TriviaQuestion",
+      "namespace": "public"
+    },
+    "trivia_quizzes": {
+      "model": "TriviaQuiz",
       "namespace": "public"
     },
     "user_achievements": {
@@ -1257,6 +1269,77 @@
               "table": "challenge_participations"
             }
           },
+          "EmailVerificationCode": {
+            "fields": {
+              "attempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "codeHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "attempts": {
+                  "column": "attempts"
+                },
+                "codeHash": {
+                  "column": "codeHash"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "email_verification_codes"
+            }
+          },
           "FanProfile": {
             "fields": {
               "avatarUrl": {
@@ -1875,6 +1958,20 @@
                   "kind": "scalar"
                 }
               },
+              "guestId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "guestName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -1918,7 +2015,7 @@
                 }
               },
               "userId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
@@ -1944,7 +2041,7 @@
               },
               "user": {
                 "cardinality": "N:1",
-                "nullable": false,
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -1966,6 +2063,12 @@
                 },
                 "fanRoomId": {
                   "column": "fanRoomId"
+                },
+                "guestId": {
+                  "column": "guestId"
+                },
+                "guestName": {
+                  "column": "guestName"
                 },
                 "id": {
                   "column": "id"
@@ -1991,6 +2094,100 @@
               },
               "namespaceId": "public",
               "table": "fan_room_messages"
+            }
+          },
+          "GuestPollVote": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "guestTokenHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "optionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "pollId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "option": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "optionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "PollOption",
+                  "namespace": "public"
+                }
+              },
+              "poll": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "pollId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Poll",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "guestTokenHash": {
+                  "column": "guestTokenHash"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "optionId": {
+                  "column": "optionId"
+                },
+                "pollId": {
+                  "column": "pollId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "guest_poll_votes"
             }
           },
           "KycSubmission": {
@@ -2770,6 +2967,13 @@
                   "kind": "scalar"
                 }
               },
+              "guestTokenHash": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -2778,7 +2982,7 @@
                 }
               },
               "userId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
@@ -2788,7 +2992,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
-                "nullable": false,
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2810,6 +3014,9 @@
                 },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "guestTokenHash": {
+                  "column": "guestTokenHash"
                 },
                 "id": {
                   "column": "id"
@@ -2845,6 +3052,20 @@
                   "kind": "scalar"
                 }
               },
+              "guestName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "guestTokenHash": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -2867,7 +3088,7 @@
                 }
               },
               "userId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
@@ -2923,7 +3144,7 @@
               },
               "user": {
                 "cardinality": "N:1",
-                "nullable": false,
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2948,6 +3169,12 @@
                 },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "guestName": {
+                  "column": "guestName"
+                },
+                "guestTokenHash": {
+                  "column": "guestTokenHash"
                 },
                 "id": {
                   "column": "id"
@@ -3710,6 +3937,21 @@
               }
             },
             "relations": {
+              "guestVotes": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "pollId"
+                  ]
+                },
+                "to": {
+                  "model": "GuestPollVote",
+                  "namespace": "public"
+                }
+              },
               "options": {
                 "cardinality": "1:N",
                 "on": {
@@ -3807,6 +4049,21 @@
               }
             },
             "relations": {
+              "guestVotes": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "optionId"
+                  ]
+                },
+                "to": {
+                  "model": "GuestPollVote",
+                  "namespace": "public"
+                }
+              },
               "poll": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -4981,10 +5238,24 @@
                   "kind": "scalar"
                 }
               },
+              "explanation": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "imageUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -5027,6 +5298,20 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "questionOrder": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "quizId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -5073,6 +5358,22 @@
                   "model": "TriviaAttempt",
                   "namespace": "public"
                 }
+              },
+              "quiz": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "quizId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "TriviaQuiz",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -5086,8 +5387,14 @@
                 "endsAt": {
                   "column": "endsAt"
                 },
+                "explanation": {
+                  "column": "explanation"
+                },
                 "id": {
                   "column": "id"
+                },
+                "imageUrl": {
+                  "column": "imageUrl"
                 },
                 "optionA": {
                   "column": "optionA"
@@ -5107,6 +5414,12 @@
                 "question": {
                   "column": "question"
                 },
+                "questionOrder": {
+                  "column": "questionOrder"
+                },
+                "quizId": {
+                  "column": "quizId"
+                },
                 "startsAt": {
                   "column": "startsAt"
                 },
@@ -5121,12 +5434,149 @@
               "table": "trivia_questions"
             }
           },
-          "User": {
+          "TriviaQuiz": {
             "fields": {
+              "coverImageUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "endsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "startsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "TriviaStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "questions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "quizId"
+                  ]
+                },
+                "to": {
+                  "model": "TriviaQuestion",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "coverImageUrl": {
+                  "column": "coverImageUrl"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "endsAt": {
+                  "column": "endsAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "startsAt": {
+                  "column": "startsAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "title": {
+                  "column": "title"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "trivia_quizzes"
+            }
+          },
+          "User": {
+            "fields": {
+              "country": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dateOfBirth": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -5144,6 +5594,13 @@
                   "kind": "scalar"
                 }
               },
+              "firstName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -5155,6 +5612,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -5192,6 +5656,26 @@
                   "plane": "domain"
                 }
               },
+              "sex": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "KycSex",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "state": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -5213,6 +5697,13 @@
                 }
               },
               "username": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "whatsappNumber": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -5540,8 +6031,14 @@
             },
             "storage": {
               "fields": {
+                "country": {
+                  "column": "country"
+                },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "dateOfBirth": {
+                  "column": "dateOfBirth"
                 },
                 "email": {
                   "column": "email"
@@ -5549,11 +6046,17 @@
                 "emailVerified": {
                   "column": "emailVerified"
                 },
+                "firstName": {
+                  "column": "firstName"
+                },
                 "id": {
                   "column": "id"
                 },
                 "lastLoginAt": {
                   "column": "lastLoginAt"
+                },
+                "lastName": {
+                  "column": "lastName"
                 },
                 "mustChangePassword": {
                   "column": "mustChangePassword"
@@ -5567,6 +6070,12 @@
                 "role": {
                   "column": "role"
                 },
+                "sex": {
+                  "column": "sex"
+                },
+                "state": {
+                  "column": "state"
+                },
                 "status": {
                   "column": "status"
                 },
@@ -5575,6 +6084,9 @@
                 },
                 "username": {
                   "column": "username"
+                },
+                "whatsappNumber": {
+                  "column": "whatsappNumber"
                 }
               },
               "namespaceId": "public",
@@ -6469,6 +6981,66 @@
                 }
               ]
             },
+            "email_verification_codes": {
+              "columns": {
+                "attempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "codeHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId"
+                  ]
+                }
+              ]
+            },
             "fan_profiles": {
               "checks": [
                 {
@@ -6898,6 +7470,16 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "guestId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "guestName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -6943,7 +7525,7 @@
                 "userId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -6996,6 +7578,14 @@
                   ],
                   "name": "fan_room_messages_fanRoomId_idx_5b3ed17c",
                   "prefix": "fan_room_messages_fanRoomId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "guestId"
+                  ],
+                  "name": "fan_room_messages_guestId_idx_39c95865",
+                  "prefix": "fan_room_messages_guestId_idx",
                   "unique": false
                 },
                 {
@@ -7179,6 +7769,108 @@
                   "columns": [
                     "sport",
                     "providerFixtureId"
+                  ]
+                }
+              ]
+            },
+            "guest_poll_votes": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "guestTokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "optionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "pollId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "pollId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "guest_poll_votes"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "polls"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "optionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "guest_poll_votes"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "poll_options"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "optionId"
+                  ],
+                  "name": "guest_poll_votes_optionId_idx_b1d5fce5",
+                  "prefix": "guest_poll_votes_optionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "pollId"
+                  ],
+                  "name": "guest_poll_votes_pollId_idx_c217e50b",
+                  "prefix": "guest_poll_votes_pollId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "pollId",
+                    "guestTokenHash"
                   ]
                 }
               ]
@@ -7807,6 +8499,11 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "guestTokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -7819,7 +8516,7 @@
                 "userId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -7868,6 +8565,12 @@
                   "columns": [
                     "articleUrl",
                     "userId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "articleUrl",
+                    "guestTokenHash"
                   ]
                 }
               ]
@@ -7990,6 +8693,16 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "guestName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "guestTokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -8012,7 +8725,7 @@
                 "userId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -8057,6 +8770,15 @@
                   ],
                   "name": "news_comments_articleUrl_createdAt_idx_efc1ce87",
                   "prefix": "news_comments_articleUrl_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "articleUrl",
+                    "guestTokenHash"
+                  ],
+                  "name": "news_comments_articleUrl_guestTokenHash_idx_0e05ab3d",
+                  "prefix": "news_comments_articleUrl_guestTokenHash_idx",
                   "unique": false
                 },
                 {
@@ -8145,6 +8867,15 @@
                   ],
                   "name": "news_views_articleUrl_createdAt_idx_efc1ce87",
                   "prefix": "news_views_articleUrl_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "articleUrl",
+                    "visitorKey"
+                  ],
+                  "name": "news_views_articleUrl_visitorKey_idx_a9ba95c1",
+                  "prefix": "news_views_articleUrl_visitorKey_idx",
                   "unique": false
                 },
                 {
@@ -9827,6 +10558,11 @@
                   "nativeType": "timestamptz",
                   "nullable": true
                 },
+                "explanation": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -9835,6 +10571,11 @@
                   },
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "imageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "optionA": {
                   "codecId": "pg/text@1",
@@ -9870,6 +10611,20 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "questionOrder": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "quizId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "startsAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -9896,14 +10651,139 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "quizId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trivia_questions"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trivia_quizzes"
+                  }
+                }
+              ],
               "indexes": [
+                {
+                  "columns": [
+                    "quizId"
+                  ],
+                  "name": "trivia_questions_quizId_idx_c721979c",
+                  "prefix": "trivia_questions_quizId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "quizId",
+                    "questionOrder"
+                  ],
+                  "name": "trivia_questions_quizId_questionOrder_idx_90344e95",
+                  "prefix": "trivia_questions_quizId_questionOrder_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "status"
                   ],
                   "name": "trivia_questions_status_idx_e98638ab",
                   "prefix": "trivia_questions_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "trivia_quizzes": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('DRAFT', 'ACTIVE', 'CLOSED')",
+                  "name": "trivia_quizzes_status_check_61f4f2cf",
+                  "prefix": "trivia_quizzes_status_check"
+                }
+              ],
+              "columns": {
+                "coverImageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "endsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "startsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TriviaStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "title": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "trivia_quizzes_status_idx_e98638ab",
+                  "prefix": "trivia_quizzes_status_idx",
                   "unique": false
                 }
               ],
@@ -10264,12 +11144,22 @@
                   "prefix": "users_role_check"
                 },
                 {
+                  "expression": "\"sex\" IN ('FEMALE', 'MALE')",
+                  "name": "users_sex_check_c47af510",
+                  "prefix": "users_sex_check"
+                },
+                {
                   "expression": "\"status\" IN ('ACTIVE', 'SUSPENDED', 'DELETED')",
                   "name": "users_status_check_3a7c0f48",
                   "prefix": "users_status_check"
                 }
               ],
               "columns": {
+                "country": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -10278,6 +11168,11 @@
                   },
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "dateOfBirth": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "email": {
                   "codecId": "pg/text@1",
@@ -10293,6 +11188,11 @@
                   "nativeType": "bool",
                   "nullable": false
                 },
+                "firstName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -10305,6 +11205,11 @@
                 "lastLoginAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "lastName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": true
                 },
                 "mustChangePassword": {
@@ -10341,6 +11246,22 @@
                     "plane": "storage"
                   }
                 },
+                "sex": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "KycSex",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "state": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -10362,6 +11283,11 @@
                   "nullable": false
                 },
                 "username": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "whatsappNumber": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -10615,10 +11541,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "78767cc44c9ec49bebee2fe4dcd8dfd1783187b41e0543fc7484496caa455992"
+    "storageHash": "ff54a38b9d0c1339683c07a6dd2e6e1eb365d55a2b186d2c0217a00e4e803817"
   },
   "execution": {
-    "executionHash": "d5ae6a1f96f6f4420b2f34f715e08c58b8cbc9cfc36c99d4123c337c3bac6600",
+    "executionHash": "2cc3d2d82c8e5661963949da23f78cedab8040242c11002c81b87f72b71952d5",
     "mutations": {
       "defaults": [
         {
@@ -10872,6 +11798,21 @@
           },
           "ref": {
             "entry": "trivia_questions",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "trivia_quizzes",
             "field": "updatedAt",
             "namespace": "public"
           }

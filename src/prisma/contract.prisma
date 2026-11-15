@@ -203,7 +203,16 @@ model User {
   email                   String                     @unique
   username                String?                    @unique
   name                    String?
+  firstName               String?
+  lastName                String?
   passwordHash            String
+
+  whatsappNumber          String?
+  country                 String?
+  state                   String?
+  sex                     KycSex?
+  dateOfBirth             String?
+
   mustChangePassword      Boolean                    @default(false)
 
   role                    UserRole                   @default(USER)
@@ -582,8 +591,11 @@ model FanRoomMessage {
   fanRoomId Int
   fanRoom   FanRoom                    @relation(fields: [fanRoomId], references: [id])
 
-  userId    Int
-  user      User                       @relation(fields: [userId], references: [id])
+  userId    Int?
+  user      User?                      @relation(fields: [userId], references: [id])
+
+  guestId   String?
+  guestName String?
 
   message   String
 
@@ -596,6 +608,7 @@ model FanRoomMessage {
 
   @@index([fanRoomId, createdAt])
   @@index([userId])
+  @@index([guestId])
   @@map("fan_room_messages")
 }
 
@@ -949,6 +962,7 @@ model Poll {
   updatedAt    temporal.updatedAtString()
 
   votes        PollVote[]
+  guestVotes   GuestPollVote[]
 
   @@index([status])
   @@index([startsAt])
@@ -965,6 +979,7 @@ model PollOption {
   label     String
 
   votes     PollVote[]
+  guestVotes GuestPollVote[]
 
   createdAt TimestamptzString @default(now())
 
@@ -992,12 +1007,47 @@ model PollVote {
   @@map("poll_votes")
 }
 
+model GuestPollVote {
+  id             Int               @id @default(autoincrement())
+
+  pollId         Int
+  poll           Poll              @relation(fields: [pollId], references: [id])
+
+  optionId       Int
+  option         PollOption        @relation(fields: [optionId], references: [id])
+
+  guestTokenHash String
+
+  createdAt      TimestamptzString @default(now())
+
+  @@unique([pollId, guestTokenHash])
+  @@index([optionId])
+  @@map("guest_poll_votes")
+}
+
 enum TriviaStatus {
   @@type("pg/text@1")
 
   DRAFT = "DRAFT"
   ACTIVE = "ACTIVE"
   CLOSED = "CLOSED"
+}
+
+model TriviaQuiz {
+  id          Int               @id @default(autoincrement())
+  title       String
+  description String?
+  coverImageUrl String?
+  status      TriviaStatus      @default(DRAFT)
+  startsAt    TimestamptzString?
+  endsAt      TimestamptzString?
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  questions   TriviaQuestion[]
+
+  @@index([status])
+  @@map("trivia_quizzes")
 }
 
 model TriviaQuestion {
@@ -1009,6 +1059,11 @@ model TriviaQuestion {
   optionD       String
   correctOption String
   pointsReward  Int                        @default(10)
+  quizId        Int?
+  quiz          TriviaQuiz?                @relation(fields: [quizId], references: [id])
+  questionOrder Int                        @default(0)
+  imageUrl      String?
+  explanation   String?
   status        TriviaStatus               @default(DRAFT)
   startsAt      TimestamptzString?
   endsAt        TimestamptzString?
@@ -1018,6 +1073,7 @@ model TriviaQuestion {
   attempts      TriviaAttempt[]
 
   @@index([status])
+  @@index([quizId, questionOrder])
   @@map("trivia_questions")
 }
 
@@ -1061,19 +1117,22 @@ model AdminUser {
 model NewsComment {
   id        Int      @id @default(autoincrement())
   articleUrl String
-  userId    Int
+  userId    Int?
+  guestTokenHash String?
+  guestName String?
   body      String
   parentId  Int?
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
 
-  user      User          @relation(fields: [userId], references: [id])
+  user      User?         @relation(fields: [userId], references: [id])
   parent    NewsComment?  @relation("NewsCommentReplies", fields: [parentId], references: [id])
   replies   NewsComment[] @relation("NewsCommentReplies")
   likes     NewsCommentLike[]
 
   @@index([articleUrl, createdAt])
   @@index([userId])
+  @@index([articleUrl, guestTokenHash])
   @@index([parentId])
   @@map("news_comments")
 }
@@ -1103,18 +1162,21 @@ model NewsView {
 
   @@index([articleUrl, createdAt])
   @@index([userId, articleUrl])
+  @@index([articleUrl, visitorKey])
   @@map("news_views")
 }
 
 model NewsArticleLike {
   id         Int      @id @default(autoincrement())
   articleUrl String
-  userId     Int
+  userId     Int?
+  guestTokenHash String?
   createdAt  TimestamptzString @default(now())
 
-  user       User     @relation(fields: [userId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@unique([articleUrl, userId])
+  @@unique([articleUrl, guestTokenHash])
   @@index([articleUrl])
   @@index([userId])
   @@map("news_article_likes")
@@ -1143,3 +1205,18 @@ model ProgressionAward {
 // ============================================================
 // END SPORTYFANZ MVP CONTRACT
 // ============================================================
+
+
+// ============================================================
+// EMAIL VERIFICATION CODES
+// ============================================================
+model EmailVerificationCode {
+  id           Int                @id @default(autoincrement())
+  userId       Int                @unique
+  codeHash     String
+  expiresAt    TimestamptzString
+  attempts     Int                @default(0)
+  createdAt    TimestamptzString  @default(now())
+
+  @@map("email_verification_codes")
+}

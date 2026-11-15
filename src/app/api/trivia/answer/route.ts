@@ -90,6 +90,32 @@ export async function POST(request: Request) {
       }
 
 
+      // Quiz questions must also satisfy their parent quiz schedule.
+      // Independent Trivia questions have quizId === null.
+      if (question.quizId !== null) {
+        const quiz = await tx.orm.public.TriviaQuiz
+          .where({ id: question.quizId })
+          .first();
+
+        if (!quiz || quiz.status !== "ACTIVE") {
+          throw new Error("QUIZ_NOT_AVAILABLE");
+        }
+
+        if (
+          quiz.startsAt &&
+          new Date(quiz.startsAt).getTime() > now
+        ) {
+          throw new Error("QUIZ_NOT_STARTED");
+        }
+
+        if (
+          quiz.endsAt &&
+          new Date(quiz.endsAt).getTime() <= now
+        ) {
+          throw new Error("QUIZ_DEADLINE_PASSED");
+        }
+      }
+
       const existingAttempt = await tx.orm.public.TriviaAttempt
         .where({ questionId, userId })
         .first();
@@ -140,8 +166,20 @@ export async function POST(request: Request) {
           });
       }
 
+      const correctAnswers: Record<string, string> = {
+        A: question.optionA,
+        B: question.optionB,
+        C: question.optionC,
+        D: question.optionD,
+      };
+
       return {
         isCorrect,
+        selectedOption,
+        correctOption: question.correctOption,
+        correctAnswer:
+          correctAnswers[question.correctOption] ?? "",
+        explanation: question.explanation,
         pointsAwarded,
         balance,
         totalPoints,
@@ -174,6 +212,18 @@ export async function POST(request: Request) {
         QUESTION_NOT_AVAILABLE: {
           message: "This Trivia question is not available.",
           status: 404,
+        },
+        QUIZ_NOT_AVAILABLE: {
+          message: "This Trivia quiz is not available.",
+          status: 404,
+        },
+        QUIZ_NOT_STARTED: {
+          message: "This Trivia quiz has not started yet.",
+          status: 409,
+        },
+        QUIZ_DEADLINE_PASSED: {
+          message: "This Trivia quiz has closed.",
+          status: 409,
         },
         ALREADY_ATTEMPTED: {
           message: "You have already answered this question.",

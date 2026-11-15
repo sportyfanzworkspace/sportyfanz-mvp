@@ -1,38 +1,41 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
+import { cookies } from "next/headers";
+import {
+  GUEST_POLL_COOKIE,
+  hashGuestPollToken,
+  isValidGuestPollToken,
+} from "@/lib/guest-poll-vote";
 
 export async function GET() {
   try {
     const userId = await getCurrentUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Please log in to view polls." },
-        { status: 401 }
-      );
-    }
+    let profile = null;
 
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
 
-    if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "User account is not active." },
-        { status: 403 }
-      );
-    }
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "User account is not active." },
+          { status: 403 }
+        );
+      }
 
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
+      profile = await db.orm.public.FanProfile
+        .where({ userId })
+        .first();
 
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Fan profile not found." },
-        { status: 404 }
-      );
+      if (!profile) {
+        return NextResponse.json(
+          { error: "Fan profile not found." },
+          { status: 404 }
+        );
+      }
     }
 
     const allPolls = await db.orm.public.Poll
@@ -41,6 +44,17 @@ export async function GET() {
 
     const allOptions = await db.orm.public.PollOption.all();
     const allVotes = await db.orm.public.PollVote.all();
+    const allGuestVotes =
+      await db.orm.public.GuestPollVote.all();
+
+    const cookieStore = await cookies();
+    const guestToken =
+      cookieStore.get(GUEST_POLL_COOKIE)?.value;
+
+    const guestTokenHash =
+      isValidGuestPollToken(guestToken)
+        ? hashGuestPollToken(guestToken)
+        : null;
 
     const now = Date.now();
 
@@ -68,9 +82,20 @@ export async function GET() {
       (vote) => vote.pollId === poll.id
     );
 
-    const myVote = pollVotes.find(
-      (vote) => vote.userId === userId
+    const guestVotes = allGuestVotes.filter(
+      (vote) => vote.pollId === poll.id
     );
+
+    const totalVotes = pollVotes.length + guestVotes.length;
+
+    const myVote = userId
+      ? pollVotes.find((vote) => vote.userId === userId)
+      : guestTokenHash
+        ? guestVotes.find(
+            (vote) =>
+              vote.guestTokenHash === guestTokenHash
+          )
+        : null;
 
     return {
       id: poll.id,
@@ -80,25 +105,29 @@ export async function GET() {
       startsAt: poll.startsAt,
       endsAt: poll.endsAt,
       isOpen: true,
-      totalVotes: pollVotes.length,
+      totalVotes,
       myVote: myVote
         ? {
             optionId: myVote.optionId,
           }
         : null,
       options: options.map((option) => {
-        const voteCount = pollVotes.filter(
-          (vote) => vote.optionId === option.id
-        ).length;
+        const voteCount =
+          pollVotes.filter(
+            (vote) => vote.optionId === option.id
+          ).length +
+          guestVotes.filter(
+            (vote) => vote.optionId === option.id
+          ).length;
 
         return {
           id: option.id,
           label: option.label,
           votes: voteCount,
           percentage:
-            pollVotes.length > 0
+            totalVotes > 0
               ? Math.round(
-                  (voteCount / pollVotes.length) * 100
+                  (voteCount / totalVotes) * 100
                 )
               : 0,
         };
@@ -109,8 +138,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      balance: profile.currentPoints,
-      totalPoints: profile.totalPoints,
+      balance: profile?.currentPoints ?? null,
+      totalPoints: profile?.totalPoints ?? null,
       polls,
     });
   } catch (error) {

@@ -185,7 +185,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "You do not have enough Sporty Points",
+            "You do not have enough Fan Points",
         },
         { status: 400 }
       );

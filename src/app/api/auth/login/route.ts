@@ -38,6 +38,15 @@ export async function POST(request: Request) {
      });
     }
 
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "Invalid email or password.",
+        },
+        { status: 401 }
+      );
+    }
+
     if (user.status !== "ACTIVE") {
       return NextResponse.json(
         {
@@ -59,6 +68,20 @@ export async function POST(request: Request) {
           error: "Invalid email or password.",
         },
         { status: 401 }
+      );
+    }
+
+    // New registrations require email verification before login.
+    // Existing accounts must be backfilled as verified before
+    // enabling this check in production.
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          error: "Please verify your email address before logging in.",
+          requiresEmailVerification: true,
+          email: user.email,
+        },
+        { status: 403 }
       );
     }
 

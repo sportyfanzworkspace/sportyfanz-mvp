@@ -9,29 +9,26 @@ export async function GET() {
   try {
     const userId = await getCurrentUserId();
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "User account is not active" },
+          { status: 403 }
+        );
+      }
     }
 
-    const user = await db.orm.public.User
-      .where({ id: userId })
-      .first();
+    const profile = userId
+      ? await db.orm.public.FanProfile
+          .where({ userId })
+          .first()
+      : null;
 
-    if (!user || user.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "User account is not active" },
-        { status: 403 }
-      );
-    }
-
-    const profile = await db.orm.public.FanProfile
-      .where({ userId })
-      .first();
-
-    if (!profile) {
+    if (userId && !profile) {
       return NextResponse.json(
         { error: "Fan profile not found" },
         { status: 404 }
@@ -42,9 +39,11 @@ export async function GET() {
       .where({ status: "SCHEDULED" })
       .all();
 
-    const predictions = await db.orm.public.Prediction
-      .where({ userId })
-      .all();
+    const predictions = userId
+      ? await db.orm.public.Prediction
+          .where({ userId })
+          .all()
+      : [];
 
     const predictionMap = new Map(
       predictions.map((prediction) => [
@@ -115,8 +114,8 @@ export async function GET() {
     );
 
     return NextResponse.json({
-      balance: profile.currentPoints,
-      totalPoints: profile.totalPoints,
+      balance: profile?.currentPoints ?? null,
+      totalPoints: profile?.totalPoints ?? null,
       matches: enrichedMatches,
     });
   } catch (error) {
