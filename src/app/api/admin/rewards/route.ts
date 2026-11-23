@@ -48,28 +48,55 @@ export async function POST(request: Request) {
     const auth = await requirePermission("rewards:manage");
     if (!auth.authorized) return auth.response;
 
-    const body = await request.json();
+    let body: unknown;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body." },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !body ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid request body." },
+        { status: 400 }
+      );
+    }
+
+    const input = body as Record<string, unknown>;
 
     const name =
-      typeof body.name === "string" ? body.name.trim() : "";
+      typeof input.name === "string" ? input.name.trim() : "";
     const description =
-      typeof body.description === "string"
-        ? body.description.trim()
+      typeof input.description === "string"
+        ? input.description.trim()
         : "";
     const imageUrl =
-      typeof body.imageUrl === "string"
-        ? body.imageUrl.trim()
+      typeof input.imageUrl === "string"
+        ? input.imageUrl.trim()
         : "";
     const category =
-      typeof body.category === "string"
-        ? body.category.trim()
+      typeof input.category === "string"
+        ? input.category.trim()
         : "";
-    const pointsCost = Number(body.pointsCost);
+    const pointsCost = Number(input.pointsCost);
     const stock =
-      body.stock === "" || body.stock === null || body.stock === undefined
+      input.stock === "" ||
+      input.stock === null ||
+      input.stock === undefined
         ? null
-        : Number(body.stock);
-    const status = body.status ?? "ACTIVE";
+        : Number(input.stock);
+    const status =
+      input.status === undefined
+        ? "ACTIVE"
+        : input.status;
 
     if (name.length < 2 || name.length > 150) {
       return NextResponse.json(
@@ -78,7 +105,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!Number.isSafeInteger(pointsCost) || pointsCost < 1) {
+    if (
+      !Number.isSafeInteger(pointsCost) ||
+      pointsCost < 1 ||
+      pointsCost > 2147483647
+    ) {
       return NextResponse.json(
         { error: "Points cost must be a positive whole number." },
         { status: 400 }
@@ -87,7 +118,11 @@ export async function POST(request: Request) {
 
     if (
       stock !== null &&
-      (!Number.isSafeInteger(stock) || stock < 0)
+      (
+        !Number.isSafeInteger(stock) ||
+        stock < 0 ||
+        stock > 2147483647
+      )
     ) {
       return NextResponse.json(
         { error: "Stock must be zero or a positive whole number." },
@@ -96,8 +131,9 @@ export async function POST(request: Request) {
     }
 
     if (
-      !REWARD_STATUSES.includes(
-        status as (typeof REWARD_STATUSES)[number]
+      typeof status !== "string" ||
+      !REWARD_STATUSES.some(
+        (allowedStatus) => allowedStatus === status
       )
     ) {
       return NextResponse.json(
@@ -139,7 +175,10 @@ export async function POST(request: Request) {
       imageUrl: imageUrl || null,
       pointsCost,
       stock,
-      status,
+      status:
+        stock === 0 && status === "ACTIVE"
+          ? "SOLD_OUT"
+          : status as (typeof REWARD_STATUSES)[number],
       category: category || null,
     });
 

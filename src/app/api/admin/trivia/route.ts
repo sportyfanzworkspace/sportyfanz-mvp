@@ -225,6 +225,57 @@ export async function POST(request: Request) {
       );
     }
 
+    const rawImageUrl = body.imageUrl;
+
+    if (
+      rawImageUrl !== undefined &&
+      rawImageUrl !== null &&
+      typeof rawImageUrl !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "Invalid Trivia image URL." },
+        { status: 400 }
+      );
+    }
+
+    const imageUrl =
+      typeof rawImageUrl === "string" && rawImageUrl !== ""
+        ? rawImageUrl
+        : null;
+
+    if (imageUrl !== null) {
+      let parsedImageUrl: URL;
+
+      try {
+        parsedImageUrl = new URL(imageUrl);
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid Trivia image URL." },
+          { status: 400 }
+        );
+      }
+
+      if (
+        parsedImageUrl.protocol !== "https:" ||
+        parsedImageUrl.hostname !== "www.sportyfanz.com" ||
+        parsedImageUrl.port !== "" ||
+        parsedImageUrl.username !== "" ||
+        parsedImageUrl.password !== "" ||
+        parsedImageUrl.search !== "" ||
+        parsedImageUrl.hash !== "" ||
+        !/^\/uploads\/sportyfanz\/trivia\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(
+          parsedImageUrl.pathname
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error: "Trivia images must be uploaded through SportyFanz.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const created = await db.orm.public.TriviaQuestion.create({
       question,
       optionA,
@@ -233,6 +284,7 @@ export async function POST(request: Request) {
       optionD,
       correctOption,
       pointsReward,
+      imageUrl,
       status: status as "DRAFT" | "ACTIVE" | "CLOSED",
       startsAt,
       endsAt,

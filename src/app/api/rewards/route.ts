@@ -11,11 +11,31 @@ export async function GET() {
       .where({ status: "ACTIVE" })
       .all();
 
+    const now = Date.now();
+
     const publicRewards = rewards
-      .filter(
-        (reward) =>
-          reward.stock === null || reward.stock > 0
-      )
+      .filter((reward) => {
+        const hasStock =
+          reward.stock === null || reward.stock > 0;
+
+        const validPointsCost =
+          Number.isSafeInteger(reward.pointsCost) &&
+          reward.pointsCost > 0;
+
+        const expiryTime =
+          reward.expiresAt === null
+            ? null
+            : new Date(reward.expiresAt).getTime();
+
+        const isAvailable =
+          expiryTime === null ||
+          (
+            Number.isFinite(expiryTime) &&
+            expiryTime > now
+          );
+
+        return hasStock && validPointsCost && isAvailable;
+      })
       .map((reward) => ({
         id: reward.id,
         name: reward.name,
@@ -67,9 +87,29 @@ export async function GET() {
               .limit(20)
               .all();
 
-          const rewardMap = new Map(
-            rewards.map((reward) => [reward.id, reward])
+          const historicalRewardIds = [
+            ...new Set(
+              redemptions.map(
+                (redemption) => redemption.rewardId
+              )
+            ),
+          ];
+
+          const historicalRewards = await Promise.all(
+            historicalRewardIds.map((rewardId) =>
+              db.orm.public.Reward
+                .where({ id: rewardId })
+                .first()
+            )
           );
+
+          const rewardMap = new Map<number, string>();
+
+          for (const reward of historicalRewards) {
+            if (reward) {
+              rewardMap.set(reward.id, reward.name);
+            }
+          }
 
           history = redemptions.map((redemption) => {
             const reward = rewardMap.get(
@@ -79,7 +119,7 @@ export async function GET() {
             return {
               id: redemption.id,
               rewardId: redemption.rewardId,
-              rewardName: reward?.name ?? "Reward",
+              rewardName: reward ?? "Reward",
               pointsSpent: redemption.pointsSpent,
               status: redemption.status,
               rejectionReason:

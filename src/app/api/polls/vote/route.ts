@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import { lockFanProfile } from "@/lib/accounting/lock-fan-profile";
 import { getCurrentUserId } from "@/lib/auth";
 import { cookies } from "next/headers";
 import {
@@ -81,8 +82,8 @@ export async function POST(request: Request) {
 
       await db.transaction(async (tx) => {
         const poll = await tx.orm.public.Poll
-          .where({ id: pollId })
-          .first();
+          .where({ id: pollId, status: "ACTIVE" })
+          .update({ status: "ACTIVE" });
 
         if (!poll || poll.status !== "ACTIVE") {
           throw new Error("POLL_NOT_AVAILABLE");
@@ -152,17 +153,15 @@ export async function POST(request: Request) {
         throw new Error("USER_NOT_ACTIVE");
       }
 
-      const profile = await tx.orm.public.FanProfile
-        .where({ userId })
-        .first();
+      const profile = await lockFanProfile(tx, userId);
 
       if (!profile) {
         throw new Error("PROFILE_NOT_FOUND");
       }
 
       const poll = await tx.orm.public.Poll
-        .where({ id: pollId })
-        .first();
+        .where({ id: pollId, status: "ACTIVE" })
+        .update({ status: "ACTIVE" });
 
       if (!poll || poll.status !== "ACTIVE") {
         throw new Error("POLL_NOT_AVAILABLE");

@@ -401,6 +401,18 @@ export async function POST(request: Request) {
                     resolvedAt: new Date().toISOString(),
                   });
 
+                await tx.orm.public.Notification.create({
+                  userId: prediction.userId,
+                  type: "MATCH",
+                  title: exactScore
+                    ? "Prediction won!"
+                    : "Prediction result",
+                  message: exactScore
+                    ? `Congratulations! Your exact-score prediction (${prediction.homeScore}-${prediction.awayScore}) was correct.`
+                    : `Your prediction (${prediction.homeScore}-${prediction.awayScore}) did not match the final score (${goalsHome}-${goalsAway}).`,
+                  link: "/app/participate",
+                });
+
                 settled += 1;
               }
             }
@@ -424,6 +436,14 @@ export async function POST(request: Request) {
                     status: "CANCELLED",
                     resolvedAt: new Date().toISOString(),
                   });
+
+                await tx.orm.public.Notification.create({
+                  userId: prediction.userId,
+                  type: "MATCH",
+                  title: "Prediction cancelled",
+                  message: "Your prediction was cancelled because the match was cancelled.",
+                  link: "/app/participate",
+                });
 
                 cancelled += 1;
               }

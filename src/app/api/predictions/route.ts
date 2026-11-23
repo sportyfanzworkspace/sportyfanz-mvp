@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { lockFanProfile } from "@/lib/accounting/lock-fan-profile";
 import { getFanLevel } from "@/lib/progression";
 
 const PREDICTION_POINTS = 50;
@@ -35,9 +36,22 @@ export async function GET() {
       );
     }
 
-    const matches = await db.orm.public.Match
-      .where({ status: "SCHEDULED" })
-      .all();
+    const allMatches = await db.orm.public.Match.all();
+
+    const now = Date.now();
+
+    const matches = allMatches.filter((match) => {
+      const deadline = match.predictionClosesAt
+        ? new Date(match.predictionClosesAt).getTime()
+        : new Date(match.scheduledAt).getTime();
+
+      return (
+        ["SCHEDULED", "LIVE", "HALF_TIME"].includes(match.status) &&
+        match.predictionsClosedAt == null &&
+        Number.isFinite(deadline) &&
+        deadline > now
+      );
+    });
 
     const predictions = userId
       ? await db.orm.public.Prediction
@@ -72,7 +86,9 @@ export async function GET() {
           id: match.id,
           competition: match.competition,
           venue: match.venue,
+          imageUrl: match.imageUrl,
           scheduledAt: match.scheduledAt,
+          predictionClosesAt: match.predictionClosesAt,
           status: match.status,
 
           sport: sport
@@ -178,9 +194,7 @@ export async function POST(request: Request) {
         throw new Error("USER_NOT_ACTIVE");
       }
 
-      const profile = await tx.orm.public.FanProfile
-        .where({ userId })
-        .first();
+      const profile = await lockFanProfile(tx, userId);
 
       if (!profile) {
         throw new Error("PROFILE_NOT_FOUND");
@@ -194,9 +208,30 @@ export async function POST(request: Request) {
         throw new Error("MATCH_NOT_FOUND");
       }
 
+      // Coordinate submissions with the administrator Close update.
+      // This conditional UPDATE must lock the match row until commit.
+      const lockedMatch = await tx.orm.public.Match
+        .where({
+          id: matchId,
+          predictionsClosedAt: null,
+        })
+        .update({
+          predictionsClosedAt: null,
+        });
+
+      if (!lockedMatch) {
+        throw new Error("MATCH_NOT_AVAILABLE");
+      }
+
       if (
-        match.status !== "SCHEDULED" ||
-        new Date(match.scheduledAt).getTime() <= Date.now()
+        !["SCHEDULED", "LIVE", "HALF_TIME"].includes(
+          lockedMatch.status
+        ) ||
+        lockedMatch.predictionsClosedAt != null ||
+        new Date(
+          lockedMatch.predictionClosesAt ??
+            lockedMatch.scheduledAt
+        ).getTime() <= Date.now()
       ) {
         throw new Error("MATCH_NOT_AVAILABLE");
       }

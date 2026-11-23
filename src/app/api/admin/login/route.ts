@@ -5,6 +5,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { checkStaffPasswordRateLimit } from "@/lib/admin/staff-password-rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,45 @@ export async function POST(request: Request) {
             "Username or work email and password are required.",
         },
         { status: 400 }
+      );
+    }
+
+    const globalLoginLimit = await checkStaffPasswordRateLimit(
+      "global:staff-login"
+    );
+
+    if (!globalLoginLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Staff sign-in is temporarily busy. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(globalLoginLimit.retryAfterSeconds),
+          },
+        }
+      );
+    }
+
+    const loginRateLimit = await checkStaffPasswordRateLimit(
+      `staff-login-account:${identifier}`
+    );
+
+    if (!loginRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Too many sign-in attempts. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(
+              loginRateLimit.retryAfterSeconds
+            ),
+          },
+        }
       );
     }
 
@@ -82,7 +122,14 @@ export async function POST(request: Request) {
         lastLoginAt: new Date().toISOString(),
       });
 
-    await createAdminSession(admin.id);
+    // Transitional support until the staff-auth migration is applied.
+    // Once deployed, every admin session must use the stored version.
+    await createAdminSession(
+      admin.id,
+      typeof admin.sessionVersion === "number"
+        ? admin.sessionVersion
+        : 0
+    );
 
     return NextResponse.json({
       success: true,

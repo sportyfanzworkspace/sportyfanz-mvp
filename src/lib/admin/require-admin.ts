@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getCurrentAdminUserId } from "@/lib/auth";
+import { getAdminSession } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 
 export type StaffRole =
@@ -69,9 +69,9 @@ export function hasPermission(
 }
 
 export async function requireAdmin() {
-  const adminUserId = await getCurrentAdminUserId();
+  const session = await getAdminSession();
 
-  if (!adminUserId) {
+  if (!session) {
     return {
       authorized: false as const,
       reason: "unauthenticated" as const,
@@ -83,7 +83,7 @@ export async function requireAdmin() {
   }
 
   const admin = await db.orm.public.AdminUser.first({
-    id: adminUserId,
+    id: session.adminUserId,
   });
 
   if (!admin || admin.status !== "ACTIVE") {
@@ -93,6 +93,17 @@ export async function requireAdmin() {
       response: NextResponse.json(
         { error: "Your account is not active." },
         { status: 403 }
+      ),
+    };
+  }
+
+  if (admin.sessionVersion !== session.sessionVersion) {
+    return {
+      authorized: false as const,
+      reason: "session_revoked" as const,
+      response: NextResponse.json(
+        { error: "Your staff session has expired. Please sign in again." },
+        { status: 401 }
       ),
     };
   }

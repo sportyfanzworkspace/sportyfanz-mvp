@@ -112,7 +112,6 @@ export default function LoginPage() {
         <section className="formPanel">
           <div className="formWrapper">
             <div className="formHeader">
-              <span className="formEyebrow">WELCOME BACK</span>
 
               <h1 className="formTitle">Log in to SportyFanz</h1>
 

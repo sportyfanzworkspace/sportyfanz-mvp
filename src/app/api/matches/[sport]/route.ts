@@ -48,6 +48,7 @@ type ProviderFixture = {
   };
   league?: {
     name?: string;
+    logo?: string | null;
     season?: string | number;
   };
   country?: {
@@ -125,6 +126,7 @@ function mapFixture(fixture: ProviderFixture) {
     awayTeamShortName: fixture.teams.away.name,
     homeTeamLogo: fixture.teams.home.logo ?? null,
     awayTeamLogo: fixture.teams.away.logo ?? null,
+    leagueLogo: fixture.league?.logo ?? null,
     competition: fixture.league?.name ?? "Sport",
     country: fixture.country?.name ?? null,
     venue,

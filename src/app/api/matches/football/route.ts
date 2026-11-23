@@ -20,6 +20,7 @@ type ApiFixture = {
   league?: {
     id?: number;
     name?: string;
+    logo?: string | null;
     country?: string;
     season?: number;
   };
@@ -250,6 +251,7 @@ function mapFixture(fixture: ApiFixture) {
     awayTeamShortName: away.name,
     homeTeamLogo: home.logo ?? null,
     awayTeamLogo: away.logo ?? null,
+    leagueLogo: fixture.league?.logo ?? null,
     competition: fixture.league?.name ?? "Football",
     country: fixture.league?.country ?? null,
     venue: fixture.fixture?.venue?.name ?? null,

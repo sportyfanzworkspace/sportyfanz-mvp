@@ -63,7 +63,10 @@ export async function GET() {
           sportId: match.sportId,
           competition: match.competition,
           venue: match.venue,
+          imageUrl: match.imageUrl,
           status: match.status,
+          predictionsClosedAt: match.predictionsClosedAt,
+          predictionClosesAt: match.predictionClosesAt,
           scheduledAt: match.scheduledAt,
           startedAt: match.startedAt,
           endedAt: match.endedAt,
@@ -265,6 +268,59 @@ export async function POST(request: Request) {
       );
     }
 
+    const rawImageUrl = body.imageUrl;
+
+    if (
+      rawImageUrl !== undefined &&
+      rawImageUrl !== null &&
+      typeof rawImageUrl !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "Invalid prediction image URL." },
+        { status: 400 }
+      );
+    }
+
+    const imageUrl: string | null =
+      typeof rawImageUrl === "string" && rawImageUrl !== ""
+        ? rawImageUrl
+        : null;
+
+    if (imageUrl !== null) {
+
+      let parsedImageUrl: URL;
+
+      try {
+        parsedImageUrl = new URL(imageUrl);
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid prediction image URL." },
+          { status: 400 }
+        );
+      }
+
+      if (
+        parsedImageUrl.protocol !== "https:" ||
+        parsedImageUrl.hostname !== "www.sportyfanz.com" ||
+        parsedImageUrl.port !== "" ||
+        parsedImageUrl.username !== "" ||
+        parsedImageUrl.password !== "" ||
+        parsedImageUrl.search !== "" ||
+        parsedImageUrl.hash !== "" ||
+        !/^\/uploads\/sportyfanz\/predictions\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(
+          parsedImageUrl.pathname
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Prediction images must be uploaded through SportyFanz.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const competition =
       typeof body.competition === "string"
         ? body.competition.trim()
@@ -296,6 +352,30 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "The kickoff must be a valid future date and time.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (typeof body.predictionClosesAt !== "string") {
+      return NextResponse.json(
+        { error: "Enter the prediction closing date and time." },
+        { status: 400 }
+      );
+    }
+
+    const predictionClosingTime = new Date(
+      body.predictionClosesAt
+    );
+
+    if (
+      Number.isNaN(predictionClosingTime.getTime()) ||
+      predictionClosingTime.getTime() <= Date.now()
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "The prediction closing time must be a valid future date and time.",
         },
         { status: 400 }
       );
@@ -379,9 +459,11 @@ export async function POST(request: Request) {
       awayTeamId,
       competition,
       venue: null,
+      imageUrl,
       matchDataSource: "MANUAL",
       status: "SCHEDULED",
       scheduledAt: kickoff.toISOString(),
+      predictionClosesAt: predictionClosingTime.toISOString(),
       homeScore: 0,
       awayScore: 0,
     });

@@ -132,11 +132,24 @@ export async function PATCH(
       }
     }
 
-    await db.orm.public.Poll
-      .where({ id: pollId })
+    const updated = await db.orm.public.Poll
+      .where({
+        id: pollId,
+        status: poll.status,
+      })
       .update({
         status: body.status as "ACTIVE" | "CLOSED",
       });
+
+    if (!updated) {
+      return NextResponse.json(
+        {
+          error:
+            "The poll status has changed. Refresh the page and try again.",
+        },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

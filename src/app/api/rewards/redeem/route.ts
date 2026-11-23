@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { lockFanProfile } from "@/lib/accounting/lock-fan-profile";
+import { lockReward } from "@/lib/accounting/lock-reward";
+import { nextRewardUpdatedAt } from "@/lib/accounting/reward-version";
 
 function generateReferenceCode() {
   const random = randomBytes(4).toString("hex").toUpperCase();
@@ -24,7 +27,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const rewardId = Number(body?.rewardId);
 
-    if (!Number.isInteger(rewardId) || rewardId <= 0) {
+    if (
+      !Number.isSafeInteger(rewardId) ||
+      rewardId <= 0 ||
+      rewardId > 2147483647
+    ) {
       return NextResponse.json(
         { error: "Invalid reward" },
         { status: 400 }
@@ -40,23 +47,39 @@ export async function POST(request: Request) {
         throw new Error("UNAUTHORIZED");
       }
 
-      const profile = await tx.orm.public.FanProfile.first({
-        userId,
-      });
+      const profile = await lockFanProfile(tx, userId);
 
       if (!profile) {
         throw new Error("PROFILE_NOT_FOUND");
       }
 
-      const reward = await tx.orm.public.Reward.first({
-        id: rewardId,
-      });
+      const reward = await lockReward(tx, rewardId);
 
       if (!reward) {
         throw new Error("REWARD_NOT_FOUND");
       }
 
       if (reward.status !== "ACTIVE") {
+        throw new Error("REWARD_UNAVAILABLE");
+      }
+
+      // Validate expiration after acquiring the inventory lock.
+      if (reward.expiresAt !== null) {
+        const expiresAt = new Date(reward.expiresAt).getTime();
+
+        if (
+          !Number.isFinite(expiresAt) ||
+          expiresAt <= Date.now()
+        ) {
+          throw new Error("REWARD_UNAVAILABLE");
+        }
+      }
+
+      // Never allow an invalid reward cost to credit a fan's balance.
+      if (
+        !Number.isSafeInteger(reward.pointsCost) ||
+        reward.pointsCost <= 0
+      ) {
         throw new Error("REWARD_UNAVAILABLE");
       }
 
@@ -104,6 +127,9 @@ export async function POST(request: Request) {
         .update({
           stock: newStock,
           status: newRewardStatus,
+          updatedAt: nextRewardUpdatedAt(
+            reward.updatedAt
+          ),
         });
 
       await tx.orm.public.PointTransaction.create({
@@ -114,6 +140,14 @@ export async function POST(request: Request) {
         referenceId: String(redemption.id),
         referenceType: "REWARD_REDEMPTION",
         balanceAfter: newBalance,
+      });
+
+      await tx.orm.public.Notification.create({
+        userId,
+        type: "REWARD",
+        title: "Reward redemption submitted",
+        message: `Your request for ${reward.name} has been submitted. Reference: ${referenceCode}.`,
+        link: "/app/rewards",
       });
 
       return {

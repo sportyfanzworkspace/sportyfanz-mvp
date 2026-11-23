@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import { lockFanProfile } from "@/lib/accounting/lock-fan-profile";
 import { getCurrentUserId } from "@/lib/auth";
 
 const VALID_OPTIONS = ["A", "B", "C", "D"] as const;
@@ -56,17 +57,21 @@ export async function POST(request: Request) {
         throw new Error("USER_NOT_ACTIVE");
       }
 
-      const profile = await tx.orm.public.FanProfile
-        .where({ userId })
-        .first();
+      const profile = await lockFanProfile(tx, userId);
 
       if (!profile) {
         throw new Error("PROFILE_NOT_FOUND");
       }
 
+      // Coordinate answer submission with administrator Close.
+      // The conditional UPDATE is intended to hold the question row
+      // lock until the transaction commits or rolls back.
       const question = await tx.orm.public.TriviaQuestion
-        .where({ id: questionId })
-        .first();
+        .where({
+          id: questionId,
+          status: "ACTIVE",
+        })
+        .update({ status: "ACTIVE" });
 
         
         if (!question || question.status !== "ACTIVE") {
@@ -93,6 +98,49 @@ export async function POST(request: Request) {
       // Quiz questions must also satisfy their parent quiz schedule.
       // Independent Trivia questions have quizId === null.
       if (question.quizId !== null) {
+        const quizLockPlan = db.raw.sql`
+          SELECT "id"
+          FROM "public"."trivia_quizzes"
+          WHERE "id" = ${question.quizId}
+          FOR UPDATE
+        `
+          .returnsRow({
+            id: "pg/int4@1",
+          })
+          .build();
+
+        let quizLocked = false;
+
+        for await (const row of tx.query(quizLockPlan)) {
+          if (row.id === question.quizId) {
+            quizLocked = true;
+          }
+        }
+
+        if (!quizLocked) {
+          throw new Error("QUIZ_NOT_AVAILABLE");
+        }
+
+        const quiz = await tx.orm.public.TriviaQuiz
+          .where({ id: question.quizId })
+          .first();
+
+        if (!quiz || quiz.status !== "ACTIVE") {
+          throw new Error("QUIZ_NOT_AVAILABLE");
+        }
+      }
+
+      // Recheck all deadlines after acquiring the required locks.
+      const submissionTime = Date.now();
+
+      if (
+        question.endsAt &&
+        new Date(question.endsAt).getTime() <= submissionTime
+      ) {
+        throw new Error("QUESTION_DEADLINE_PASSED");
+      }
+
+      if (question.quizId !== null) {
         const quiz = await tx.orm.public.TriviaQuiz
           .where({ id: question.quizId })
           .first();
@@ -103,14 +151,14 @@ export async function POST(request: Request) {
 
         if (
           quiz.startsAt &&
-          new Date(quiz.startsAt).getTime() > now
+          new Date(quiz.startsAt).getTime() > submissionTime
         ) {
           throw new Error("QUIZ_NOT_STARTED");
         }
 
         if (
           quiz.endsAt &&
-          new Date(quiz.endsAt).getTime() <= now
+          new Date(quiz.endsAt).getTime() <= submissionTime
         ) {
           throw new Error("QUIZ_DEADLINE_PASSED");
         }

@@ -60,9 +60,11 @@ export async function PATCH(
     }
 
     const result = await db.transaction(async (tx) => {
+      // Lock the match row before checking status or settling
+      // predictions. Fan submissions use the same row lock.
       const match = await tx.orm.public.Match
         .where({ id })
-        .first();
+        .update({ id });
 
       if (!match) {
         throw new Error("MATCH_NOT_FOUND");
@@ -72,6 +74,34 @@ export async function PATCH(
       // score changes or a second settlement.
       if (match.status === "FINISHED") {
         throw new Error("MATCH_ALREADY_FINISHED");
+      }
+
+      if (match.status === "CANCELLED") {
+        throw new Error("MATCH_ALREADY_CANCELLED");
+      }
+
+      // Match details may only be edited while predictions
+      // are open. Status and score operations remain separate
+      // so administrators can settle completed matches.
+      const now = Date.now();
+      const deadline = new Date(
+        match.predictionClosesAt ?? match.scheduledAt
+      ).getTime();
+
+      const predictionsEditable =
+        match.status === "SCHEDULED" &&
+        match.predictionsClosedAt == null &&
+        Number.isFinite(deadline) &&
+        deadline > now;
+
+      const changesMatchDetails =
+        "competition" in body ||
+        "venue" in body ||
+        "scheduledAt" in body ||
+        "predictionClosesAt" in body;
+
+      if (changesMatchDetails && !predictionsEditable) {
+        throw new Error("MATCH_EDIT_LOCKED");
       }
 
       const updates: Record<string, unknown> = {};
@@ -117,6 +147,45 @@ export async function PATCH(
         updates.scheduledAt = scheduledAt.toISOString();
       }
 
+      // Validate the effective kickoff and prediction deadline
+      // together, including when only one of them changes.
+      const effectiveKickoff = new Date(
+        (updates.scheduledAt as string | undefined) ??
+          match.scheduledAt
+      ).getTime();
+
+      let effectiveDeadline = new Date(
+        match.predictionClosesAt ?? match.scheduledAt
+      ).getTime();
+
+      if ("predictionClosesAt" in body) {
+        if (
+          typeof body.predictionClosesAt !== "string" ||
+          !body.predictionClosesAt.trim()
+        ) {
+          throw new Error("INVALID_PREDICTION_CLOSES_AT");
+        }
+
+        const closingTime = new Date(body.predictionClosesAt);
+
+        if (!Number.isFinite(closingTime.getTime())) {
+          throw new Error("INVALID_PREDICTION_CLOSES_AT");
+        }
+
+        effectiveDeadline = closingTime.getTime();
+        updates.predictionClosesAt = closingTime.toISOString();
+      }
+
+      if (
+        ("scheduledAt" in body ||
+          "predictionClosesAt" in body) &&
+        (!Number.isFinite(effectiveKickoff) ||
+          !Number.isFinite(effectiveDeadline) ||
+          effectiveDeadline <= Date.now())
+      ) {
+        throw new Error("INVALID_PREDICTION_DEADLINE");
+      }
+
       let nextStatus: MatchStatus =
         match.status as MatchStatus;
 
@@ -131,7 +200,29 @@ export async function PATCH(
         }
 
         nextStatus = body.status as MatchStatus;
+
+        // Never return a match to SCHEDULED after it has
+        // entered another status. This prevents accidental
+        // reopening of prediction submissions.
+        if (
+          nextStatus === "SCHEDULED" &&
+          match.status !== "SCHEDULED"
+        ) {
+          throw new Error("MATCH_REOPEN_NOT_ALLOWED");
+        }
+
         updates.status = nextStatus;
+      }
+
+      // Prevent a single request from editing match details
+      // while transitioning the match out of SCHEDULED.
+      // Result recording and settlement remain available
+      // through status/score-only requests.
+      if (
+        changesMatchDetails &&
+        nextStatus !== "SCHEDULED"
+      ) {
+        throw new Error("MATCH_EDIT_STATUS_CONFLICT");
       }
 
       let homeScore: number | null =
@@ -298,6 +389,26 @@ export async function PATCH(
         message:
           "This match is already finished and cannot be edited or settled again.",
       },
+      MATCH_ALREADY_CANCELLED: {
+        status: 409,
+        message:
+          "This match has been cancelled and cannot be edited or reopened.",
+      },
+      MATCH_REOPEN_NOT_ALLOWED: {
+        status: 409,
+        message:
+          "A match that has left Scheduled status cannot be returned to Scheduled.",
+      },
+      MATCH_EDIT_STATUS_CONFLICT: {
+        status: 409,
+        message:
+          "Match details cannot be edited while changing the match status. Save match details before starting, finishing, postponing, or cancelling the match.",
+      },
+      MATCH_EDIT_LOCKED: {
+        status: 409,
+        message:
+          "Match details are locked because predictions have closed, expired, or the match is no longer scheduled.",
+      },
       INVALID_COMPETITION: {
         status: 400,
         message: "Competition must be 200 characters or fewer.",
@@ -309,6 +420,16 @@ export async function PATCH(
       INVALID_SCHEDULED_AT: {
         status: 400,
         message: "Provide a valid scheduled date and time.",
+      },
+      INVALID_PREDICTION_CLOSES_AT: {
+        status: 400,
+        message:
+          "Provide a valid prediction closing date and time.",
+      },
+      INVALID_PREDICTION_DEADLINE: {
+        status: 400,
+        message:
+          "Prediction closing time must be in the future and earlier than kickoff.",
       },
       INVALID_STATUS: {
         status: 400,

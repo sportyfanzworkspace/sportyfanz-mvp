@@ -124,3 +124,77 @@ export async function sendVerificationEmail(
     ].join("\n"),
   });
 }
+
+
+export async function sendStaffAccessEmail(
+  email: string,
+  username: string,
+  actionUrl: string,
+  purpose: "INVITATION" | "PASSWORD_RESET"
+) {
+  const parsedUrl = new URL(actionUrl);
+
+  if (
+    parsedUrl.protocol !== "https:" ||
+    parsedUrl.hostname !== "www.sportyfanz.com" ||
+    parsedUrl.pathname !== "/sf-vault-k8m42x/set-password/"
+  ) {
+    throw new Error("Invalid staff password setup URL.");
+  }
+
+  if (!parsedUrl.searchParams.get("token")) {
+    throw new Error("Staff password setup token is missing.");
+  }
+
+  const invitation = purpose === "INVITATION";
+
+  const subject = invitation
+    ? "Your SportyFanz staff invitation"
+    : "Reset your SportyFanz staff password";
+
+  const heading = invitation
+    ? "You have been invited to join the SportyFanz staff team."
+    : "A password reset was requested for your SportyFanz staff account.";
+
+  const text = [
+    heading,
+    "",
+    `Username: ${username}`,
+    "",
+    invitation
+      ? "Set your password using this secure link:"
+      : "Create a new password using this secure link:",
+    actionUrl,
+    "",
+    "This link expires in 1 hour and can only be used once.",
+    "If you did not expect this email, contact your SportyFanz administrator.",
+    "",
+    "SportyFanz",
+    "Every Sport. Every Fan. Every Moment.",
+  ].join("\n");
+
+  if (isEmailTestMode()) {
+    await appendFile(
+      "/tmp/sportyfanz-test-staff-emails.jsonl",
+      JSON.stringify({
+        to: email,
+        username,
+        actionUrl,
+        purpose,
+        capturedAt: new Date().toISOString(),
+      }) + "\n",
+      { mode: 0o600 }
+    );
+
+    return;
+  }
+
+  const transport = getEmailTransport();
+
+  await transport.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: email,
+    subject,
+    text,
+  });
+}

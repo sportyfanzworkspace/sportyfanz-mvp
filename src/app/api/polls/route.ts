@@ -101,6 +101,7 @@ export async function GET() {
       id: poll.id,
       question: poll.question,
       description: poll.description,
+      imageUrl: poll.imageUrl,
       pointsReward: poll.pointsReward,
       startsAt: poll.startsAt,
       endsAt: poll.endsAt,

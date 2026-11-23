@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/admin/require-admin";
 import { db } from "@/lib/prisma";
+import { lockFanProfile } from "@/lib/accounting/lock-fan-profile";
+import { lockReward } from "@/lib/accounting/lock-reward";
+import { nextRewardUpdatedAt } from "@/lib/accounting/reward-version";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -26,7 +29,11 @@ export async function PATCH(
     const { id: rawId } = await context.params;
     const id = Number(rawId);
 
-    if (!Number.isSafeInteger(id) || id < 1) {
+    if (
+      !Number.isSafeInteger(id) ||
+      id < 1 ||
+      id > 2147483647
+    ) {
       return NextResponse.json(
         { error: "Invalid redemption ID." },
         { status: 400 }
@@ -76,6 +83,51 @@ export async function PATCH(
     }
 
     const result = await db.transaction(async (tx) => {
+      // Identify the fan before acquiring accounting locks.
+      const initialRedemption =
+        await tx.orm.public.RewardRedemption
+          .where({ id })
+          .first();
+
+      if (!initialRedemption) {
+        throw new Error("REDEMPTION_NOT_FOUND");
+      }
+
+      // Maintain the shared FanProfile-first accounting lock order.
+      const profile = await lockFanProfile(
+        tx,
+        initialRedemption.userId
+      );
+
+      if (!profile) {
+        throw new Error("PROFILE_NOT_FOUND");
+      }
+
+      // Serialize all administrator transitions for this redemption.
+      const redemptionLockPlan = db.raw.sql`
+        SELECT "id"
+        FROM "public"."reward_redemptions"
+        WHERE "id" = ${id}
+        FOR UPDATE
+      `
+        .returnsRow({
+          id: "pg/int4@1",
+        })
+        .build();
+
+      let redemptionLocked = false;
+
+      for await (const row of tx.query(redemptionLockPlan)) {
+        if (row.id === id) {
+          redemptionLocked = true;
+        }
+      }
+
+      if (!redemptionLocked) {
+        throw new Error("REDEMPTION_NOT_FOUND");
+      }
+
+      // Read the latest redemption after acquiring its lock.
       const redemption =
         await tx.orm.public.RewardRedemption
           .where({ id })
@@ -83,6 +135,12 @@ export async function PATCH(
 
       if (!redemption) {
         throw new Error("REDEMPTION_NOT_FOUND");
+      }
+
+      if (
+        redemption.userId !== initialRedemption.userId
+      ) {
+        throw new Error("INVALID_TRANSITION");
       }
 
       if (
@@ -126,26 +184,39 @@ export async function PATCH(
         nextStatus === "CANCELLED" ||
         nextStatus === "REJECTED"
       ) {
-        const profile =
-          await tx.orm.public.FanProfile
-            .where({ userId: redemption.userId })
-            .first();
-
-        if (!profile) {
-          throw new Error("PROFILE_NOT_FOUND");
-        }
-
-        const reward =
-          await tx.orm.public.Reward
-            .where({ id: redemption.rewardId })
-            .first();
+        const reward = await lockReward(
+          tx,
+          redemption.rewardId
+        );
 
         if (!reward) {
           throw new Error("REWARD_NOT_FOUND");
         }
 
+        if (
+          !Number.isSafeInteger(redemption.pointsSpent) ||
+          redemption.pointsSpent <= 0
+        ) {
+          throw new Error("INVALID_REFUND_AMOUNT");
+        }
+
         const refundedBalance =
           profile.currentPoints + redemption.pointsSpent;
+
+        if (
+          !Number.isSafeInteger(refundedBalance) ||
+          refundedBalance > 2147483647 ||
+          refundedBalance < 0
+        ) {
+          throw new Error("INVALID_REFUND_AMOUNT");
+        }
+
+        if (
+          reward.stock !== null &&
+          (reward.stock < 0 || reward.stock >= 2147483647)
+        ) {
+          throw new Error("INVALID_REWARD_STOCK");
+        }
 
         await tx.orm.public.FanProfile
           .where({ userId: redemption.userId })
@@ -169,24 +240,44 @@ export async function PATCH(
             ? null
             : reward.stock + 1;
 
+        const expiryTime =
+          reward.expiresAt === null
+            ? null
+            : new Date(reward.expiresAt).getTime();
+
+        const rewardExpired =
+          expiryTime !== null &&
+          (
+            !Number.isFinite(expiryTime) ||
+            expiryTime <= Date.now()
+          );
+
+        const restoredStatus =
+          reward.status === "ARCHIVED"
+            ? "ARCHIVED"
+            : reward.status === "INACTIVE" || rewardExpired
+              ? "INACTIVE"
+              : restoredStock === 0
+                ? "SOLD_OUT"
+                : "ACTIVE";
+
         await tx.orm.public.Reward
           .where({ id: reward.id })
           .update({
             stock: restoredStock,
-            status:
-              restoredStock === 0
-                ? "SOLD_OUT"
-                : reward.status === "ARCHIVED"
-                  ? "ARCHIVED"
-                  : reward.status === "INACTIVE"
-                    ? "INACTIVE"
-                    : "ACTIVE",
+            updatedAt: nextRewardUpdatedAt(
+              reward.updatedAt
+            ),
+            status: restoredStatus,
           });
       }
 
       const updated =
         await tx.orm.public.RewardRedemption
-         .where({ id })
+         .where({
+           id,
+           status: redemption.status,
+         })
          .update({
          status: nextStatus,
          rejectionReason:
@@ -198,6 +289,38 @@ export async function PATCH(
           ? new Date().toISOString()
            : null,
        });
+
+      // Force rollback if the expected transition did not occur.
+      if (!updated) {
+        throw new Error("INVALID_TRANSITION");
+      }
+
+      const notificationDetails = {
+        APPROVED: {
+          title: "Reward redemption approved",
+          message: `Your reward redemption ${redemption.referenceCode} has been approved.`,
+        },
+        FULFILLED: {
+          title: "Reward fulfilled",
+          message: `Your reward redemption ${redemption.referenceCode} has been fulfilled.`,
+        },
+        REJECTED: {
+          title: "Reward redemption rejected",
+          message: `Your reward redemption ${redemption.referenceCode} was rejected. Your Fan Points have been refunded.${rejectionReason ? ` Reason: ${rejectionReason}` : ""}`,
+        },
+        CANCELLED: {
+          title: "Reward redemption cancelled",
+          message: `Your reward redemption ${redemption.referenceCode} was cancelled. Your Fan Points have been refunded.`,
+        },
+      }[nextStatus];
+
+      await tx.orm.public.Notification.create({
+        userId: redemption.userId,
+        type: "REWARD",
+        title: notificationDetails.title,
+        message: notificationDetails.message,
+        link: "/app/rewards",
+      });
 
       return updated;
     });
@@ -244,6 +367,18 @@ export async function PATCH(
     if (message === "REWARD_NOT_FOUND") {
       return NextResponse.json(
         { error: "Reward not found; no refund was completed." },
+        { status: 409 }
+      );
+    }
+
+    if (
+      message === "INVALID_REFUND_AMOUNT" ||
+      message === "INVALID_REWARD_STOCK"
+    ) {
+      return NextResponse.json(
+        {
+          error: "Invalid refund accounting data. No refund was completed.",
+        },
         { status: 409 }
       );
     }

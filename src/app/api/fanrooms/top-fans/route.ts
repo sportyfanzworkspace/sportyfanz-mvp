@@ -9,7 +9,8 @@ export async function GET() {
         "username",
         "name",
         "role",
-        "status"
+        "status",
+        "emailVerified"
       ).all(),
 
       db.orm.public.FanProfile.select(
@@ -26,7 +27,12 @@ export async function GET() {
     );
 
     const fans = users
-      .filter((user) => user.role === "USER" && user.status === "ACTIVE")
+      .filter(
+        (user) =>
+          user.role === "USER" &&
+          user.status === "ACTIVE" &&
+          user.emailVerified === true
+      )
       .map((user) => {
         const profile = profileByUserId.get(user.id);
 

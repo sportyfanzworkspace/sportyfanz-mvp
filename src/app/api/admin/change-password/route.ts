@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
 import {
-  getCurrentAdminUserId,
+  getAdminSession,
   hashPassword,
   verifyPassword,
 } from "@/lib/auth";
@@ -9,9 +9,9 @@ import { db } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const adminUserId = await getCurrentAdminUserId();
+    const session = await getAdminSession();
 
-    if (!adminUserId) {
+    if (!session) {
       return NextResponse.json(
         { error: "Please sign in first." },
         { status: 401 }
@@ -55,13 +55,20 @@ export async function POST(request: Request) {
     }
 
     const admin = await db.orm.public.AdminUser.first({
-      id: adminUserId,
+      id: session.adminUserId,
     });
 
     if (!admin || admin.status !== "ACTIVE") {
       return NextResponse.json(
         { error: "This account is unavailable." },
         { status: 403 }
+      );
+    }
+
+    if (admin.sessionVersion !== session.sessionVersion) {
+      return NextResponse.json(
+        { error: "Your staff session has expired. Please sign in again." },
+        { status: 401 }
       );
     }
 
@@ -86,17 +93,31 @@ export async function POST(request: Request) {
 
     const passwordHash = await hashPassword(newPassword);
 
-    await db.orm.public.AdminUser.where({
-      id: adminUserId,
+    const updatedAdmin = await db.orm.public.AdminUser.where({
+      id: session.adminUserId,
+      sessionVersion: session.sessionVersion,
+      passwordHash: admin.passwordHash,
     }).update({
       passwordHash,
+      sessionVersion: session.sessionVersion + 1,
       mustChangePassword: false,
       updatedAt: new Date().toISOString(),
     });
 
+    if (!updatedAdmin) {
+      return NextResponse.json(
+        {
+          error:
+            "Your account was updated by another request. Please sign in again.",
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Your password has been changed successfully.",
+      message:
+        "Password changed successfully. Please sign in again with your new password.",
     });
   } catch (error) {
     console.error("Staff password change failed:", error);

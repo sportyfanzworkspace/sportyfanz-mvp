@@ -82,6 +82,7 @@ export async function GET() {
           id: poll.id,
           question: poll.question,
           description: poll.description,
+          imageUrl: poll.imageUrl,
           status: poll.status,
           scheduleStatus,
           pointsReward: poll.pointsReward,
@@ -267,11 +268,63 @@ export async function POST(request: Request) {
       );
     }
 
+    const rawImageUrl = body.imageUrl;
+
+    if (
+      rawImageUrl !== undefined &&
+      rawImageUrl !== null &&
+      typeof rawImageUrl !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "Invalid Poll image URL." },
+        { status: 400 }
+      );
+    }
+
+    const imageUrl =
+      typeof rawImageUrl === "string" && rawImageUrl !== ""
+        ? rawImageUrl
+        : null;
+
+    if (imageUrl !== null) {
+      let parsedImageUrl: URL;
+
+      try {
+        parsedImageUrl = new URL(imageUrl);
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid Poll image URL." },
+          { status: 400 }
+        );
+      }
+
+      if (
+        parsedImageUrl.protocol !== "https:" ||
+        parsedImageUrl.hostname !== "www.sportyfanz.com" ||
+        parsedImageUrl.port !== "" ||
+        parsedImageUrl.username !== "" ||
+        parsedImageUrl.password !== "" ||
+        parsedImageUrl.search !== "" ||
+        parsedImageUrl.hash !== "" ||
+        !/^\/uploads\/sportyfanz\/polls\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(
+          parsedImageUrl.pathname
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error: "Poll images must be uploaded through SportyFanz.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Create the poll and all its options together.
     const created = await db.transaction(async (tx) => {
       const poll = await tx.orm.public.Poll.create({
         question,
         description: description || null,
+        imageUrl,
         pointsReward,
         status: status as "DRAFT" | "ACTIVE",
         startsAt,

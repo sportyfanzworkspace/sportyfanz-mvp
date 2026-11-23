@@ -96,7 +96,6 @@ export default function RegisterPage() {
       <section className="auth-form-panel">
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-form-header">
-            <span>Join SportyFanz</span>
 
             <h1>Create your fan profile</h1>
 

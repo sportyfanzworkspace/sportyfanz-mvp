@@ -14,3 +14,14 @@ node_modules/
 dist/
 .env.local
 public/15841345_1440_2560_30fps.mp4
+
+# Local security tests, credentials and backups
+/scripts/private/
+
+# Local environment backups and temporary source backups
+.env.local.production-backup
+*.ts.backup
+
+# Accidental empty terminal-output files
+/0
+/=

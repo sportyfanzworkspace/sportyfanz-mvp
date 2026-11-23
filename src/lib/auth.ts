@@ -30,13 +30,25 @@ function isValidId(id: unknown): id is number {
 async function setSession(
   cookieName: string,
   claimName: "userId" | "adminUserId",
-  id: number
+  id: number,
+  sessionVersion?: number
 ) {
   if (!isValidId(id)) {
     throw new Error("A valid account ID is required.");
   }
 
-  const token = await new SignJWT({ [claimName]: id })
+  const claims: Record<string, number> = {
+    [claimName]: id,
+  };
+
+  if (claimName === "adminUserId" && sessionVersion !== undefined) {
+    if (!Number.isSafeInteger(sessionVersion) || sessionVersion < 0) {
+      throw new Error("Invalid admin session version.");
+    }
+    claims.sessionVersion = sessionVersion;
+  }
+
+  const token = await new SignJWT(claims)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
@@ -83,12 +95,48 @@ export async function getCurrentUserId() {
   return getSessionId(FAN_SESSION_COOKIE, "userId");
 }
 
+// Read the admin session version from the signed JWT.
+// Legacy sessions without this claim are treated as version 0.
+export async function getAdminSession() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+
+    if (!token) return null;
+
+    const { payload } = await jwtVerify(token, getSecret());
+
+    if (!isValidId(payload.adminUserId)) return null;
+
+    const version = payload.sessionVersion ?? 0;
+
+    if (
+      typeof version !== "number" ||
+      !Number.isSafeInteger(version) ||
+      version < 0
+    ) {
+      return null;
+    }
+
+    return {
+      adminUserId: payload.adminUserId,
+      sessionVersion: version,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // Admin sessions — isolated from fan sessions.
-export async function createAdminSession(adminUserId: number) {
+export async function createAdminSession(
+  adminUserId: number,
+  sessionVersion?: number
+) {
   await setSession(
     ADMIN_SESSION_COOKIE,
     "adminUserId",
-    adminUserId
+    adminUserId,
+    sessionVersion
   );
 }
 

@@ -1,6 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
-import { hashPassword } from "@/lib/auth";
+import { createInvitedStaff } from "@/lib/admin/create-invited-staff";
+import { sendStaffAccessEmail } from "@/lib/email";
+import { cancelStaffAccessToken } from "@/lib/admin/staff-access-tokens";
+import { checkStaffPasswordRateLimit } from "@/lib/admin/staff-password-rate-limit";
 import {
   requirePermission,
   type StaffRole,
@@ -13,10 +16,6 @@ const VALID_STAFF_ROLES: StaffRole[] = [
   "CONTENT_MODERATION",
   "SUPPORT",
 ];
-
-function generateTemporaryPassword() {
-  return `${randomBytes(12).toString("base64url")}A7!`;
-}
 
 function generateUsername(name: string) {
   const base =
@@ -133,20 +132,64 @@ export async function POST(request: Request) {
       );
     }
 
-    const username = generateUsername(name);
-    const temporaryPassword = generateTemporaryPassword();
-    const passwordHash = await hashPassword(temporaryPassword);
+    const rateLimit = await checkStaffPasswordRateLimit(
+      `staff-create:${auth.user.id}`
+    );
 
-    const admin = await db.orm.public.AdminUser.create({
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Too many staff creation requests. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds),
+          },
+        }
+      );
+    }
+
+    const username = generateUsername(name);
+
+    const { admin, tokenId, actionUrl } = await createInvitedStaff({
+      name,
       email,
       username,
-      name,
-      passwordHash,
-      role: "ADMIN",
       staffRole: staffRole as StaffRole,
-      status: "ACTIVE",
-      mustChangePassword: true,
     });
+
+    let invitationEmailSent = false;
+
+    try {
+      await sendStaffAccessEmail(
+        admin.email,
+        admin.username,
+        actionUrl,
+        "INVITATION"
+      );
+
+      invitationEmailSent = true;
+    } catch (emailError) {
+      try {
+        await cancelStaffAccessToken(tokenId, admin.id);
+      } catch (cancellationError) {
+        console.error(
+          "Initial staff invitation token cancellation failed:",
+          cancellationError instanceof Error
+            ? cancellationError.name
+            : "Unknown error"
+        );
+      }
+
+      console.error(
+        "Staff invitation email delivery failed:",
+        emailError instanceof Error
+          ? emailError.name
+          : "Unknown error"
+      );
+    }
 
     return NextResponse.json(
       {
@@ -161,12 +204,10 @@ export async function POST(request: Request) {
           status: admin.status,
           mustChangePassword: admin.mustChangePassword,
         },
-        credentials: {
-          username: admin.username,
-          temporaryPassword,
-        },
-        warning:
-          "Share these credentials securely. The temporary password is shown only once and is stored only as a password hash.",
+        invitationEmailSent,
+        message: invitationEmailSent
+          ? "Staff account created. A password setup invitation was emailed."
+          : "Staff account created, but the invitation email could not be sent. Resend the invitation from Staff Management.",
       },
       { status: 201 }
     );
