@@ -19,14 +19,13 @@
     "dotenv": "^18.0.5",
     "jose": "^6.2.12",
     "lucide-react": "^1.49.0",
-    "next": "16.3.6",
+    "next": "16.4.6",
     "nodemailer": "^10.4.0",
     "pg": "^8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "rss-parser": "^3.13.0",
-    "sharp": "^0.35.5",
-    "xlsx": "^0.18.5"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@prisma/cli-engine": "^0.6.2",
@@ -37,7 +36,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "16.4.6",
     "prisma": "^8.0.0-rc.19",
     "tailwindcss": "^4",
     "typescript": "^5"
@@ -45,6 +44,8 @@
   "overrides": {
     "prisma": {
       "@prisma/orm-toolchain": "8.0.0-rc.14"
-    }
+    },
+    "source-map-js": "1.2.4",
+    "undici": "7.30.2"
   }
 }
