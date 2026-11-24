@@ -1,5 +1,7 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "") ?? "";
+  process.env.NODE_ENV === "development"
+    ? ""
+    : process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "") ?? "";
 
 export function apiUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) {

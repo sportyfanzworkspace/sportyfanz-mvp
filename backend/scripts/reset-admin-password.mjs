@@ -38,10 +38,37 @@ try {
 
   const passwordHash = await bcrypt.hash(temporaryPassword, 12);
 
-  await db.orm.public.AdminUser.where({ id: account.id }).update({
-    passwordHash,
-    mustChangePassword: true,
-    updatedAt: new Date().toISOString(),
+  if (account.role !== "ADMIN" || account.status !== "ACTIVE") {
+    throw new Error("Only active administrator accounts can be reset.");
+  }
+
+  await db.transaction(async (tx) => {
+    const now = new Date().toISOString();
+
+    const updated = await tx.orm.public.AdminUser.where({
+      id: account.id,
+      role: "ADMIN",
+      status: "ACTIVE",
+      sessionVersion: account.sessionVersion,
+    }).update({
+      passwordHash,
+      mustChangePassword: true,
+      sessionVersion: account.sessionVersion + 1,
+      updatedAt: now,
+    });
+
+    if (!updated) {
+      throw new Error("Administrator account changed. Retry the reset.");
+    }
+
+    for await (
+      const _token of tx.orm.public.AdminPasswordResetToken
+        .where({ adminUserId: account.id })
+        .where((record) => record.usedAt.isNull())
+        .updateAll({ usedAt: now })
+    ) {
+      // Invalidate all previous unused staff access links.
+    }
   });
 
   console.log("\nAdministrator password reset successfully.");

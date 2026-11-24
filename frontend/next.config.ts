@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
+const codespaceName = process.env.CODESPACE_NAME;
+const forwardingDomain =
+  process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+
+const codespaceOrigin =
+  codespaceName && forwardingDomain
+    ? `${codespaceName}-3000.${forwardingDomain}`
+    : null;
+
 const nextConfig: NextConfig = {
   ...(isDev
     ? {
@@ -20,7 +29,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "127.0.0.1",
     "localhost",
-    "cautious-train-gw7vjpwgqwx3vw4r-3000.app.github.dev",
+    ...(codespaceOrigin ? [codespaceOrigin] : []),
   ],
   trailingSlash: true,
   images: {

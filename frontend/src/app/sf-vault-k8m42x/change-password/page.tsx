@@ -1,5 +1,7 @@
 "use client";
 
+import "../password-security.css";
+
 import { apiFetch } from "@/lib/api";
 
 import { useState, type FormEvent } from "react";
@@ -65,44 +67,43 @@ export default function AdminChangePasswordPage() {
     }
   }
 
-  const inputClass =
-    "w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400";
+  const inputClass = "sf-password-input";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#080d18] px-4 py-10 text-white">
-      <section className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/25 bg-amber-400/10">
-            <LockKeyhole className="h-7 w-7 text-amber-400" />
+    <main className="sf-password-page">
+      <section className="sf-password-shell">
+        <div className="sf-password-header">
+          <div className="sf-password-icon">
+            <LockKeyhole size={28} />
           </div>
 
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-amber-400">
+          <p className="sf-password-eyebrow">
             SportyFanz Staff Security
           </p>
 
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="sf-password-title">
             Change your password
           </h1>
 
-          <p className="mt-3 text-sm leading-6 text-slate-400">
+          <p className="sf-password-description">
             Update your staff account password to keep your access secure.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#0f1726] p-6 shadow-2xl sm:p-8">
-          <div className="mb-6 flex gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-            <p className="text-sm leading-6 text-slate-300">
+        <div className="sf-password-card">
+          <div className="sf-password-notice">
+            <ShieldCheck />
+            <p >
               Use at least 12 characters. Keep your new password private and
               do not share it with other staff members.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="sf-password-form">
             <div>
               <label
                 htmlFor="currentPassword"
-                className="mb-2 block text-sm font-medium text-slate-300"
+                className="sf-password-label"
               >
                 Current password
               </label>
@@ -115,13 +116,13 @@ export default function AdminChangePasswordPage() {
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 placeholder="Enter your current password"
                 className={inputClass}
-              />
+ />
             </div>
 
             <div>
               <label
                 htmlFor="newPassword"
-                className="mb-2 block text-sm font-medium text-slate-300"
+                className="sf-password-label"
               >
                 New password
               </label>
@@ -136,13 +137,13 @@ export default function AdminChangePasswordPage() {
                 onChange={(event) => setNewPassword(event.target.value)}
                 placeholder="Create a secure password"
                 className={inputClass}
-              />
+ />
             </div>
 
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-2 block text-sm font-medium text-slate-300"
+                className="sf-password-label"
               >
                 Confirm new password
               </label>
@@ -157,18 +158,18 @@ export default function AdminChangePasswordPage() {
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="Enter your new password again"
                 className={inputClass}
-              />
+ />
             </div>
 
             <button
               type="button"
               onClick={() => setShowPasswords((value) => !value)}
-              className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+              className="sf-password-toggle"
             >
               {showPasswords ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye />
               )}
               {showPasswords ? "Hide passwords" : "Show passwords"}
             </button>
@@ -176,7 +177,7 @@ export default function AdminChangePasswordPage() {
             {error && (
               <div
                 role="alert"
-                className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300"
+                className="sf-password-error"
               >
                 {error}
               </div>
@@ -185,14 +186,14 @@ export default function AdminChangePasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="sf-password-submit"
             >
               {loading ? "Updating password..." : "Set new password"}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="sf-password-footer">
           SportyFanz · The Fan Is King
         </p>
       </section>

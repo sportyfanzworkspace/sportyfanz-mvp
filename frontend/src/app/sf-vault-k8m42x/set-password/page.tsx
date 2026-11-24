@@ -1,5 +1,7 @@
 "use client";
 
+import "../password-security.css";
+
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
@@ -83,26 +85,26 @@ function PasswordSetupForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#080d18] px-4 py-10 text-white">
-      <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1726] p-6 shadow-2xl sm:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber-400/10 text-amber-400">
+    <main className="sf-password-page">
+      <section className="sf-password-shell sf-password-card">
+        <div className="sf-password-header">
+          <div className="sf-password-icon">
             <LockKeyhole size={28} />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-400">
+            <p className="sf-password-eyebrow">
               SportyFanz Staff Security
             </p>
-            <h1 className="text-2xl font-bold">
+            <h1 className="sf-password-title">
               {completed ? "Password updated" : "Set your password"}
             </h1>
           </div>
         </div>
 
         {completed ? (
-          <div role="status" className="space-y-5">
-            <div className="flex items-start gap-3 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-green-200">
-              <ShieldCheck className="shrink-0" size={22} />
+          <div role="status" className="sf-password-form">
+            <div className="sf-password-success">
+              <ShieldCheck  size={22} />
               <p>
                 Your staff password has been set successfully.
                 Sign in using your staff username or work email.
@@ -111,35 +113,35 @@ function PasswordSetupForm() {
 
             <a
               href={LOGIN_URL}
-              className="block rounded-xl bg-amber-400 px-4 py-3 text-center font-bold text-[#10121b]"
+              className="sf-password-submit"
             >
               Continue to staff login
             </a>
           </div>
         ) : !validToken ? (
-          <div className="space-y-5">
-            <p role="alert" className="text-sm leading-6 text-red-300">
+          <div className="sf-password-form">
+            <p role="alert" className="sf-password-error">
               This password setup link is missing or invalid.
               Contact your SportyFanz administrator to request a new invitation or reset link.
             </p>
 
-            <a href={LOGIN_URL} className="text-sm text-amber-400 underline">
+            <a href={LOGIN_URL} className="sf-password-link">
               Return to staff login
             </a>
           </div>
         ) : (
           <>
-            <p className="mb-5 text-sm leading-6 text-slate-400">
+            <p className="sf-password-description">
               Choose a secure password for your staff account.
               Your invitation or reset link is valid for one hour and can be used only once.
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="sf-password-form">
               <div>
-                <label htmlFor="staff-new-password" className="mb-2 block text-sm font-medium">
+                <label htmlFor="staff-new-password" className="sf-password-label">
                   New password
                 </label>
-                <div className="flex rounded-xl border border-white/10 bg-[#111827]">
+                <div className="sf-password-input-group">
                   <input
                     id="staff-new-password"
                     type={showPassword ? "text" : "password"}
@@ -149,13 +151,13 @@ function PasswordSetupForm() {
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent px-4 py-3 text-white outline-none"
-                  />
+                    className="sf-password-input"
+ />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="px-4 text-slate-300"
+                    className="sf-password-eye"
                   >
                     {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                   </button>
@@ -163,7 +165,7 @@ function PasswordSetupForm() {
               </div>
 
               <div>
-                <label htmlFor="staff-confirm-password" className="mb-2 block text-sm font-medium">
+                <label htmlFor="staff-confirm-password" className="sf-password-label">
                   Confirm password
                 </label>
                 <input
@@ -175,12 +177,12 @@ function PasswordSetupForm() {
                   required
                   value={confirmation}
                   onChange={(event) => setConfirmation(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none"
-                />
+                  className="sf-password-input"
+ />
               </div>
 
               {error && (
-                <p role="alert" className="text-sm text-red-300">
+                <p role="alert" className="sf-password-error">
                   {error}
                 </p>
               )}
@@ -188,7 +190,7 @@ function PasswordSetupForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-amber-400 px-4 py-3 font-bold text-[#10121b] disabled:opacity-60"
+                className="sf-password-submit"
               >
                 {loading ? "Saving password..." : "Set staff password"}
               </button>
@@ -206,7 +208,7 @@ export default function StaffPasswordSetupPage() {
       <meta name="referrer" content="no-referrer" />
       <Suspense
       fallback={
-        <main className="grid min-h-screen place-items-center bg-[#080d18] text-white">
+        <main className="sf-password-page">
           Loading password setup...
         </main>
       }
