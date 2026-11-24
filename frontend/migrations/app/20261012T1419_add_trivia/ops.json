@@ -1,0 +1,362 @@
+[
+  {
+    "id": "table.trivia_attempts",
+    "label": "Create table \"trivia_attempts\"",
+    "summary": "Creates table \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"trivia_attempts\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"trivia_attempts\"",
+        "sql": "CREATE TABLE \"public\".\"trivia_attempts\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isCorrect\" bool DEFAULT false NOT NULL,\n  \"pointsAwarded\" int4 DEFAULT 0 NOT NULL,\n  \"questionId\" int4 NOT NULL,\n  \"selectedOption\" text NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"trivia_attempts\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.trivia_questions",
+    "label": "Create table \"trivia_questions\"",
+    "summary": "Creates table \"trivia_questions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "trivia_questions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"trivia_questions\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"trivia_questions\"",
+        "sql": "CREATE TABLE \"public\".\"trivia_questions\" (\n  \"correctOption\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"optionA\" text NOT NULL,\n  \"optionB\" text NOT NULL,\n  \"optionC\" text NOT NULL,\n  \"optionD\" text NOT NULL,\n  \"pointsReward\" int4 DEFAULT 10 NOT NULL,\n  \"question\" text NOT NULL,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"trivia_questions_status_check_61f4f2cf\" CHECK (\"status\" IN ('DRAFT', 'ACTIVE', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"trivia_questions\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.trivia_attempts.trivia_attempts_questionId_userId_key",
+    "label": "Add unique constraint on \"trivia_attempts\" (questionId, userId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "trivia_attempts_questionId_userId_key",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_attempts_questionId_userId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_questionId_userId_key",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"trivia_attempts_questionId_userId_key\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_attempts\" ADD CONSTRAINT \"trivia_attempts_questionId_userId_key\" UNIQUE (\"questionId\", \"userId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_attempts_questionId_userId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_questionId_userId_key",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_attempts.trivia_attempts_questionId_idx_fdb42076",
+    "label": "Create index \"trivia_attempts_questionId_idx_fdb42076\" on \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_attempts_questionId_idx_fdb42076",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_attempts_questionId_idx_fdb42076\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_questionId_idx_fdb42076\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_attempts_questionId_idx_fdb42076\"",
+        "sql": "CREATE INDEX \"trivia_attempts_questionId_idx_fdb42076\" ON \"public\".\"trivia_attempts\" (\"questionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_attempts_questionId_idx_fdb42076\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_questionId_idx_fdb42076\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_attempts.trivia_attempts_userId_createdAt_idx_f726f04a",
+    "label": "Create index \"trivia_attempts_userId_createdAt_idx_f726f04a\" on \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_attempts_userId_createdAt_idx_f726f04a",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_attempts_userId_createdAt_idx_f726f04a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_userId_createdAt_idx_f726f04a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_attempts_userId_createdAt_idx_f726f04a\"",
+        "sql": "CREATE INDEX \"trivia_attempts_userId_createdAt_idx_f726f04a\" ON \"public\".\"trivia_attempts\" (\"userId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_attempts_userId_createdAt_idx_f726f04a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_userId_createdAt_idx_f726f04a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_attempts.trivia_attempts_userId_idx_a489d58a",
+    "label": "Create index \"trivia_attempts_userId_idx_a489d58a\" on \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_attempts_userId_idx_a489d58a",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_attempts_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_attempts_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"trivia_attempts_userId_idx_a489d58a\" ON \"public\".\"trivia_attempts\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_attempts_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_attempts_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_questions.trivia_questions_status_idx_e98638ab",
+    "label": "Create index \"trivia_questions_status_idx_e98638ab\" on \"trivia_questions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_questions_status_idx_e98638ab",
+        "table": "trivia_questions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_questions_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_questions_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_questions_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"trivia_questions_status_idx_e98638ab\" ON \"public\".\"trivia_questions\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_questions_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_questions_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.trivia_attempts.trivia_attempts_questionId_fkey",
+    "label": "Add foreign key \"trivia_attempts_questionId_fkey\" on \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "trivia_attempts_questionId_fkey",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"trivia_attempts_questionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_questionId_fkey",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"trivia_attempts_questionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_attempts\"\nADD CONSTRAINT \"trivia_attempts_questionId_fkey\"\nFOREIGN KEY (\"questionId\")\nREFERENCES \"public\".\"trivia_questions\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"trivia_attempts_questionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_questionId_fkey",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.trivia_attempts.trivia_attempts_userId_fkey",
+    "label": "Add foreign key \"trivia_attempts_userId_fkey\" on \"trivia_attempts\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "trivia_attempts_userId_fkey",
+        "table": "trivia_attempts"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"trivia_attempts_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_userId_fkey",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"trivia_attempts_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_attempts\"\nADD CONSTRAINT \"trivia_attempts_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"users\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"trivia_attempts_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_attempts_userId_fkey",
+          "public",
+          "\"public\".\"trivia_attempts\""
+        ]
+      }
+    ]
+  }
+]

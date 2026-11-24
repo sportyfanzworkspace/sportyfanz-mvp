@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SportyFanz — The Fan Is King. Interactive MVP prototype.">
+  <title>SportyFanz | The Fan Is King</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="assets/sportyfanz-logo.jpg" alt="SportyFanz logo">
+        <span>The Fan Is King</span>
+      </div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-page="home"><span>⌂</span> SportyFanz Now</button>
+        <button class="nav-item" data-page="matches"><span>◈</span> Match Centre</button>
+        <button class="nav-item" data-page="hub"><span>◉</span> Fan Hub</button>
+        <button class="nav-item" data-page="participate"><span>✦</span> Participate</button>
+        <button class="nav-item" data-page="discover"><span>⌕</span> Discover</button>
+        <button class="nav-item" data-page="profile"><span>●</span> My Fan Profile</button>
+      </nav>
+      <div class="sidebar-card">
+        <strong>The Fan Is King.</strong>
+        <p>Don't just follow the game. Experience it, participate in it and build your football identity.</p>
+        <button class="primary-btn" data-action="join">Join SportyFanz</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation"></button>
+        <div class="search-wrap">
+          <span>⌕</span>
+          <input id="globalSearch" type="search" placeholder="Search clubs, players, competitions, stories...">
+        </div>
+        <div class="account">
+          <span class="account-name">FootballFan23</span>
+          <span class="avatar">F</span>
+        </div>
+      </header>
+      <div id="app" class="page-container"></div>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

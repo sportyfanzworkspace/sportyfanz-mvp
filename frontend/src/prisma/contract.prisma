@@ -1,0 +1,1145 @@
+// use prisma-8
+
+// ============================================================
+// SPORTYFANZ MVP — DATABASE CONTRACT
+// Fans Are King.
+// ============================================================
+
+// ============================================================
+// ENUMS
+// ============================================================
+enum UserRole {
+  @@type("pg/text@1")
+
+  USER = "USER"
+  ADMIN = "ADMIN"
+}
+
+enum UserStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  SUSPENDED = "SUSPENDED"
+  DELETED = "DELETED"
+}
+
+enum KycStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  APPROVED = "APPROVED"
+  REJECTED = "REJECTED"
+}
+
+enum KycSex {
+  @@type("pg/text@1")
+
+  FEMALE = "FEMALE"
+  MALE = "MALE"
+}
+
+enum FanLevel {
+  @@type("pg/text@1")
+
+  NEW_FAN = "NEW_FAN"
+  RISING_FAN = "RISING_FAN"
+  SUPER_FAN = "SUPER_FAN"
+  CHAMPION_FAN = "CHAMPION_FAN"
+  KING_FAN = "KING_FAN"
+}
+
+enum MatchStatus {
+  @@type("pg/text@1")
+
+  SCHEDULED = "SCHEDULED"
+  LIVE = "LIVE"
+  HALF_TIME = "HALF_TIME"
+  FINISHED = "FINISHED"
+  POSTPONED = "POSTPONED"
+  CANCELLED = "CANCELLED"
+}
+
+enum MatchEventType {
+  @@type("pg/text@1")
+
+  GOAL = "GOAL"
+  OWN_GOAL = "OWN_GOAL"
+  YELLOW_CARD = "YELLOW_CARD"
+  RED_CARD = "RED_CARD"
+  SUBSTITUTION = "SUBSTITUTION"
+  VAR = "VAR"
+  PERIOD_START = "PERIOD_START"
+  PERIOD_END = "PERIOD_END"
+}
+
+enum ParticipantStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  COMPLETED = "COMPLETED"
+  FAILED = "FAILED"
+  WITHDRAWN = "WITHDRAWN"
+}
+
+enum PointTransactionType {
+  @@type("pg/text@1")
+
+  EARNED = "EARNED"
+  SPENT = "SPENT"
+  BONUS = "BONUS"
+  ADJUSTMENT = "ADJUSTMENT"
+  REWARD = "REWARD"
+  CHALLENGE = "CHALLENGE"
+  PREDICTION = "PREDICTION"
+  PARTICIPATION = "PARTICIPATION"
+  REFERRAL = "REFERRAL"
+}
+
+enum RewardStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  INACTIVE = "INACTIVE"
+  SOLD_OUT = "SOLD_OUT"
+  ARCHIVED = "ARCHIVED"
+}
+
+enum RedemptionStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  APPROVED = "APPROVED"
+  FULFILLED = "FULFILLED"
+  CANCELLED = "CANCELLED"
+  REJECTED = "REJECTED"
+}
+
+enum ChallengeType {
+  @@type("pg/text@1")
+
+  DAILY = "DAILY"
+  WEEKLY = "WEEKLY"
+  MATCH = "MATCH"
+  PREDICTION = "PREDICTION"
+  ENGAGEMENT = "ENGAGEMENT"
+  COMMUNITY = "COMMUNITY"
+}
+
+enum ChallengeStatus {
+  @@type("pg/text@1")
+
+  DRAFT = "DRAFT"
+  ACTIVE = "ACTIVE"
+  COMPLETED = "COMPLETED"
+  EXPIRED = "EXPIRED"
+  CANCELLED = "CANCELLED"
+}
+
+enum AchievementCategory {
+  @@type("pg/text@1")
+
+  FAN_MILESTONE = "FAN_MILESTONE"
+  ENGAGEMENT = "ENGAGEMENT"
+  SPORTS = "SPORTS"
+  COMMUNITY = "COMMUNITY"
+  REWARDS = "REWARDS"
+  SPECIAL = "SPECIAL"
+}
+
+enum FanRoomStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  CLOSED = "CLOSED"
+  ARCHIVED = "ARCHIVED"
+}
+
+enum FanRoomMemberRole {
+  @@type("pg/text@1")
+
+  MEMBER = "MEMBER"
+  MODERATOR = "MODERATOR"
+  HOST = "HOST"
+}
+
+enum NotificationType {
+  @@type("pg/text@1")
+
+  SYSTEM = "SYSTEM"
+  MATCH = "MATCH"
+  REWARD = "REWARD"
+  CHALLENGE = "CHALLENGE"
+  FAN_ROOM = "FAN_ROOM"
+  ACHIEVEMENT = "ACHIEVEMENT"
+  SOCIAL = "SOCIAL"
+}
+
+enum ReactionType {
+  @@type("pg/text@1")
+
+  LIKE = "LIKE"
+  LOVE = "LOVE"
+  FIRE = "FIRE"
+  WOW = "WOW"
+  SAD = "SAD"
+  ANGRY = "ANGRY"
+  CHEER = "CHEER"
+}
+
+enum PredictionStatus {
+  @@type("pg/text@1")
+
+  OPEN = "OPEN"
+  WON = "WON"
+  LOST = "LOST"
+  CANCELLED = "CANCELLED"
+}
+
+// ============================================================
+// USER & FAN KINGDOM
+// ============================================================
+model User {
+  id                      Int                        @id @default(autoincrement())
+  email                   String                     @unique
+  username                String?                    @unique
+  name                    String?
+  passwordHash            String
+  mustChangePassword      Boolean                    @default(false)
+
+  role                    UserRole                   @default(USER)
+  status                  UserStatus                 @default(ACTIVE)
+
+  emailVerified           Boolean                    @default(false)
+
+  lastLoginAt             TimestamptzString?
+  createdAt               TimestamptzString          @default(now())
+  updatedAt               temporal.updatedAtString()
+
+  profile                 FanProfile?
+
+  kycSubmissions KycSubmission[]
+
+  pointTransactions       PointTransaction[]
+  progressionAwards       ProgressionAward[]
+  rewardRedemptions       RewardRedemption[]
+
+  challengeParticipations ChallengeParticipation[]
+
+  achievements            UserAchievement[]
+
+  fanRoomMemberships      FanRoomMember[]
+  fanRoomMessages         FanRoomMessage[]
+
+  reactions               FanReaction[]
+
+  notifications           Notification[]
+
+  followedTeams           UserTeamFollow[]
+  followedPlayers         UserPlayerFollow[]
+  followedSports          UserSportFollow[]
+
+  predictions             Prediction[]
+  pollVotes               PollVote[]
+  triviaAttempts          TriviaAttempt[]
+  newsComments            NewsComment[]
+  newsViews               NewsView[]
+  newsCommentLikes        NewsCommentLike[]
+  newsArticleLikes        NewsArticleLike[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model FanProfile {
+  id                  Int                        @id @default(autoincrement())
+
+  userId              Int                        @unique
+  user                User                       @relation(fields: [userId], references: [id])
+
+  displayName         String?
+  bio                 String?
+  avatarUrl           String?
+  coverUrl            String?
+
+  fanLevel            FanLevel                   @default(NEW_FAN)
+
+  totalPoints         Int                        @default(0)
+  currentPoints       Int                        @default(0)
+  progressionPoints   Int                        @default(0)
+
+  matchesWatched      Int                        @default(0)
+  challengesCompleted Int                        @default(0)
+  fanRoomsJoined      Int                        @default(0)
+
+  country             String?
+  city                String?
+  timezone            String?
+
+  createdAt           TimestamptzString          @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  @@index([fanLevel])
+  @@index([totalPoints])
+  @@map("fan_profiles")
+}
+
+// ============================================================
+// FAN KYC SUBMISSIONS
+// ============================================================
+model KycSubmission {
+  id                Int          @id @default(autoincrement())
+
+  userId            Int
+  user              User         @relation(fields: [userId], references: [id])
+
+  whatsappNumber   String
+  country           String
+  state             String
+  sex               KycSex
+  dateOfBirth       String
+
+  status            KycStatus    @default(PENDING)
+
+  reviewedByUserId  Int?
+  reviewedAt        TimestamptzString?
+  rejectionReason   String?
+
+  createdAt         TimestamptzString @default(now())
+  updatedAt         temporal.updatedAtString()
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("kyc_submissions")
+}
+
+// ============================================================
+// SPORTS
+// ============================================================
+model Sport {
+  id          Int                        @id @default(autoincrement())
+
+  name        String                     @unique
+  slug        String                     @unique
+  description String?
+  iconUrl     String?
+
+  isActive    Boolean                    @default(true)
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  teams       Team[]
+  matches     Match[]
+
+  followers   UserSportFollow[]
+
+  @@index([isActive])
+  @@map("sports")
+}
+
+model Team {
+  id          Int                        @id @default(autoincrement())
+
+  sportId     Int
+  sport       Sport                      @relation(fields: [sportId], references: [id])
+
+  name        String
+  shortName   String?
+  slug        String                     @unique
+
+  country     String?
+  city        String?
+
+  logoUrl     String?
+  coverUrl    String?
+
+  isActive    Boolean                    @default(true)
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  homeMatches Match[]                    @relation("HomeTeamMatches")
+  awayMatches Match[]                    @relation("AwayTeamMatches")
+
+  players     PlayerTeam[]
+
+  followers   UserTeamFollow[]
+
+  @@unique([sportId, name])
+  @@index([sportId])
+  @@index([isActive])
+  @@map("teams")
+}
+
+model Player {
+  id           Int                        @id @default(autoincrement())
+
+  firstName    String
+  lastName     String
+  displayName  String?
+
+  slug         String                     @unique
+
+  position     String?
+  nationality  String?
+  jerseyNumber Int?
+
+  avatarUrl    String?
+
+  isActive     Boolean                    @default(true)
+
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  teams        PlayerTeam[]
+
+  followers    UserPlayerFollow[]
+
+  matchEvents  MatchEvent[]
+
+  @@index([lastName])
+  @@index([isActive])
+  @@map("players")
+}
+
+model PlayerTeam {
+  playerId Int
+  teamId   Int
+
+  player   Player             @relation(fields: [playerId], references: [id])
+  team     Team               @relation(fields: [teamId], references: [id])
+
+  joinedAt TimestamptzString  @default(now())
+  leftAt   TimestamptzString?
+
+  @@id([playerId, teamId])
+  @@index([teamId])
+  @@map("player_teams")
+}
+
+// ============================================================
+// MATCHES
+// ============================================================
+model Match {
+  id                Int                        @id @default(autoincrement())
+
+  sportId           Int
+  sport             Sport                      @relation(fields: [sportId], references: [id])
+
+  homeTeamId        Int
+  homeTeam          Team                       @relation("HomeTeamMatches", fields: [homeTeamId], references: [id])
+
+  awayTeamId        Int
+  awayTeam          Team                       @relation("AwayTeamMatches", fields: [awayTeamId], references: [id])
+
+  competition       String?
+  venue             String?
+
+  // External provider link for automated match updates
+  apiFootballFixtureId Int?    @unique
+  matchDataSource      String? @default("MANUAL")
+
+  status            MatchStatus                @default(SCHEDULED)
+
+  scheduledAt       TimestamptzString
+  startedAt         TimestamptzString?
+  endedAt           TimestamptzString?
+
+  homeScore         Int                        @default(0)
+  awayScore         Int                        @default(0)
+
+  homeHalfTimeScore Int?
+  awayHalfTimeScore Int?
+
+  homePossession    Int?
+  awayPossession    Int?
+
+  homeShotsOnTarget Int?
+  awayShotsOnTarget Int?
+
+  homeTotalShots    Int?
+  awayTotalShots    Int?
+
+  homeCorners       Int?
+  awayCorners       Int?
+
+  homeFouls         Int?
+  awayFouls         Int?
+
+  homeYellowCards   Int?
+  awayYellowCards   Int?
+
+  homeRedCards      Int?
+  awayRedCards      Int?
+
+  liveMinute        Int?
+  liveSecond        Int?
+
+  createdAt         TimestamptzString          @default(now())
+  updatedAt         temporal.updatedAtString()
+
+  events            MatchEvent[]
+
+  fanRooms          FanRoom[]
+
+  predictions       Prediction[]
+
+  @@index([sportId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@map("matches")
+}
+
+model MatchEvent {
+  id          Int               @id @default(autoincrement())
+
+  matchId     Int
+  match       Match             @relation(fields: [matchId], references: [id])
+
+  type        MatchEventType
+
+  minute      Int?
+  second      Int?
+
+  playerId    Int?
+  player      Player?           @relation(fields: [playerId], references: [id])
+
+  teamId      Int?
+
+  description String?
+
+  createdAt   TimestamptzString @default(now())
+
+  @@index([matchId])
+  @@index([playerId])
+  @@index([type])
+  @@map("match_events")
+}
+
+// ============================================================
+// FAN ROOMS
+// ============================================================
+model FanRoom {
+  id                  Int                        @id @default(autoincrement())
+
+  name                String
+  slug                String                     @unique
+
+  description         String?
+
+  status              FanRoomStatus              @default(ACTIVE)
+
+  matchId             Int?
+  match               Match?                     @relation(fields: [matchId], references: [id])
+
+  // Preserve existing football room links.
+  apiFootballFixtureId Int?                      @unique
+
+  // Sport-aware provider fixture identification.
+  sport               String                     @default("football")
+  providerFixtureId   Int?
+
+  coverImageUrl       String?
+
+  memberCount         Int                        @default(0)
+
+  createdAt           TimestamptzString          @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  members             FanRoomMember[]
+  messages            FanRoomMessage[]
+
+  @@unique([sport, providerFixtureId])
+  @@index([matchId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("fan_rooms")
+}
+
+model FanRoomMember {
+  fanRoomId Int
+  userId    Int
+
+  fanRoom   FanRoom            @relation(fields: [fanRoomId], references: [id])
+  user      User               @relation(fields: [userId], references: [id])
+
+  role      FanRoomMemberRole  @default(MEMBER)
+
+  joinedAt  TimestamptzString  @default(now())
+  leftAt    TimestamptzString?
+
+  @@id([fanRoomId, userId])
+  @@index([userId])
+  @@map("fan_room_members")
+}
+
+model FanRoomMessage {
+  id        Int                        @id @default(autoincrement())
+
+  fanRoomId Int
+  fanRoom   FanRoom                    @relation(fields: [fanRoomId], references: [id])
+
+  userId    Int
+  user      User                       @relation(fields: [userId], references: [id])
+
+  message   String
+
+  replyToId Int?
+  isEdited  Boolean                    @default(false)
+  isDeleted Boolean                    @default(false)
+
+  createdAt TimestamptzString          @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@index([fanRoomId, createdAt])
+  @@index([userId])
+  @@map("fan_room_messages")
+}
+
+// ============================================================
+// FAN REACTIONS
+// ============================================================
+model FanReaction {
+  id        Int               @id @default(autoincrement())
+
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id])
+
+  matchId   Int?
+
+  fanRoomId Int?
+
+  type      ReactionType
+
+  createdAt TimestamptzString @default(now())
+
+  @@index([userId])
+  @@index([matchId])
+  @@index([fanRoomId])
+  @@index([createdAt])
+  @@map("fan_reactions")
+}
+
+// ============================================================
+// FOLLOWING
+// ============================================================
+model UserTeamFollow {
+  userId    Int
+  teamId    Int
+
+  user      User              @relation(fields: [userId], references: [id])
+  team      Team              @relation(fields: [teamId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+
+  @@id([userId, teamId])
+  @@index([teamId])
+  @@map("user_team_follows")
+}
+
+model UserPlayerFollow {
+  userId    Int
+  playerId  Int
+
+  user      User              @relation(fields: [userId], references: [id])
+  player    Player            @relation(fields: [playerId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+
+  @@id([userId, playerId])
+  @@index([playerId])
+  @@map("user_player_follows")
+}
+
+model UserSportFollow {
+  userId    Int
+  sportId   Int
+
+  user      User              @relation(fields: [userId], references: [id])
+  sport     Sport             @relation(fields: [sportId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+
+  @@id([userId, sportId])
+  @@index([sportId])
+  @@map("user_sport_follows")
+}
+
+// ============================================================
+// SPORTY POINTS
+// ============================================================
+model PointTransaction {
+  id            Int                  @id @default(autoincrement())
+
+  userId        Int
+  user          User                 @relation(fields: [userId], references: [id])
+
+  type          PointTransactionType
+
+  points        Int
+
+  description   String?
+
+  referenceId   String?
+  referenceType String?
+
+  balanceAfter  Int?
+
+  createdAt     TimestamptzString    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([referenceId])
+  @@map("point_transactions")
+}
+
+// ============================================================
+// REWARDS
+// ============================================================
+model Reward {
+  id          Int                        @id @default(autoincrement())
+
+  name        String
+  slug        String                     @unique
+
+  description String?
+
+  imageUrl    String?
+
+  pointsCost  Int
+
+  stock       Int?
+
+  status      RewardStatus               @default(ACTIVE)
+
+  category    String?
+
+  expiresAt   TimestamptzString?
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  redemptions RewardRedemption[]
+
+  @@index([status])
+  @@index([pointsCost])
+  @@index([category])
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id            Int                        @id @default(autoincrement())
+
+  userId        Int
+  user          User                       @relation(fields: [userId], references: [id])
+
+  rewardId      Int
+  reward        Reward                     @relation(fields: [rewardId], references: [id])
+
+  pointsSpent   Int
+
+  status        RedemptionStatus           @default(PENDING)
+  rejectionReason String?
+
+  referenceCode String                     @unique
+
+  fulfilledAt   TimestamptzString?
+
+  createdAt     TimestamptzString          @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  @@index([userId, createdAt])
+  @@index([rewardId])
+  @@index([status])
+  @@map("reward_redemptions")
+}
+
+// ============================================================
+// CHALLENGES
+// ============================================================
+model Challenge {
+  id           Int                        @id @default(autoincrement())
+
+  title        String
+  slug         String                     @unique
+
+  description  String?
+
+  type         ChallengeType
+  status       ChallengeStatus            @default(DRAFT)
+
+  pointsReward Int                        @default(0)
+
+  targetValue  Int?
+  targetLabel  String?
+
+  startsAt     TimestamptzString?
+  endsAt       TimestamptzString?
+
+  imageUrl     String?
+
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  participants ChallengeParticipation[]
+
+  @@index([status])
+  @@index([type])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@map("challenges")
+}
+
+model ChallengeParticipation {
+  id          Int                        @id @default(autoincrement())
+
+  challengeId Int
+  challenge   Challenge                  @relation(fields: [challengeId], references: [id])
+
+  userId      Int
+  user        User                       @relation(fields: [userId], references: [id])
+
+  progress    Int                        @default(0)
+  target      Int?
+
+  status      ParticipantStatus          @default(ACTIVE)
+
+  completedAt TimestamptzString?
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+  @@index([challengeId, status])
+  @@map("challenge_participations")
+}
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+model Achievement {
+  id           Int                        @id @default(autoincrement())
+
+  name         String
+  slug         String                     @unique
+
+  description  String?
+
+  category     AchievementCategory
+
+  iconUrl      String?
+
+  pointsReward Int                        @default(0)
+
+  requirement  Json?
+
+  isActive     Boolean                    @default(true)
+
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  users        UserAchievement[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        Int
+  achievementId Int
+
+  user          User               @relation(fields: [userId], references: [id])
+  achievement   Achievement        @relation(fields: [achievementId], references: [id])
+
+  progress      Int                @default(0)
+
+  unlockedAt    TimestamptzString?
+
+  createdAt     TimestamptzString  @default(now())
+
+  @@id([userId, achievementId])
+  @@index([achievementId])
+  @@map("user_achievements")
+}
+
+// ============================================================
+// PREDICTIONS
+// ============================================================
+model Prediction {
+  id            Int                @id @default(autoincrement())
+
+  userId        Int
+  user          User               @relation(fields: [userId], references: [id])
+
+  matchId       Int
+  match         Match              @relation(fields: [matchId], references: [id])
+
+  homeScore     Int
+  awayScore     Int
+
+  pointsAwarded Int                @default(0)
+
+  status        PredictionStatus   @default(OPEN)
+
+  createdAt     TimestamptzString  @default(now())
+  resolvedAt    TimestamptzString?
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId])
+  @@index([status])
+  @@map("predictions")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+model Notification {
+  id        Int                @id @default(autoincrement())
+
+  userId    Int
+  user      User               @relation(fields: [userId], references: [id])
+
+  type      NotificationType
+
+  title     String
+  message   String?
+
+  link      String?
+
+  isRead    Boolean            @default(false)
+
+  createdAt TimestamptzString  @default(now())
+  readAt    TimestamptzString?
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+enum PollStatus {
+  @@type("pg/text@1")
+
+  DRAFT = "DRAFT"
+  ACTIVE = "ACTIVE"
+  CLOSED = "CLOSED"
+}
+
+model Poll {
+  id           Int                        @id @default(autoincrement())
+
+  question     String
+  description  String?
+
+  options      PollOption[]
+
+  status       PollStatus                 @default(DRAFT)
+
+  pointsReward Int                        @default(10)
+
+  startsAt     TimestamptzString?
+  endsAt       TimestamptzString?
+
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  votes        PollVote[]
+
+  @@index([status])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@map("polls")
+}
+
+model PollOption {
+  id        Int               @id @default(autoincrement())
+
+  pollId    Int
+  poll      Poll              @relation(fields: [pollId], references: [id])
+
+  label     String
+
+  votes     PollVote[]
+
+  createdAt TimestamptzString @default(now())
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id        Int               @id @default(autoincrement())
+
+  pollId    Int
+  poll      Poll              @relation(fields: [pollId], references: [id])
+
+  optionId  Int
+  option    PollOption        @relation(fields: [optionId], references: [id])
+
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+
+  @@unique([pollId, userId])
+  @@index([optionId])
+  @@index([userId])
+  @@map("poll_votes")
+}
+
+enum TriviaStatus {
+  @@type("pg/text@1")
+
+  DRAFT = "DRAFT"
+  ACTIVE = "ACTIVE"
+  CLOSED = "CLOSED"
+}
+
+model TriviaQuestion {
+  id            Int                        @id @default(autoincrement())
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption String
+  pointsReward  Int                        @default(10)
+  status        TriviaStatus               @default(DRAFT)
+  startsAt      TimestamptzString?
+  endsAt        TimestamptzString?
+  createdAt     TimestamptzString          @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  attempts      TriviaAttempt[]
+
+  @@index([status])
+  @@map("trivia_questions")
+}
+
+model TriviaAttempt {
+  id             Int               @id @default(autoincrement())
+  questionId     Int
+  question       TriviaQuestion    @relation(fields: [questionId], references: [id])
+  userId         Int
+  user           User              @relation(fields: [userId], references: [id])
+  selectedOption String
+  isCorrect      Boolean           @default(false)
+  pointsAwarded  Int               @default(0)
+  createdAt      TimestamptzString @default(now())
+
+  @@unique([questionId, userId])
+  @@index([userId, createdAt])
+  @@map("trivia_attempts")
+}
+
+model AdminUser {
+  id                 Int                        @id @default(autoincrement())
+  email              String                     @unique
+  username           String                     @unique
+  name               String
+  passwordHash       String
+  mustChangePassword Boolean                    @default(true)
+  role               UserRole                   @default(ADMIN)
+  staffRole          String                     @default("SUPER_ADMIN")
+  status             UserStatus                 @default(ACTIVE)
+  lastLoginAt        TimestamptzString?
+  createdAt          TimestamptzString          @default(now())
+  updatedAt          temporal.updatedAtString()
+
+  @@map("admin_users")
+}
+
+// ============================================================
+// NEWS ENGAGEMENT
+// ============================================================
+
+model NewsComment {
+  id        Int      @id @default(autoincrement())
+  articleUrl String
+  userId    Int
+  body      String
+  parentId  Int?
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  user      User          @relation(fields: [userId], references: [id])
+  parent    NewsComment?  @relation("NewsCommentReplies", fields: [parentId], references: [id])
+  replies   NewsComment[] @relation("NewsCommentReplies")
+  likes     NewsCommentLike[]
+
+  @@index([articleUrl, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@map("news_comments")
+}
+
+model NewsCommentLike {
+  id        Int      @id @default(autoincrement())
+  commentId Int
+  userId    Int
+  createdAt TimestamptzString @default(now())
+
+  comment   NewsComment @relation(fields: [commentId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@map("news_comment_likes")
+}
+
+model NewsView {
+  id        Int      @id @default(autoincrement())
+  articleUrl String
+  userId    Int?
+  visitorKey String?
+  createdAt TimestamptzString @default(now())
+
+  user      User? @relation(fields: [userId], references: [id])
+
+  @@index([articleUrl, createdAt])
+  @@index([userId, articleUrl])
+  @@map("news_views")
+}
+
+model NewsArticleLike {
+  id         Int      @id @default(autoincrement())
+  articleUrl String
+  userId     Int
+  createdAt  TimestamptzString @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([articleUrl, userId])
+  @@index([articleUrl])
+  @@index([userId])
+  @@map("news_article_likes")
+}
+
+// ============================================================
+// FAN PROGRESSION AWARDS (NON-REDEEMABLE)
+// ============================================================
+model ProgressionAward {
+  id          Int      @id @default(autoincrement())
+
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  taskKey     String
+  points      Int
+  description String?
+
+  createdAt   TimestamptzString @default(now())
+
+  @@unique([userId, taskKey])
+  @@index([userId, createdAt])
+  @@map("progression_awards")
+}
+
+// ============================================================
+// END SPORTYFANZ MVP CONTRACT
+// ============================================================

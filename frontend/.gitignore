@@ -1,0 +1,17 @@
+node_modules
+.next/
+
+# Next.js generated files
+.next/
+**/.next/
+node_modules/
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+dist/
+.env.local
+public/15841345_1440_2560_30fps.mp4
+out/

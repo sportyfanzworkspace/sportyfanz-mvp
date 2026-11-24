@@ -1,0 +1,207 @@
+.sf-terms-page {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 28px 28px 70px;
+  color: #062f49;
+}
+
+.sf-terms-hero {
+  padding: 45px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #062f49, #07516b);
+  color: #fff;
+}
+
+.sf-terms-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #d4e8ed;
+  font-size: 13px;
+  text-decoration: none;
+  margin-bottom: 25px;
+}
+
+.sf-terms-hero-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  background: rgba(124, 207, 114, .17);
+  color: #7ccf72;
+}
+
+.sf-terms-eyebrow {
+  display: block;
+  color: #f6bd35;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.sf-terms-hero h1 {
+  margin: 12px 0;
+  color: #fff;
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.sf-terms-hero p {
+  max-width: 650px;
+  color: #d6e7ed;
+  line-height: 1.8;
+}
+
+.sf-terms-draft {
+  display: inline-block;
+  margin-top: 14px;
+  color: #f6bd35;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sf-terms-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+  margin-top: 30px;
+}
+
+.sf-terms-toc,
+.sf-terms-content {
+  border: 1px solid #e1e9ee;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.sf-terms-toc {
+  position: sticky;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+}
+
+.sf-terms-toc strong {
+  margin-bottom: 8px;
+  color: #176d46;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.sf-terms-toc a {
+  color: #476172;
+  font-size: 12px;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.sf-terms-toc a:hover {
+  color: #087449;
+  text-decoration: underline;
+}
+
+.sf-terms-content {
+  min-width: 0;
+  padding: 35px;
+}
+
+.sf-terms-content section {
+  padding: 0 0 24px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid #edf1f4;
+  scroll-margin-top: 95px;
+}
+
+.sf-terms-content h2 {
+  margin: 0 0 15px;
+  font-size: 21px;
+  color: #062f49;
+}
+
+.sf-terms-content p {
+  color: #536a78;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.sf-terms-contact {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 14px;
+  background: #eaf7ec;
+  color: #075c3d;
+}
+
+.sf-terms-contact p {
+  margin-bottom: 0;
+}
+
+.sf-terms-contact a {
+  color: #075c3d;
+  font-weight: 700;
+}
+
+@media (max-width: 850px) {
+  .sf-terms-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sf-terms-toc {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .sf-terms-page {
+    padding: 14px 12px 35px;
+  }
+
+  .sf-terms-hero {
+    padding: 28px 22px;
+  }
+
+  .sf-terms-content {
+    padding: 22px;
+  }
+
+  .sf-terms-content h2 {
+    font-size: 18px;
+  }
+}
+
+/* Combined SportyFanz policy sections */
+.sf-policy-group {
+  scroll-margin-top: 100px;
+}
+
+.sf-terms-content .sf-policy-group > h2 {
+  font-size: 27px;
+  color: #062f49;
+  margin-bottom: 26px;
+}
+
+.sf-policy-subsection {
+  margin-bottom: 25px;
+}
+
+.sf-policy-subsection h3 {
+  color: #176d46;
+  font-size: 17px;
+  margin: 0 0 10px;
+}
+
+@media (max-width: 600px) {
+  .sf-terms-content .sf-policy-group > h2 {
+    font-size: 23px;
+  }
+
+  .sf-policy-subsection h3 {
+    font-size: 16px;
+  }
+}

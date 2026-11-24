@@ -1,0 +1,125 @@
+[
+  {
+    "id": "table.admin_users",
+    "label": "Create table \"admin_users\"",
+    "summary": "Creates table \"admin_users\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "admin_users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"admin_users\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"admin_users\"",
+        "sql": "CREATE TABLE \"public\".\"admin_users\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"lastLoginAt\" timestamptz,\n  \"mustChangePassword\" bool DEFAULT true NOT NULL,\n  \"name\" text NOT NULL,\n  \"passwordHash\" text NOT NULL,\n  \"role\" text DEFAULT 'ADMIN' NOT NULL,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"username\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"admin_users_role_check_1954e8c0\" CHECK (\"role\" IN ('USER', 'ADMIN')),\n  CONSTRAINT \"admin_users_status_check_3a7c0f48\" CHECK (\"status\" IN ('ACTIVE', 'SUSPENDED', 'DELETED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"admin_users\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.admin_users.admin_users_email_key",
+    "label": "Add unique constraint on \"admin_users\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "admin_users_email_key",
+        "table": "admin_users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"admin_users_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "admin_users_email_key",
+          "public",
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"admin_users_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"admin_users\" ADD CONSTRAINT \"admin_users_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"admin_users_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "admin_users_email_key",
+          "public",
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.admin_users.admin_users_username_key",
+    "label": "Add unique constraint on \"admin_users\" (username)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "admin_users_username_key",
+        "table": "admin_users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"admin_users_username_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "admin_users_username_key",
+          "public",
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"admin_users_username_key\"",
+        "sql": "ALTER TABLE \"public\".\"admin_users\" ADD CONSTRAINT \"admin_users_username_key\" UNIQUE (\"username\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"admin_users_username_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "admin_users_username_key",
+          "public",
+          "\"public\".\"admin_users\""
+        ]
+      }
+    ]
+  }
+]

@@ -1,27 +1,23 @@
-node_modules
-.next/
-
-# Next.js generated files
-.next/
-**/.next/
+# Installed dependencies
 node_modules/
-.env
-.env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+
+# Generated application builds
+.next/
+out/
 dist/
-.env.local
-public/15841345_1440_2560_30fps.mp4
+coverage/
+*.tsbuildinfo
 
-# Local security tests, credentials and backups
-/scripts/private/
+# Private environment configuration
+.env
+.env.*
+!.env.example
 
-# Local environment backups and temporary source backups
-.env.local.production-backup
-*.ts.backup
+# Generated archives and local backups
+*.zip
+*.bak
+*.log
 
-# Accidental empty terminal-output files
-/0
-/=
+# Operating system files
+.DS_Store
+Thumbs.db

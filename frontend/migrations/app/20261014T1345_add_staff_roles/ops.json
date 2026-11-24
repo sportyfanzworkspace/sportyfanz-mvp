@@ -1,0 +1,44 @@
+[
+  {
+    "id": "column.public.admin_users.staffRole",
+    "label": "Add column \"staffRole\" to \"admin_users\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "staffRole",
+        "table": "admin_users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"staffRole\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "admin_users",
+          "staffRole"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"staffRole\"",
+        "sql": "ALTER TABLE \"public\".\"admin_users\" ADD COLUMN \"staffRole\" text DEFAULT 'SUPER_ADMIN' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"staffRole\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "admin_users",
+          "staffRole"
+        ]
+      }
+    ]
+  }
+]

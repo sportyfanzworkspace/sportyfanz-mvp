@@ -1,0 +1,170 @@
+[
+  {
+    "id": "column.public.matches.apiFootballFixtureId",
+    "label": "Add column \"apiFootballFixtureId\" to \"matches\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "apiFootballFixtureId",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"apiFootballFixtureId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "apiFootballFixtureId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"apiFootballFixtureId\"",
+        "sql": "ALTER TABLE \"public\".\"matches\" ADD COLUMN \"apiFootballFixtureId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"apiFootballFixtureId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "apiFootballFixtureId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.matches.matchDataSource",
+    "label": "Add column \"matchDataSource\" to \"matches\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "matchDataSource",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"matchDataSource\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "matchDataSource"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"matchDataSource\"",
+        "sql": "ALTER TABLE \"public\".\"matches\" ADD COLUMN \"matchDataSource\" text DEFAULT 'MANUAL'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"matchDataSource\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "matchDataSource"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.reward_redemptions.rejectionReason",
+    "label": "Add column \"rejectionReason\" to \"reward_redemptions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "rejectionReason",
+        "table": "reward_redemptions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"rejectionReason\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "reward_redemptions",
+          "rejectionReason"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"rejectionReason\"",
+        "sql": "ALTER TABLE \"public\".\"reward_redemptions\" ADD COLUMN \"rejectionReason\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"rejectionReason\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "reward_redemptions",
+          "rejectionReason"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.matches.matches_apiFootballFixtureId_key",
+    "label": "Add unique constraint on \"matches\" (apiFootballFixtureId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "matches_apiFootballFixtureId_key",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"matches_apiFootballFixtureId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "matches_apiFootballFixtureId_key",
+          "public",
+          "\"public\".\"matches\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"matches_apiFootballFixtureId_key\"",
+        "sql": "ALTER TABLE \"public\".\"matches\" ADD CONSTRAINT \"matches_apiFootballFixtureId_key\" UNIQUE (\"apiFootballFixtureId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"matches_apiFootballFixtureId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "matches_apiFootballFixtureId_key",
+          "public",
+          "\"public\".\"matches\""
+        ]
+      }
+    ]
+  }
+]

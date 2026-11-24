@@ -1,0 +1,1543 @@
+#!/usr/bin/env -S node
+import type { Contract as End } from '../../snapshots/cfbfd68ae5b65aaf52645cc2345d920d2521c2d687d3a286015e68542834f7a5/contract';
+import endContract from '../../snapshots/cfbfd68ae5b65aaf52645cc2345d920d2521c2d687d3a286015e68542834f7a5/contract.json' with { type: 'json' };
+import {
+  Migration,
+  MigrationCLI,
+  checkExpression,
+  col,
+  fn,
+  lit,
+  primaryKey,
+} from '@prisma/orm-postgres/migration';
+
+export default class M extends Migration<never, End> {
+  override readonly endContractJson = endContract;
+
+  override get operations() {
+    return [
+      this.createSchema({ schema: 'public' }),
+      this.createTable({
+        schema: 'public',
+        table: 'achievements',
+        columns: [
+          col('category', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('iconUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isActive', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('pointsReward', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('requirement', 'json', { codecRef: { codecId: 'pg/json@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'achievements_category_check_5ae859c0',
+            "\"category\" IN ('FAN_MILESTONE', 'ENGAGEMENT', 'SPORTS', 'COMMUNITY', 'REWARDS', 'SPECIAL')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'challenge_participations',
+        columns: [
+          col('challengeId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('completedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('progress', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('ACTIVE'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('target', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'challenge_participations_status_check_38681376',
+            "\"status\" IN ('ACTIVE', 'COMPLETED', 'FAILED', 'WITHDRAWN')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'challenges',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('endsAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('imageUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('pointsReward', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('startsAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('DRAFT'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('targetLabel', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('targetValue', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('title', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'challenges_status_check_bc42bd6b',
+            "\"status\" IN ('DRAFT', 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELLED')",
+          ),
+          checkExpression(
+            'challenges_type_check_e57f3f8a',
+            "\"type\" IN ('DAILY', 'WEEKLY', 'MATCH', 'PREDICTION', 'ENGAGEMENT', 'COMMUNITY')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fan_profiles',
+        columns: [
+          col('avatarUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('bio', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('challengesCompleted', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('city', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('country', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('coverUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('currentPoints', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('displayName', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('fanLevel', 'text', {
+            notNull: true,
+            default: lit('NEW_FAN'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('fanRoomsJoined', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('matchesWatched', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('timezone', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('totalPoints', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'fan_profiles_fanLevel_check_a096ce3f',
+            "\"fanLevel\" IN ('NEW_FAN', 'RISING_FAN', 'SUPER_FAN', 'CHAMPION_FAN', 'KING_FAN')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fan_reactions',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('fanRoomId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('matchId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'fan_reactions_type_check_86ab0d51',
+            "\"type\" IN ('LIKE', 'LOVE', 'FIRE', 'WOW', 'SAD', 'ANGRY', 'CHEER')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fan_room_members',
+        columns: [
+          col('fanRoomId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('joinedAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('leftAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('role', 'text', {
+            notNull: true,
+            default: lit('MEMBER'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['fanRoomId', 'userId']),
+          checkExpression(
+            'fan_room_members_role_check_bcd80a35',
+            "\"role\" IN ('MEMBER', 'MODERATOR', 'HOST')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fan_room_messages',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('fanRoomId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isDeleted', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('isEdited', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('message', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('replyToId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fan_rooms',
+        columns: [
+          col('coverImageUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('matchId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('memberCount', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('ACTIVE'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'fan_rooms_status_check_841a6704',
+            "\"status\" IN ('ACTIVE', 'CLOSED', 'ARCHIVED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'match_events',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('matchId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('minute', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('playerId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('second', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('teamId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'match_events_type_check_58fb0e37',
+            "\"type\" IN ('GOAL', 'OWN_GOAL', 'YELLOW_CARD', 'RED_CARD', 'SUBSTITUTION', 'VAR', 'PERIOD_START', 'PERIOD_END')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'matches',
+        columns: [
+          col('awayCorners', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayFouls', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayHalfTimeScore', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayPossession', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayRedCards', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayScore', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('awayShotsOnTarget', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayTeamId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayTotalShots', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('awayYellowCards', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('competition', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('endedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('homeCorners', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeFouls', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeHalfTimeScore', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homePossession', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeRedCards', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeScore', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('homeShotsOnTarget', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeTeamId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeTotalShots', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('homeYellowCards', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('liveMinute', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('liveSecond', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('scheduledAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('sportId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('startedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('SCHEDULED'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('venue', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'matches_status_check_10a261ef',
+            "\"status\" IN ('SCHEDULED', 'LIVE', 'HALF_TIME', 'FINISHED', 'POSTPONED', 'CANCELLED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'notifications',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isRead', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('link', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('message', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('readAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('title', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'notifications_type_check_f212571d',
+            "\"type\" IN ('SYSTEM', 'MATCH', 'REWARD', 'CHALLENGE', 'FAN_ROOM', 'ACHIEVEMENT', 'SOCIAL')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'player_teams',
+        columns: [
+          col('joinedAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('leftAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('playerId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('teamId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['playerId', 'teamId'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'players',
+        columns: [
+          col('avatarUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('displayName', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('firstName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isActive', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('jerseyNumber', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('lastName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('nationality', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('position', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'point_transactions',
+        columns: [
+          col('balanceAfter', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('points', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('referenceId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('referenceType', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'point_transactions_type_check_e0cdaae8',
+            "\"type\" IN ('EARNED', 'SPENT', 'BONUS', 'ADJUSTMENT', 'REWARD', 'CHALLENGE', 'PREDICTION', 'PARTICIPATION', 'REFERRAL')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'predictions',
+        columns: [
+          col('awayScore', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('homeScore', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('matchId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('pointsAwarded', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('resolvedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('OPEN'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'predictions_status_check_f9630b69',
+            "\"status\" IN ('OPEN', 'WON', 'LOST', 'CANCELLED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'reward_redemptions',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('fulfilledAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('pointsSpent', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('referenceCode', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('rewardId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('PENDING'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'reward_redemptions_status_check_b9eddf82',
+            "\"status\" IN ('PENDING', 'APPROVED', 'FULFILLED', 'CANCELLED', 'REJECTED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'rewards',
+        columns: [
+          col('category', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('expiresAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('imageUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('pointsCost', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('ACTIVE'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('stock', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'rewards_status_check_a4451b73',
+            "\"status\" IN ('ACTIVE', 'INACTIVE', 'SOLD_OUT', 'ARCHIVED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'sports',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('iconUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isActive', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'teams',
+        columns: [
+          col('city', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('country', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('coverUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isActive', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('logoUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('shortName', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('sportId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user_achievements',
+        columns: [
+          col('achievementId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('progress', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('unlockedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['userId', 'achievementId'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user_player_follows',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('playerId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['userId', 'playerId'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user_sport_follows',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('sportId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['userId', 'sportId'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user_team_follows',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('teamId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['userId', 'teamId'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'users',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('emailVerified', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('lastLoginAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('passwordHash', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('role', 'text', {
+            notNull: true,
+            default: lit('USER'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('ACTIVE'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('username', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('users_role_check_1954e8c0', "\"role\" IN ('USER', 'ADMIN')"),
+          checkExpression(
+            'users_status_check_3a7c0f48',
+            "\"status\" IN ('ACTIVE', 'SUSPENDED', 'DELETED')",
+          ),
+        ],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'achievements',
+        constraint: 'achievements_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'challenge_participations',
+        constraint: 'challenge_participations_challengeId_userId_key',
+        columns: ['challengeId', 'userId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'challenges',
+        constraint: 'challenges_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'fan_profiles',
+        constraint: 'fan_profiles_userId_key',
+        columns: ['userId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'fan_rooms',
+        constraint: 'fan_rooms_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'players',
+        constraint: 'players_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'predictions',
+        constraint: 'predictions_userId_matchId_key',
+        columns: ['userId', 'matchId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'reward_redemptions',
+        constraint: 'reward_redemptions_referenceCode_key',
+        columns: ['referenceCode'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'rewards',
+        constraint: 'rewards_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'sports',
+        constraint: 'sports_name_key',
+        columns: ['name'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'sports',
+        constraint: 'sports_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'teams',
+        constraint: 'teams_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'teams',
+        constraint: 'teams_sportId_name_key',
+        columns: ['sportId', 'name'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'users',
+        constraint: 'users_email_key',
+        columns: ['email'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'users',
+        constraint: 'users_username_key',
+        columns: ['username'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'achievements',
+        index: 'achievements_category_idx_f2600f8e',
+        columns: ['category'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'achievements',
+        index: 'achievements_isActive_idx_77fe3ba1',
+        columns: ['isActive'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge_participations',
+        index: 'challenge_participations_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge_participations',
+        index: 'challenge_participations_challengeId_status_idx_401cf815',
+        columns: ['challengeId', 'status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge_participations',
+        index: 'challenge_participations_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenges',
+        index: 'challenges_endsAt_idx_f63d30f0',
+        columns: ['endsAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenges',
+        index: 'challenges_startsAt_idx_5ff0df68',
+        columns: ['startsAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenges',
+        index: 'challenges_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenges',
+        index: 'challenges_type_idx_b6b604ea',
+        columns: ['type'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_profiles',
+        index: 'fan_profiles_fanLevel_idx_b8076bb7',
+        columns: ['fanLevel'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_profiles',
+        index: 'fan_profiles_totalPoints_idx_013e6213',
+        columns: ['totalPoints'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_reactions',
+        index: 'fan_reactions_createdAt_idx_9575dbd7',
+        columns: ['createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_reactions',
+        index: 'fan_reactions_fanRoomId_idx_5b3ed17c',
+        columns: ['fanRoomId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_reactions',
+        index: 'fan_reactions_matchId_idx_4caf5ecc',
+        columns: ['matchId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_reactions',
+        index: 'fan_reactions_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_room_members',
+        index: 'fan_room_members_fanRoomId_idx_5b3ed17c',
+        columns: ['fanRoomId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_room_members',
+        index: 'fan_room_members_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_room_messages',
+        index: 'fan_room_messages_fanRoomId_createdAt_idx_3d89ec77',
+        columns: ['fanRoomId', 'createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_room_messages',
+        index: 'fan_room_messages_fanRoomId_idx_5b3ed17c',
+        columns: ['fanRoomId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_room_messages',
+        index: 'fan_room_messages_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_rooms',
+        index: 'fan_rooms_createdAt_idx_9575dbd7',
+        columns: ['createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_rooms',
+        index: 'fan_rooms_matchId_idx_4caf5ecc',
+        columns: ['matchId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'fan_rooms',
+        index: 'fan_rooms_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'match_events',
+        index: 'match_events_matchId_idx_4caf5ecc',
+        columns: ['matchId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'match_events',
+        index: 'match_events_playerId_idx_710cf1aa',
+        columns: ['playerId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'match_events',
+        index: 'match_events_type_idx_b6b604ea',
+        columns: ['type'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'matches',
+        index: 'matches_awayTeamId_idx_17f82264',
+        columns: ['awayTeamId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'matches',
+        index: 'matches_homeTeamId_idx_2a4bf710',
+        columns: ['homeTeamId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'matches',
+        index: 'matches_scheduledAt_idx_f69c1204',
+        columns: ['scheduledAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'matches',
+        index: 'matches_sportId_idx_2a876157',
+        columns: ['sportId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'matches',
+        index: 'matches_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'notifications',
+        index: 'notifications_userId_createdAt_idx_f726f04a',
+        columns: ['userId', 'createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'notifications',
+        index: 'notifications_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'notifications',
+        index: 'notifications_userId_isRead_idx_b0140cd3',
+        columns: ['userId', 'isRead'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'player_teams',
+        index: 'player_teams_playerId_idx_710cf1aa',
+        columns: ['playerId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'player_teams',
+        index: 'player_teams_teamId_idx_f2b72ab3',
+        columns: ['teamId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'players',
+        index: 'players_isActive_idx_77fe3ba1',
+        columns: ['isActive'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'players',
+        index: 'players_lastName_idx_08145514',
+        columns: ['lastName'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'point_transactions',
+        index: 'point_transactions_referenceId_idx_81b18e2c',
+        columns: ['referenceId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'point_transactions',
+        index: 'point_transactions_userId_createdAt_idx_f726f04a',
+        columns: ['userId', 'createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'point_transactions',
+        index: 'point_transactions_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'point_transactions',
+        index: 'point_transactions_userId_type_idx_59b0b5ce',
+        columns: ['userId', 'type'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'predictions',
+        index: 'predictions_matchId_idx_4caf5ecc',
+        columns: ['matchId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'predictions',
+        index: 'predictions_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'predictions',
+        index: 'predictions_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'reward_redemptions',
+        index: 'reward_redemptions_rewardId_idx_3d17b6e4',
+        columns: ['rewardId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'reward_redemptions',
+        index: 'reward_redemptions_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'reward_redemptions',
+        index: 'reward_redemptions_userId_createdAt_idx_f726f04a',
+        columns: ['userId', 'createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'reward_redemptions',
+        index: 'reward_redemptions_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'rewards',
+        index: 'rewards_category_idx_f2600f8e',
+        columns: ['category'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'rewards',
+        index: 'rewards_pointsCost_idx_cd12193d',
+        columns: ['pointsCost'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'rewards',
+        index: 'rewards_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'sports',
+        index: 'sports_isActive_idx_77fe3ba1',
+        columns: ['isActive'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'teams',
+        index: 'teams_isActive_idx_77fe3ba1',
+        columns: ['isActive'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'teams',
+        index: 'teams_sportId_idx_2a876157',
+        columns: ['sportId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_achievements',
+        index: 'user_achievements_achievementId_idx_05a27a05',
+        columns: ['achievementId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_achievements',
+        index: 'user_achievements_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_player_follows',
+        index: 'user_player_follows_playerId_idx_710cf1aa',
+        columns: ['playerId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_player_follows',
+        index: 'user_player_follows_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_sport_follows',
+        index: 'user_sport_follows_sportId_idx_2a876157',
+        columns: ['sportId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_sport_follows',
+        index: 'user_sport_follows_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_team_follows',
+        index: 'user_team_follows_teamId_idx_f2b72ab3',
+        columns: ['teamId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user_team_follows',
+        index: 'user_team_follows_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'users',
+        index: 'users_createdAt_idx_9575dbd7',
+        columns: ['createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'users',
+        index: 'users_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'challenge_participations',
+        foreignKey: {
+          name: 'challenge_participations_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenges', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'challenge_participations',
+        foreignKey: {
+          name: 'challenge_participations_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_profiles',
+        foreignKey: {
+          name: 'fan_profiles_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_reactions',
+        foreignKey: {
+          name: 'fan_reactions_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_room_members',
+        foreignKey: {
+          name: 'fan_room_members_fanRoomId_fkey',
+          columns: ['fanRoomId'],
+          references: { schema: 'public', table: 'fan_rooms', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_room_members',
+        foreignKey: {
+          name: 'fan_room_members_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_room_messages',
+        foreignKey: {
+          name: 'fan_room_messages_fanRoomId_fkey',
+          columns: ['fanRoomId'],
+          references: { schema: 'public', table: 'fan_rooms', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_room_messages',
+        foreignKey: {
+          name: 'fan_room_messages_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'fan_rooms',
+        foreignKey: {
+          name: 'fan_rooms_matchId_fkey',
+          columns: ['matchId'],
+          references: { schema: 'public', table: 'matches', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'match_events',
+        foreignKey: {
+          name: 'match_events_matchId_fkey',
+          columns: ['matchId'],
+          references: { schema: 'public', table: 'matches', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'match_events',
+        foreignKey: {
+          name: 'match_events_playerId_fkey',
+          columns: ['playerId'],
+          references: { schema: 'public', table: 'players', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'matches',
+        foreignKey: {
+          name: 'matches_sportId_fkey',
+          columns: ['sportId'],
+          references: { schema: 'public', table: 'sports', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'matches',
+        foreignKey: {
+          name: 'matches_homeTeamId_fkey',
+          columns: ['homeTeamId'],
+          references: { schema: 'public', table: 'teams', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'matches',
+        foreignKey: {
+          name: 'matches_awayTeamId_fkey',
+          columns: ['awayTeamId'],
+          references: { schema: 'public', table: 'teams', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'notifications',
+        foreignKey: {
+          name: 'notifications_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'player_teams',
+        foreignKey: {
+          name: 'player_teams_playerId_fkey',
+          columns: ['playerId'],
+          references: { schema: 'public', table: 'players', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'player_teams',
+        foreignKey: {
+          name: 'player_teams_teamId_fkey',
+          columns: ['teamId'],
+          references: { schema: 'public', table: 'teams', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'point_transactions',
+        foreignKey: {
+          name: 'point_transactions_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'predictions',
+        foreignKey: {
+          name: 'predictions_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'predictions',
+        foreignKey: {
+          name: 'predictions_matchId_fkey',
+          columns: ['matchId'],
+          references: { schema: 'public', table: 'matches', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'reward_redemptions',
+        foreignKey: {
+          name: 'reward_redemptions_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'reward_redemptions',
+        foreignKey: {
+          name: 'reward_redemptions_rewardId_fkey',
+          columns: ['rewardId'],
+          references: { schema: 'public', table: 'rewards', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'teams',
+        foreignKey: {
+          name: 'teams_sportId_fkey',
+          columns: ['sportId'],
+          references: { schema: 'public', table: 'sports', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_achievements',
+        foreignKey: {
+          name: 'user_achievements_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_achievements',
+        foreignKey: {
+          name: 'user_achievements_achievementId_fkey',
+          columns: ['achievementId'],
+          references: { schema: 'public', table: 'achievements', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_player_follows',
+        foreignKey: {
+          name: 'user_player_follows_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_player_follows',
+        foreignKey: {
+          name: 'user_player_follows_playerId_fkey',
+          columns: ['playerId'],
+          references: { schema: 'public', table: 'players', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_sport_follows',
+        foreignKey: {
+          name: 'user_sport_follows_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_sport_follows',
+        foreignKey: {
+          name: 'user_sport_follows_sportId_fkey',
+          columns: ['sportId'],
+          references: { schema: 'public', table: 'sports', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_team_follows',
+        foreignKey: {
+          name: 'user_team_follows_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'users', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'user_team_follows',
+        foreignKey: {
+          name: 'user_team_follows_teamId_fkey',
+          columns: ['teamId'],
+          references: { schema: 'public', table: 'teams', columns: ['id'] },
+        },
+      }),
+    ];
+  }
+}
+
+MigrationCLI.run(import.meta.url, M);

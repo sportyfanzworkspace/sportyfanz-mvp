@@ -1,0 +1,602 @@
+[
+  {
+    "id": "table.poll_options",
+    "label": "Create table \"poll_options\"",
+    "summary": "Creates table \"poll_options\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "poll_options"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"poll_options\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_options\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"poll_options\"",
+        "sql": "CREATE TABLE \"public\".\"poll_options\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"label\" text NOT NULL,\n  \"pollId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"poll_options\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_options\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.poll_votes",
+    "label": "Create table \"poll_votes\"",
+    "summary": "Creates table \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"poll_votes\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"poll_votes\"",
+        "sql": "CREATE TABLE \"public\".\"poll_votes\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"optionId\" int4 NOT NULL,\n  \"pollId\" int4 NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"poll_votes\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.polls",
+    "label": "Create table \"polls\"",
+    "summary": "Creates table \"polls\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "polls"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"polls\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"polls\"",
+        "sql": "CREATE TABLE \"public\".\"polls\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"endsAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"pointsReward\" int4 DEFAULT 10 NOT NULL,\n  \"question\" text NOT NULL,\n  \"startsAt\" timestamptz,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"polls_status_check_61f4f2cf\" CHECK (\"status\" IN ('DRAFT', 'ACTIVE', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"polls\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.poll_votes.poll_votes_pollId_userId_key",
+    "label": "Add unique constraint on \"poll_votes\" (pollId, userId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "poll_votes_pollId_userId_key",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"poll_votes_pollId_userId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_pollId_userId_key",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"poll_votes_pollId_userId_key\"",
+        "sql": "ALTER TABLE \"public\".\"poll_votes\" ADD CONSTRAINT \"poll_votes_pollId_userId_key\" UNIQUE (\"pollId\", \"userId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"poll_votes_pollId_userId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_pollId_userId_key",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.poll_options.poll_options_pollId_idx_c217e50b",
+    "label": "Create index \"poll_options_pollId_idx_c217e50b\" on \"poll_options\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "poll_options_pollId_idx_c217e50b",
+        "table": "poll_options"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"poll_options_pollId_idx_c217e50b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_options_pollId_idx_c217e50b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"poll_options_pollId_idx_c217e50b\"",
+        "sql": "CREATE INDEX \"poll_options_pollId_idx_c217e50b\" ON \"public\".\"poll_options\" (\"pollId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"poll_options_pollId_idx_c217e50b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_options_pollId_idx_c217e50b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.poll_votes.poll_votes_optionId_idx_b1d5fce5",
+    "label": "Create index \"poll_votes_optionId_idx_b1d5fce5\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "poll_votes_optionId_idx_b1d5fce5",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"poll_votes_optionId_idx_b1d5fce5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_optionId_idx_b1d5fce5\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"poll_votes_optionId_idx_b1d5fce5\"",
+        "sql": "CREATE INDEX \"poll_votes_optionId_idx_b1d5fce5\" ON \"public\".\"poll_votes\" (\"optionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"poll_votes_optionId_idx_b1d5fce5\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_optionId_idx_b1d5fce5\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.poll_votes.poll_votes_pollId_idx_c217e50b",
+    "label": "Create index \"poll_votes_pollId_idx_c217e50b\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "poll_votes_pollId_idx_c217e50b",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"poll_votes_pollId_idx_c217e50b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_pollId_idx_c217e50b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"poll_votes_pollId_idx_c217e50b\"",
+        "sql": "CREATE INDEX \"poll_votes_pollId_idx_c217e50b\" ON \"public\".\"poll_votes\" (\"pollId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"poll_votes_pollId_idx_c217e50b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_pollId_idx_c217e50b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.poll_votes.poll_votes_userId_idx_a489d58a",
+    "label": "Create index \"poll_votes_userId_idx_a489d58a\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "poll_votes_userId_idx_a489d58a",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"poll_votes_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"poll_votes_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"poll_votes_userId_idx_a489d58a\" ON \"public\".\"poll_votes\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"poll_votes_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"poll_votes_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.polls.polls_endsAt_idx_f63d30f0",
+    "label": "Create index \"polls_endsAt_idx_f63d30f0\" on \"polls\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "polls_endsAt_idx_f63d30f0",
+        "table": "polls"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"polls_endsAt_idx_f63d30f0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_endsAt_idx_f63d30f0\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"polls_endsAt_idx_f63d30f0\"",
+        "sql": "CREATE INDEX \"polls_endsAt_idx_f63d30f0\" ON \"public\".\"polls\" (\"endsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"polls_endsAt_idx_f63d30f0\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_endsAt_idx_f63d30f0\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.polls.polls_startsAt_idx_5ff0df68",
+    "label": "Create index \"polls_startsAt_idx_5ff0df68\" on \"polls\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "polls_startsAt_idx_5ff0df68",
+        "table": "polls"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"polls_startsAt_idx_5ff0df68\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_startsAt_idx_5ff0df68\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"polls_startsAt_idx_5ff0df68\"",
+        "sql": "CREATE INDEX \"polls_startsAt_idx_5ff0df68\" ON \"public\".\"polls\" (\"startsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"polls_startsAt_idx_5ff0df68\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_startsAt_idx_5ff0df68\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.polls.polls_status_idx_e98638ab",
+    "label": "Create index \"polls_status_idx_e98638ab\" on \"polls\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "polls_status_idx_e98638ab",
+        "table": "polls"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"polls_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"polls_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"polls_status_idx_e98638ab\" ON \"public\".\"polls\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"polls_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"polls_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.poll_options.poll_options_pollId_fkey",
+    "label": "Add foreign key \"poll_options_pollId_fkey\" on \"poll_options\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "poll_options_pollId_fkey",
+        "table": "poll_options"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"poll_options_pollId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_options_pollId_fkey",
+          "public",
+          "\"public\".\"poll_options\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"poll_options_pollId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"poll_options\"\nADD CONSTRAINT \"poll_options_pollId_fkey\"\nFOREIGN KEY (\"pollId\")\nREFERENCES \"public\".\"polls\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"poll_options_pollId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_options_pollId_fkey",
+          "public",
+          "\"public\".\"poll_options\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.poll_votes.poll_votes_pollId_fkey",
+    "label": "Add foreign key \"poll_votes_pollId_fkey\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "poll_votes_pollId_fkey",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"poll_votes_pollId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_pollId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"poll_votes_pollId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"poll_votes\"\nADD CONSTRAINT \"poll_votes_pollId_fkey\"\nFOREIGN KEY (\"pollId\")\nREFERENCES \"public\".\"polls\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"poll_votes_pollId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_pollId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.poll_votes.poll_votes_optionId_fkey",
+    "label": "Add foreign key \"poll_votes_optionId_fkey\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "poll_votes_optionId_fkey",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"poll_votes_optionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_optionId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"poll_votes_optionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"poll_votes\"\nADD CONSTRAINT \"poll_votes_optionId_fkey\"\nFOREIGN KEY (\"optionId\")\nREFERENCES \"public\".\"poll_options\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"poll_votes_optionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_optionId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.poll_votes.poll_votes_userId_fkey",
+    "label": "Add foreign key \"poll_votes_userId_fkey\" on \"poll_votes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "poll_votes_userId_fkey",
+        "table": "poll_votes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"poll_votes_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_userId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"poll_votes_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"poll_votes\"\nADD CONSTRAINT \"poll_votes_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"users\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"poll_votes_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "poll_votes_userId_fkey",
+          "public",
+          "\"public\".\"poll_votes\""
+        ]
+      }
+    ]
+  }
+]

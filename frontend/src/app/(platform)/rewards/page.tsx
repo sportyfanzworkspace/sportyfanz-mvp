@@ -1,0 +1,660 @@
+"use client";
+
+import { apiFetch } from "@/lib/api";
+import Link from "next/link";
+
+import {
+  Gift,
+  Package,
+  Radio,
+  ShoppingBag,
+  Ticket,
+  Loader2,
+  CheckCircle2,
+  Clock3,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+type Reward = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  pointsCost: number;
+  stock: number | null;
+  status: string;
+  category: string | null;
+  expiresAt: string | null;
+};
+
+type Redemption = {
+  id: number;
+  rewardId: number;
+  rewardName: string;
+  pointsSpent: number;
+  status: string;
+  rejectionReason: string | null;
+  referenceCode: string;
+  createdAt: string;
+  fulfilledAt: string | null;
+};
+
+type RewardsResponse = {
+  authenticated: boolean;
+  balance: number;
+  totalPoints: number;
+  fanLevel: string;
+  rewards: Reward[];
+  history: Redemption[];
+};
+
+const rewardPromotions = [
+  {
+    eyebrow: "PLAY • PREDICT • EARN",
+    title: "Make every match count",
+    description: "Take part in trivia, polls and predictions to earn points.",
+    action: "Explore participation",
+    href: "/participate",
+  },
+  {
+    eyebrow: "CONNECT WITH FANS",
+    title: "Your Fan Room is waiting",
+    description: "Join conversations and share your passion for sport.",
+    action: "Visit Fan Rooms",
+    href: "/fanroom",
+  },
+  {
+    eyebrow: "YOUR FAN JOURNEY",
+    title: "Build your Fan Kingdom",
+    description: "Keep progressing and see how far your fan journey takes you.",
+    action: "View your Kingdom",
+    href: "/kingdom",
+  },
+];
+
+const iconMap = [
+  Ticket,
+  Package,
+  ShoppingBag,
+  Gift,
+  Radio,
+];
+
+function getRewardIcon(index: number) {
+  return iconMap[index % iconMap.length];
+}
+
+function formatPoints(points: number) {
+  return new Intl.NumberFormat("en-US").format(points);
+}
+
+function getRewardDescription(reward: Reward) {
+  if (reward.description) {
+    return reward.description;
+  }
+
+  if (reward.category) {
+    return reward.category;
+  }
+
+  return "SportyFanz reward";
+}
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export default function RewardPage() {
+  const [activeTab, setActiveTab] = useState<
+    "available" | "mine" | "history"
+  >("available");
+
+  const [data, setData] = useState<RewardsResponse | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [redeemingId, setRedeemingId] = useState<number | null>(null);
+
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
+  const activePromo = rewardPromotions[activePromoIndex];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActivePromoIndex((current) =>
+        (current + 1) % rewardPromotions.length
+      );
+    }, 6500);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+
+  async function loadRewards() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await apiFetch("/api/rewards", {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || "Failed to load rewards"
+        );
+      }
+
+      setData(result);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load rewards"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadRewards();
+  }, []);
+
+  async function handleRedeem(rewardId: number) {
+    if (!data?.authenticated) {
+      setShowGuestPrompt(true);
+      setMessage("");
+      setError("");
+      return;
+    }
+
+    try {
+      setRedeemingId(rewardId);
+      setMessage("");
+      setError("");
+
+      const response = await apiFetch(
+        "/api/rewards/redeem",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rewardId,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || "Unable to redeem reward"
+        );
+      }
+
+      setMessage(
+        `${result.redemption.rewardName} redeemed successfully. Reference: ${result.redemption.referenceCode}`
+      );
+
+      await loadRewards();
+
+      setActiveTab("mine");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to redeem reward"
+      );
+    } finally {
+      setRedeemingId(null);
+    }
+  }
+
+  const rewards = data?.rewards ?? [];
+  const history = data?.history ?? [];
+
+  const availableRewards = rewards.filter(
+    (reward) =>
+      reward.status === "ACTIVE" &&
+      (reward.stock === null || reward.stock > 0)
+  );
+
+  const myRewards = history.filter(
+    (item) =>
+      item.status === "PENDING" ||
+      item.status === "APPROVED" ||
+      item.status === "FULFILLED"
+  );
+
+  return (
+    <div className="page">
+
+      <div className="page-header">
+        <div>
+          <span>FAN REWARDS</span>
+
+          <h1>Your Rewards</h1>
+
+          <p>
+            Your loyalty has value. Redeem what you've earned.
+          </p>
+        </div>
+      </div>
+
+      <div className="rewards-balance">
+
+        <div>
+          <span>AVAILABLE SPORTY POINTS</span>
+
+          <strong>
+            {loading
+              ? "..."
+              : formatPoints(data?.balance ?? 0)}
+          </strong>
+
+          <small>
+            Keep earning points to unlock more rewards.
+          </small>
+        </div>
+
+        <div className="rewards-ad-carousel" aria-label="SportyFanz promotions">
+          <div
+            key={activePromoIndex}
+            className="rewards-ad-copy rewards-ad-slide"
+          >
+            <span>{activePromo.eyebrow}</span>
+            <strong>{activePromo.title}</strong>
+            <p>{activePromo.description}</p>
+            <a href={activePromo.href}>{activePromo.action} <span aria-hidden="true">→</span></a>
+          </div>
+
+        </div>
+
+      </div>
+
+      {message && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+            borderRadius: "10px",
+          }}
+        >
+          <CheckCircle2 size={18} />
+          <span>{message}</span>
+        </div>
+      )}
+
+      {error && (
+        <div
+          style={{
+            padding: "12px 16px",
+            marginBottom: "20px",
+            borderRadius: "10px",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {showGuestPrompt && (
+        <div className="rewards-guest-prompt" role="alert">
+          <div>
+            <strong>Unlock your SportyFanz rewards!</strong>
+            <p>
+              Join SportyFanz to earn Fan Points through
+              trivia and predictions, then redeem exciting rewards.
+            </p>
+          </div>
+
+          <div className="rewards-guest-actions">
+            <Link href="/onboarding">
+              Join to Get Rewards
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowGuestPrompt(false)}
+              aria-label="Dismiss invitation"
+              title="Close"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="rewards-tabs">
+
+        <button
+          className={
+            activeTab === "available"
+              ? "active"
+              : ""
+          }
+          onClick={() => {
+            setActiveTab("available");
+            setMessage("");
+            setError("");
+          }}
+        >
+          Available
+        </button>
+
+        <button
+          className={
+            activeTab === "mine"
+              ? "active"
+              : ""
+          }
+          onClick={() => {
+            setActiveTab("mine");
+            setMessage("");
+            setError("");
+          }}
+        >
+          My Rewards
+        </button>
+
+        <button
+          className={
+            activeTab === "history"
+              ? "active"
+              : ""
+          }
+          onClick={() => {
+            setActiveTab("history");
+            setMessage("");
+            setError("");
+          }}
+        >
+          History
+        </button>
+
+      </div>
+
+      {loading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "50px",
+          }}
+        >
+          <Loader2
+            size={28}
+            className="animate-spin"
+          />
+        </div>
+      ) : activeTab === "available" ? (
+
+        <div className="reward-grid">
+
+          {availableRewards.length === 0 ? (
+            <div>
+              No rewards are currently available.
+            </div>
+          ) : (
+            availableRewards.map((reward, index) => {
+
+              const Icon = getRewardIcon(index);
+
+              const isRedeeming =
+                redeemingId === reward.id;
+
+              const canAfford =
+                (data?.balance ?? 0) >=
+                reward.pointsCost;
+
+              return (
+                <div
+                  className="reward-card"
+                  key={reward.id}
+                >
+
+                  <div className="reward-image">
+                    {reward.imageUrl ? (
+                      <img
+                        src={reward.imageUrl}
+                        alt={reward.name}
+                      />
+                    ) : (
+                      <Icon size={30} />
+                    )}
+                  </div>
+
+                  <div className="reward-info">
+
+                    <span>
+                      {reward.name}
+                    </span>
+
+                    <strong>
+                      {getRewardDescription(reward)}
+                    </strong>
+
+                    <small>
+                      {formatPoints(
+                        reward.pointsCost
+                      )}{" "}
+                      pts
+                    </small>
+
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      handleRedeem(reward.id)
+                    }
+                    disabled={
+                      isRedeeming ||
+                      (data?.authenticated === true && !canAfford)
+                    }
+                  >
+                    {isRedeeming ? (
+                      <>
+                        <Loader2
+                          size={15}
+                          className="animate-spin"
+                        />
+                        Redeeming...
+                      </>
+                    ) : !data?.authenticated ? (
+                      "Redeem"
+                    ) : !canAfford ? (
+                      "Not Enough Points"
+                    ) : (
+                      "Redeem"
+                    )}
+                  </button>
+
+                </div>
+              );
+            })
+          )}
+
+        </div>
+
+      ) : activeTab === "mine" ? (
+
+        <div className="reward-grid">
+
+          {myRewards.length === 0 ? (
+            <div>
+              You haven't redeemed any rewards yet.
+            </div>
+          ) : (
+            myRewards.map((item) => (
+
+              <div
+                className="reward-card"
+                key={item.id}
+              >
+
+                <div className="reward-image">
+                  <Gift size={30} />
+                </div>
+
+                <div className="reward-info">
+
+                  <span>
+                    {item.rewardName}
+                  </span>
+
+                  <strong>
+                    {formatPoints(
+                      item.pointsSpent
+                    )}{" "}
+                    pts
+                  </strong>
+
+                  <small>
+                    {item.referenceCode}
+                  </small>
+
+                </div>
+
+                <div>
+                  <Clock3 size={17} />
+
+                  <small>
+                    {item.status}
+                  </small>
+                </div>
+
+              </div>
+
+            ))
+          )}
+
+        </div>
+
+      ) : (
+
+        <div className="reward-grid">
+
+          {history.length === 0 ? (
+            <div>
+              Your redemption history will
+              appear here.
+            </div>
+          ) : (
+            history.map((item) => (
+
+              <div
+                className="reward-card"
+                key={item.id}
+              >
+
+                <div className="reward-image">
+                  <Gift size={30} />
+                </div>
+
+                <div className="reward-info" style={{ flex: "1 1 120px", minWidth: 0 }}>
+
+                  <span>
+                    {item.rewardName}
+                  </span>
+
+                  <strong>
+                     -{formatPoints(item.pointsSpent)} pts
+                  </strong>
+
+                  <small>
+                    {formatDate(
+                      item.createdAt
+                    )}
+                  </small>
+
+                </div>
+
+                 <div
+                 style={{
+                   marginLeft: "auto",
+                   display: "flex",
+                   flexDirection: "column",
+                   alignItems: "flex-end",
+                   gap: 6,
+                   flex: "0 1 300px",
+                   minWidth: 150,
+                   }}
+                   >
+                    <small
+                       style={{
+                          color:
+                          item.status === "REJECTED"
+                          ? "#c6283d"
+                          : item.status === "FULFILLED"
+                          ? "#079455"
+                          : "#153a55",
+                          fontWeight: 700,
+                          textAlign: "right",
+                        }}
+                       >
+                        {item.status}
+                       </small>
+                      </div>
+
+                      {item.status === "REJECTED" && item.rejectionReason && (
+                     <div
+                        style={{
+                           width: "100%",
+                           boxSizing: "border-box",
+                           padding: "7px 10px",
+                           borderRadius: 8,
+                           background: "#fff0f1",
+                           border: "1px solid #f0c4ca",
+                          }}
+                         >
+                        <strong
+                           style={{
+                              display: "block",
+                              color: "#a61b2b",
+                              fontSize: 11,
+                              lineHeight: 1.3,
+                              marginBottom: 3,
+                           }}
+                        >
+                        Reason for rejection
+                       </strong>
+
+                       <p
+                         style={{
+                             color: "#702632",
+                             fontSize: 12,
+                             lineHeight: 1.35,
+                             margin: 0,
+                             whiteSpace: "pre-wrap",
+                             overflowWrap: "anywhere",
+                          }}
+                        >
+                         {item.rejectionReason}
+                        </p>
+                      </div>
+                    )}
+
+              </div>
+
+            ))
+          )}
+
+        </div>
+
+      )}
+
+    </div>
+  );
+}
