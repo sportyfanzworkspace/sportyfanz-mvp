@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'c8da2651bb3e67a86f986aac772464998a93ba673967b640433f84af3db0f659'>;
+  StorageHashBase<'da6226bdb051a353bbc2d68c8f89fe148e4c55e26157c5d4814897630009d1ae'>;
 export type ExecutionHash =
   ExecutionHashBase<'2cc3d2d82c8e5661963949da23f78cedab8040242c11002c81b87f72b71952d5'>;
 export type ProfileHash =
@@ -655,6 +655,7 @@ export type FieldOutputTypes = {
     readonly TriviaQuestion: {
       readonly correctOption: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly explanation: CodecTypes['pg/text@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -675,12 +676,23 @@ export type FieldOutputTypes = {
       readonly coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
+    readonly TriviaSession: {
+      readonly completedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly questionId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly quizId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly startedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly User: {
       readonly country: CodecTypes['pg/text@1']['output'] | null;
@@ -1134,6 +1146,7 @@ export type FieldInputTypes = {
     readonly TriviaQuestion: {
       readonly correctOption: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly explanation: CodecTypes['pg/text@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -1154,12 +1167,23 @@ export type FieldInputTypes = {
       readonly coverImageUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly startsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly TriviaSession: {
+      readonly completedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly questionId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly quizId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly startedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly User: {
       readonly country: CodecTypes['pg/text@1']['input'] | null;
@@ -1613,6 +1637,7 @@ export type StorageColumnTypes = {
     readonly trivia_questions: {
       readonly correctOption: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly explanation: CodecTypes['pg/text@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -1633,12 +1658,23 @@ export type StorageColumnTypes = {
       readonly coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
+    readonly trivia_sessions: {
+      readonly completedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['output'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly questionId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly quizId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly startedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly user_achievements: {
       readonly achievementId: CodecTypes['pg/int4@1']['output'];
@@ -2092,6 +2128,7 @@ export type StorageColumnInputTypes = {
     readonly trivia_questions: {
       readonly correctOption: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly explanation: CodecTypes['pg/text@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -2112,12 +2149,23 @@ export type StorageColumnInputTypes = {
       readonly coverImageUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'] | null;
       readonly endsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly startsAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly status: 'DRAFT' | 'ACTIVE' | 'CLOSED';
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly trivia_sessions: {
+      readonly completedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly durationSeconds: CodecTypes['pg/int4@1']['input'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly questionId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly quizId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly startedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly user_achievements: {
       readonly achievementId: CodecTypes['pg/int4@1']['input'];
@@ -2667,6 +2715,7 @@ export namespace Models {
   export type public_TriviaQuestion = {
     correctOption: CodecTypes['pg/text@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
     endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
     explanation: CodecTypes['pg/text@1']['output'] | null;
     id: CodecTypes['pg/int4@1']['output'];
@@ -2684,12 +2733,14 @@ export namespace Models {
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     attempts: public_TriviaAttempt[];
     quiz: public_TriviaQuiz | null;
-    readonly [RelationKeys]?: 'attempts' | 'quiz';
+    sessions: public_TriviaSession[];
+    readonly [RelationKeys]?: 'attempts' | 'quiz' | 'sessions';
   };
   export type public_TriviaQuiz = {
     coverImageUrl: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     description: CodecTypes['pg/text@1']['output'] | null;
+    durationSeconds: CodecTypes['pg/int4@1']['output'] | null;
     endsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
     id: CodecTypes['pg/int4@1']['output'];
     startsAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -2697,7 +2748,22 @@ export namespace Models {
     title: CodecTypes['pg/text@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     questions: public_TriviaQuestion[];
-    readonly [RelationKeys]?: 'questions';
+    sessions: public_TriviaSession[];
+    readonly [RelationKeys]?: 'questions' | 'sessions';
+  };
+  export type public_TriviaSession = {
+    completedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+    durationSeconds: CodecTypes['pg/int4@1']['output'];
+    expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    id: CodecTypes['pg/int4@1']['output'];
+    questionId: CodecTypes['pg/int4@1']['output'] | null;
+    quizId: CodecTypes['pg/int4@1']['output'] | null;
+    startedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    question: public_TriviaQuestion | null;
+    quiz: public_TriviaQuiz | null;
+    user: public_User;
+    readonly [RelationKeys]?: 'question' | 'quiz' | 'user';
   };
   export type public_User = {
     country: CodecTypes['pg/text@1']['output'] | null;
@@ -2740,6 +2806,7 @@ export namespace Models {
     reactions: public_FanReaction[];
     rewardRedemptions: public_RewardRedemption[];
     triviaAttempts: public_TriviaAttempt[];
+    triviaSessions: public_TriviaSession[];
     readonly [RelationKeys]?:
       | 'achievements'
       | 'challengeParticipations'
@@ -2761,7 +2828,8 @@ export namespace Models {
       | 'progressionAwards'
       | 'reactions'
       | 'rewardRedemptions'
-      | 'triviaAttempts';
+      | 'triviaAttempts'
+      | 'triviaSessions';
   };
   export type public_UserAchievement = {
     achievementId: CodecTypes['pg/int4@1']['output'];
@@ -2836,6 +2904,7 @@ export declare const models: {
     TriviaAttempt: Models.public_TriviaAttempt;
     TriviaQuestion: Models.public_TriviaQuestion;
     TriviaQuiz: Models.public_TriviaQuiz;
+    TriviaSession: Models.public_TriviaSession;
     User: Models.public_User;
     UserAchievement: Models.public_UserAchievement;
     UserPlayerFollow: Models.public_UserPlayerFollow;
@@ -6110,6 +6179,11 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                 };
+                readonly durationSeconds: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly endsAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -6257,6 +6331,11 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                 };
+                readonly durationSeconds: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly endsAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -6307,6 +6386,124 @@ type ContractBase = Omit<
                 },
               ];
               foreignKeys: readonly [];
+            };
+            readonly trivia_sessions: {
+              columns: {
+                readonly completedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: true;
+                };
+                readonly durationSeconds: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly expiresAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                };
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly questionId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly quizId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly startedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly userId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['userId', 'questionId'] },
+                { readonly columns: readonly ['userId', 'quizId'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'trivia_sessions_expiresAt_idx_6b6b8c10';
+                  readonly prefix: 'trivia_sessions_expiresAt_idx';
+                  readonly columns: readonly ['expiresAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'trivia_sessions_questionId_idx_fdb42076';
+                  readonly prefix: 'trivia_sessions_questionId_idx';
+                  readonly columns: readonly ['questionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'trivia_sessions_quizId_idx_c721979c';
+                  readonly prefix: 'trivia_sessions_quizId_idx';
+                  readonly columns: readonly ['quizId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'trivia_sessions_userId_idx_a489d58a';
+                  readonly prefix: 'trivia_sessions_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'trivia_sessions';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'trivia_sessions';
+                    readonly columns: readonly ['questionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'trivia_questions';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'trivia_sessions';
+                    readonly columns: readonly ['quizId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'trivia_quizzes';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly user_achievements: {
               columns: {
@@ -6979,6 +7176,10 @@ type ContractBase = Omit<
     readonly trivia_quizzes: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'TriviaQuiz';
+    };
+    readonly trivia_sessions: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TriviaSession';
     };
     readonly user_achievements: {
       readonly namespace: 'public' & NamespaceId;
@@ -9874,6 +10075,10 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
+              readonly durationSeconds: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly endsAt: {
                 readonly nullable: true;
                 readonly type: {
@@ -9968,6 +10173,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly sessions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TriviaSession';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['questionId'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'trivia_questions';
@@ -9975,6 +10191,7 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly correctOption: { readonly column: 'correctOption' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly durationSeconds: { readonly column: 'durationSeconds' };
                 readonly endsAt: { readonly column: 'endsAt' };
                 readonly explanation: { readonly column: 'explanation' };
                 readonly id: { readonly column: 'id' };
@@ -10009,6 +10226,10 @@ type ContractBase = Omit<
               readonly description: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly durationSeconds: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly endsAt: {
                 readonly nullable: true;
@@ -10056,6 +10277,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['quizId'];
                 };
               };
+              readonly sessions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TriviaSession';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['quizId'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'trivia_quizzes';
@@ -10064,12 +10296,107 @@ type ContractBase = Omit<
                 readonly coverImageUrl: { readonly column: 'coverImageUrl' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly description: { readonly column: 'description' };
+                readonly durationSeconds: { readonly column: 'durationSeconds' };
                 readonly endsAt: { readonly column: 'endsAt' };
                 readonly id: { readonly column: 'id' };
                 readonly startsAt: { readonly column: 'startsAt' };
                 readonly status: { readonly column: 'status' };
                 readonly title: { readonly column: 'title' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly TriviaSession: {
+            readonly fields: {
+              readonly completedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly durationSeconds: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly expiresAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly questionId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly quizId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly question: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TriviaQuestion';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['questionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly quiz: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TriviaQuiz';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['quizId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'trivia_sessions';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly completedAt: { readonly column: 'completedAt' };
+                readonly durationSeconds: { readonly column: 'durationSeconds' };
+                readonly expiresAt: { readonly column: 'expiresAt' };
+                readonly id: { readonly column: 'id' };
+                readonly questionId: { readonly column: 'questionId' };
+                readonly quizId: { readonly column: 'quizId' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly userId: { readonly column: 'userId' };
               };
             };
           };
@@ -10387,6 +10714,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'TriviaAttempt';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
+              readonly triviaSessions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TriviaSession';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {

@@ -22,7 +22,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods":
     "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, X-Image-Category",
+    "Content-Type, Authorization, X-Image-Category, X-Trivia-Viewer",
   "Access-Control-Allow-Credentials": "true",
   "Access-Control-Max-Age": "86400",
 };

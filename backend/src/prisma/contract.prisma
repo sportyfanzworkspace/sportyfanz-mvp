@@ -250,6 +250,7 @@ model User {
   predictions             Prediction[]
   pollVotes               PollVote[]
   triviaAttempts          TriviaAttempt[]
+  triviaSessions          TriviaSession[]
   newsComments            NewsComment[]
   newsViews               NewsView[]
   newsCommentLikes        NewsCommentLike[]
@@ -1048,10 +1049,14 @@ model TriviaQuiz {
   createdAt   TimestamptzString @default(now())
   updatedAt   temporal.updatedAtString()
 
-  questions   TriviaQuestion[]
+  durationSeconds Int?
+  questions       TriviaQuestion[]
+  sessions        TriviaSession[]
 
   @@index([status])
   @@map("trivia_quizzes")
+
+  @@check(expression: "\"durationSeconds\" IS NULL OR \"durationSeconds\" BETWEEN 30 AND 3600", name: "trivia_quiz_duration_check")
 }
 
 model TriviaQuestion {
@@ -1074,11 +1079,16 @@ model TriviaQuestion {
   createdAt     TimestamptzString          @default(now())
   updatedAt     temporal.updatedAtString()
 
-  attempts      TriviaAttempt[]
+  durationSeconds Int?
+  attempts        TriviaAttempt[]
+  sessions        TriviaSession[]
 
   @@index([status])
   @@index([quizId, questionOrder])
   @@map("trivia_questions")
+
+  @@check(expression: "\"durationSeconds\" IS NULL OR \"durationSeconds\" BETWEEN 10 AND 600", name: "trivia_question_duration_check")
+  @@check(expression: "\"quizId\" IS NULL OR \"durationSeconds\" IS NULL", name: "trivia_question_quiz_timer_check")
 }
 
 model TriviaAttempt {
@@ -1095,6 +1105,37 @@ model TriviaAttempt {
   @@unique([questionId, userId])
   @@index([userId, createdAt])
   @@map("trivia_attempts")
+}
+
+// Server-controlled Trivia participation countdowns.
+// Each session targets one standalone question or one quiz.
+model TriviaSession {
+  id              Int               @id @default(autoincrement())
+
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id])
+
+  questionId      Int?
+  question        TriviaQuestion?   @relation(fields: [questionId], references: [id])
+
+  quizId          Int?
+  quiz            TriviaQuiz?       @relation(fields: [quizId], references: [id])
+
+  durationSeconds Int
+  startedAt       TimestamptzString @default(now())
+  expiresAt       TimestamptzString
+  completedAt     TimestamptzString?
+
+  @@unique([userId, questionId])
+  @@unique([userId, quizId])
+  @@index([expiresAt])
+  @@map("trivia_sessions")
+
+  @@check(expression: "(\"questionId\" IS NOT NULL AND \"quizId\" IS NULL) OR (\"questionId\" IS NULL AND \"quizId\" IS NOT NULL)", name: "trivia_session_target_check")
+  @@check(expression: "(\"questionId\" IS NOT NULL AND \"durationSeconds\" BETWEEN 10 AND 600) OR (\"quizId\" IS NOT NULL AND \"durationSeconds\" BETWEEN 30 AND 3600)", name: "trivia_session_duration_check")
+  @@check(expression: "\"expiresAt\" > \"startedAt\"", name: "trivia_session_expiry_check")
+  @@check(expression: "\"expiresAt\" <= \"startedAt\" + \"durationSeconds\" * INTERVAL '1 second'", name: "trivia_session_max_expiry_check")
+  @@check(expression: "\"completedAt\" IS NULL OR (\"completedAt\" >= \"startedAt\" AND \"completedAt\" <= \"expiresAt\")", name: "trivia_session_completion_check")
 }
 
 model AdminUser {

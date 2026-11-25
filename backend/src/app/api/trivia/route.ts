@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
+import { buildTriviaSessionResponse } from "@/lib/trivia/session-response";
 
 export async function GET() {
   try {
@@ -47,7 +48,12 @@ export async function GET() {
         new Date(question.endsAt).getTime() <= now
       ) {
         await db.orm.public.TriviaQuestion
-          .where({ id: question.id })
+          .where({
+            id: question.id,
+            status: "ACTIVE",
+            quizId: null,
+            endsAt: question.endsAt,
+          })
           .update({ status: "CLOSED" });
       }
     }
@@ -82,6 +88,21 @@ export async function GET() {
           .all()
       : [];
 
+    const sessions = userId
+      ? await db.orm.public.TriviaSession
+          .where({ userId, quizId: null })
+          .all()
+      : [];
+
+    const sessionsByQuestion = new Map(
+      sessions.map((session) => [
+        session.questionId,
+        session,
+      ])
+    );
+
+    const responseTime = Date.now();
+
     const attemptedQuestionIds = new Set(
       attempts.map((attempt) => attempt.questionId)
     );
@@ -96,8 +117,10 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      viewerUserId: userId ?? null,
       balance: profile?.currentPoints ?? null,
       totalPoints: profile?.totalPoints ?? null,
+      serverNow: new Date(responseTime).toISOString(),
       roundSize: unansweredQuestions.length,
       questions: unansweredQuestions.map((question) => ({
         id: question.id,
@@ -113,8 +136,18 @@ export async function GET() {
         questionOrder: question.questionOrder,
         imageUrl: question.imageUrl,
         attempted: false,
+        ...buildTriviaSessionResponse(
+          question,
+          sessionsByQuestion.get(question.id) ?? null,
+          responseTime,
+          Boolean(userId)
+        ),
       })),
       attemptedCount: attempts.length,
+    }, {
+      headers: {
+        "Cache-Control": "private, no-store",
+      },
     });
   } catch (error) {
     console.error("GET /api/trivia error:", error);

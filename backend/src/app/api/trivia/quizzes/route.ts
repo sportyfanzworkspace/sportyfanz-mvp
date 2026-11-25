@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import {
+  isTriviaQuizFullyAvailable,
+} from "@/lib/trivia/quiz-availability";
 import { getCurrentUserId } from "@/lib/auth";
+import { buildTriviaSessionResponse } from "@/lib/trivia/session-response";
 
 export async function GET() {
   try {
     const userId = await getCurrentUserId();
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Your account is not active." },
+          { status: 403 }
+        );
+      }
+    }
+
     const now = Date.now();
 
     const activeQuizzes = await db.orm.public.TriviaQuiz
@@ -29,28 +46,14 @@ export async function GET() {
 
     const questions = quizIds.size
       ? await db.orm.public.TriviaQuestion
-          .where({ status: "ACTIVE" })
           .all()
       : [];
 
-    const availableQuestions = questions.filter((question) => {
-      if (
-        question.quizId === null ||
-        !quizIds.has(question.quizId)
-      ) {
-        return false;
-      }
-
-      const hasStarted =
-        !question.startsAt ||
-        new Date(question.startsAt).getTime() <= now;
-
-      const hasNotEnded =
-        !question.endsAt ||
-        new Date(question.endsAt).getTime() > now;
-
-      return hasStarted && hasNotEnded;
-    });
+    const availableQuestions = questions.filter(
+      (question) =>
+        question.quizId !== null &&
+        quizIds.has(question.quizId)
+    );
 
     const attempts = userId
       ? await db.orm.public.TriviaAttempt
@@ -58,11 +61,34 @@ export async function GET() {
           .all()
       : [];
 
+    const sessions = userId
+      ? await db.orm.public.TriviaSession
+          .where({ userId, questionId: null })
+          .all()
+      : [];
+
+    const sessionsByQuiz = new Map(
+      sessions.map((session) => [
+        session.quizId,
+        session,
+      ])
+    );
+
+    const responseTime = Date.now();
+
     const attemptedQuestionIds = new Set(
       attempts.map((attempt) => attempt.questionId)
     );
 
     const items = availableQuizzes
+      .filter((quiz) =>
+        isTriviaQuizFullyAvailable(
+          availableQuestions.filter(
+            (question) => question.quizId === quiz.id
+          ),
+          responseTime
+        )
+      )
       .map((quiz) => {
         const quizQuestions = availableQuestions.filter(
           (question) => question.quizId === quiz.id
@@ -99,6 +125,14 @@ export async function GET() {
             ? completedQuestions.length
             : null,
           earnedPoints: userId ? earnedPoints : null,
+          ...buildTriviaSessionResponse(
+            quiz,
+            sessionsByQuiz.get(quiz.id) ?? null,
+            responseTime,
+            Boolean(userId),
+            quizQuestions.length > 0 &&
+              completedQuestions.length === quizQuestions.length
+          ),
           isCompleted: userId
             ? quizQuestions.length > 0 &&
               completedQuestions.length === quizQuestions.length
@@ -114,7 +148,13 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
+      viewerUserId: userId ?? null,
+      serverNow: new Date(responseTime).toISOString(),
       quizzes: items,
+    }, {
+      headers: {
+        "Cache-Control": "private, no-store",
+      },
     });
   } catch (error) {
     console.error("GET /api/trivia/quizzes error:", error);

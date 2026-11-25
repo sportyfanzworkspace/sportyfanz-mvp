@@ -1,6 +1,17 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import TriviaCountdown from "@/components/trivia/TriviaCountdown";
+import { formatTriviaDuration } from "@/lib/trivia-duration";
+import {
+  createTriviaCountdownClock,
+  getEffectiveTriviaSessionStatus,
+  canSubmitTriviaAnswer,
+  type TriviaCountdownFields,
+  type TriviaCountdownClock,
+  type TriviaSessionStatus,
+  type TriviaCountdownSession,
+} from "@/lib/trivia-countdown";
 import Link from "next/link";
 
 import {
@@ -85,7 +96,7 @@ type TriviaOption = {
   label: string;
 };
 
-type TriviaQuestion = {
+type TriviaQuestion = Partial<TriviaCountdownFields> & {
   id: number;
   question: string;
   imageUrl: string | null;
@@ -95,7 +106,9 @@ type TriviaQuestion = {
 };
 
 type TriviaResponse = {
+  viewerUserId: number | null;
   success: boolean;
+  serverNow: string;
   balance: number | null;
   totalPoints: number | null;
   roundSize: number;
@@ -104,6 +117,7 @@ type TriviaResponse = {
 };
 
 type TriviaAnswerResponse = {
+  viewerUserId: number | null;
   success: boolean;
   message: string;
   isCorrect: boolean;
@@ -116,9 +130,27 @@ type TriviaAnswerResponse = {
   totalPoints: number;
   questionId: number;
   attemptId: number;
+  sessionCompleted?: boolean;
+  sessionStatus?: TriviaSessionStatus;
+  sessionExpiresAt?: string | null;
+  serverNow?: string;
 };
 
-type TriviaQuizSummary = {
+type TriviaSessionResponse = {
+  viewerUserId: number | null;
+  status: TriviaSessionStatus;
+  durationSeconds: number | null;
+  session: TriviaCountdownSession | null;
+  remainingSeconds: number;
+  serverNow: string;
+};
+
+type LocalTriviaSession = TriviaCountdownFields & {
+  clock: TriviaCountdownClock | null;
+  serverTimestamp?: number;
+};
+
+type TriviaQuizSummary = TriviaCountdownFields & {
   id: number;
   title: string;
   description: string | null;
@@ -133,7 +165,9 @@ type TriviaQuizSummary = {
 };
 
 type TriviaQuizzesResponse = {
+  viewerUserId: number | null;
   success: boolean;
+  serverNow: string;
   quizzes: TriviaQuizSummary[];
 };
 
@@ -144,8 +178,10 @@ type TriviaQuizQuestion = TriviaQuestion & {
 };
 
 type TriviaQuizDetailsResponse = {
+  viewerUserId: number | null;
   success: boolean;
-  quiz: Pick<
+  serverNow: string;
+  quiz: TriviaCountdownFields & Pick<
     TriviaQuizSummary,
     | "id"
     | "title"
@@ -225,40 +261,157 @@ export default function ParticipatePage() {
    * ============================================================
    */
 
-  const [participationAuth, setParticipationAuth] =
-    useState<"checking" | "authenticated" | "guest" | "error">(
-      "checking"
+  type ParticipationAuthStatus =
+    "checking" | "authenticated" | "guest" | "error";
+
+  const [participationAuth, setParticipationAuthState] =
+    useState<ParticipationAuthStatus>("checking");
+
+  const participationAuthRef =
+    useRef<ParticipationAuthStatus>("checking");
+
+  const participationUserIdRef =
+    useRef<number | null>(null);
+
+  const participationAuthEpoch = useRef(0);
+
+  const [participationIdentityVersion,
+    setParticipationIdentityVersion] = useState(0);
+
+  function setParticipationAuth(
+    status: ParticipationAuthStatus,
+    userId: number | null = null
+  ) {
+    const nextUserId =
+      status === "authenticated" ? userId : null;
+
+    const changed =
+      participationAuthRef.current !== status ||
+      participationUserIdRef.current !== nextUserId;
+
+    if (!changed) return;
+
+    participationAuthRef.current = status;
+    participationUserIdRef.current = nextUserId;
+    participationAuthEpoch.current += 1;
+
+    triviaStartLock.current = false;
+    triviaSubmitLock.current = false;
+
+    setStartingTriviaKey(null);
+    setTriviaSubmittingId(null);
+    setSelectedTriviaQuizLoading(false);
+    setTriviaLoading(false);
+    setTriviaQuizzesLoading(false);
+
+    localTriviaSessionsRef.current = {};
+    triviaResultsRef.current = {};
+
+    setLocalTriviaSessions({});
+    setTriviaResults({});
+    setTriviaAnswers({});
+    setTriviaData(null);
+    setTriviaQuizzes([]);
+    setSelectedTriviaQuiz(null);
+    setQuizQuestionIndex(0);
+
+    setError("");
+    setMessage("");
+
+    setParticipationAuthState(status);
+
+    setParticipationIdentityVersion(
+      participationAuthEpoch.current
     );
+  }
 
   useEffect(() => {
     let cancelled = false;
+    let requestInProgress = false;
 
     async function checkParticipationAuth() {
+      if (cancelled || requestInProgress) return;
+
+      requestInProgress = true;
+
+      const epoch = participationAuthEpoch.current;
+
       try {
         const response = await apiFetch("/api/auth/me", {
           cache: "no-store",
         });
 
-        if (cancelled) return;
+        const data = await response.json();
 
-        setParticipationAuth(
-          response.ok
-            ? "authenticated"
-            : response.status === 401
+        if (
+          cancelled ||
+          epoch !== participationAuthEpoch.current
+        ) {
+          return;
+        }
+
+        if (
+          response.ok &&
+          Number.isSafeInteger(data.user?.id) &&
+          data.user.id > 0
+        ) {
+          setParticipationAuth(
+            "authenticated",
+            data.user.id
+          );
+        } else {
+          setParticipationAuth(
+            response.status === 401
               ? "guest"
               : "error"
-        );
+          );
+        }
       } catch {
-        if (!cancelled) {
+        if (
+          !cancelled &&
+          epoch === participationAuthEpoch.current
+        ) {
           setParticipationAuth("error");
         }
+      } finally {
+        requestInProgress = false;
+      }
+    }
+
+    function revalidate() {
+      if (document.visibilityState === "visible") {
+        void checkParticipationAuth();
       }
     }
 
     void checkParticipationAuth();
 
+    window.addEventListener("focus", revalidate);
+
+    document.addEventListener(
+      "visibilitychange",
+      revalidate
+    );
+
+    const interval = window.setInterval(
+      revalidate,
+      15000
+    );
+
     return () => {
       cancelled = true;
+
+      window.clearInterval(interval);
+
+      window.removeEventListener(
+        "focus",
+        revalidate
+      );
+
+      document.removeEventListener(
+        "visibilitychange",
+        revalidate
+      );
     };
   }, []);
 
@@ -350,6 +503,449 @@ const [selectedTriviaQuizLoading, setSelectedTriviaQuizLoading] =
 
 const [quizQuestionIndex, setQuizQuestionIndex] =
   useState(0);
+
+const [localTriviaSessions, setLocalTriviaSessions] =
+  useState<Record<string, LocalTriviaSession>>({});
+
+const localTriviaSessionsRef =
+  useRef<Record<string, LocalTriviaSession>>({});
+
+const triviaStartLock = useRef(false);
+const triviaSubmitLock = useRef(false);
+
+const [startingTriviaKey, setStartingTriviaKey] =
+  useState<string | null>(null);
+
+const [triviaClockNow, setTriviaClockNow] =
+  useState(0);
+
+useEffect(() => {
+  if (activeTab !== "trivia") return;
+
+  function tick() {
+    setTriviaClockNow(performance.now());
+  }
+
+  tick();
+
+  const interval = window.setInterval(tick, 250);
+
+  window.addEventListener("focus", tick);
+  document.addEventListener("visibilitychange", tick);
+
+  return () => {
+    window.clearInterval(interval);
+    window.removeEventListener("focus", tick);
+    document.removeEventListener("visibilitychange", tick);
+  };
+}, [activeTab]);
+
+useEffect(() => {
+  if (participationAuth !== "authenticated") {
+    localTriviaSessionsRef.current = {};
+    setLocalTriviaSessions({});
+  }
+}, [participationAuth]);
+
+function validateTriviaResponseIdentity(
+  result: unknown,
+  requestEpoch: number
+): boolean {
+  if (
+    requestEpoch !== participationAuthEpoch.current
+  ) {
+    return false;
+  }
+
+  if (
+    !result ||
+    typeof result !== "object"
+  ) {
+    return false;
+  }
+
+  const data = result as Record<string, unknown>;
+
+  if (data.code === "TRIVIA_IDENTITY_CHANGED") {
+    setParticipationAuth("checking");
+    window.dispatchEvent(new Event("focus"));
+    return false;
+  }
+
+  // Error responses are handled by the request handlers.
+  if (data.success !== true) {
+    return true;
+  }
+
+  const status = participationAuthRef.current;
+
+  if (
+    status !== "authenticated" &&
+    status !== "guest"
+  ) {
+    return false;
+  }
+
+  const expectedViewer =
+    status === "authenticated"
+      ? participationUserIdRef.current
+      : null;
+
+  if (data.viewerUserId !== expectedViewer) {
+    setParticipationAuth("checking");
+    window.dispatchEvent(new Event("focus"));
+    return false;
+  }
+
+  return true;
+}
+
+function saveTriviaSession(
+  key: string,
+  fields: Partial<TriviaCountdownFields>,
+  serverNow: string,
+  capturedAt: number,
+  publicationEndsAt?: string | null
+) {
+  const previous = localTriviaSessionsRef.current[key];
+
+  const serverTimestamp = Date.parse(serverNow);
+
+  if (!Number.isFinite(serverTimestamp)) {
+    return;
+  }
+
+  if (
+    previous?.serverTimestamp !== undefined &&
+    serverTimestamp < previous.serverTimestamp
+  ) {
+    return;
+  }
+
+  let clock = fields.session
+    ? createTriviaCountdownClock(
+        serverNow,
+        fields.session.expiresAt,
+        capturedAt,
+        publicationEndsAt,
+        fields.remainingSeconds
+      )
+    : null;
+
+  // Never allow a stale response to restart or extend
+  // an existing countdown.
+  if (previous?.session) {
+    if (!fields.session) return;
+
+    if (previous.session.id !== fields.session.id) {
+      return;
+    }
+
+    if (
+      previous.sessionStatus === "COMPLETED" ||
+      previous.sessionStatus === "EXPIRED" ||
+      previous.sessionStatus === "CLOSED"
+    ) {
+      return;
+    }
+
+    if (previous.clock && clock) {
+      const previousDeadline =
+        previous.clock.capturedAt +
+        previous.clock.remainingMilliseconds;
+
+      const incomingDeadline =
+        clock.capturedAt +
+        clock.remainingMilliseconds;
+
+      if (incomingDeadline > previousDeadline) {
+        clock = previous.clock;
+      }
+    }
+  }
+
+  const next: LocalTriviaSession = {
+    durationSeconds: fields.durationSeconds ?? null,
+    sessionStatus: fields.sessionStatus ?? null,
+    session: fields.session ?? null,
+    remainingSeconds: fields.remainingSeconds ?? null,
+    clock,
+    serverTimestamp,
+  };
+
+  const updated = {
+    ...localTriviaSessionsRef.current,
+    [key]: next,
+  };
+
+  localTriviaSessionsRef.current = updated;
+  setLocalTriviaSessions(updated);
+}
+
+function recoverSingleSessions(data: TriviaResponse) {
+  const capturedAt = performance.now();
+
+  for (const question of data.questions) {
+    saveTriviaSession(
+      `QUESTION:${question.id}`,
+      question,
+      data.serverNow,
+      capturedAt
+    );
+  }
+}
+
+function recoverQuizSessions(data: TriviaQuizzesResponse) {
+  const capturedAt = performance.now();
+
+  for (const quiz of data.quizzes) {
+    saveTriviaSession(
+      `QUIZ:${quiz.id}`,
+      quiz,
+      data.serverNow,
+      capturedAt,
+      quiz.endsAt
+    );
+  }
+}
+
+function getTriviaActivityKey(questionId: number) {
+  if (
+    selectedTriviaQuiz?.questions.some(
+      (question) => question.id === questionId
+    )
+  ) {
+    return `QUIZ:${selectedTriviaQuiz.quiz.id}`;
+  }
+
+  return `QUESTION:${questionId}`;
+}
+
+function getTriviaActivity(
+  key: string,
+  fallback?: Partial<TriviaCountdownFields>
+): LocalTriviaSession {
+  const activity = localTriviaSessions[key] ?? {
+    durationSeconds: fallback?.durationSeconds ?? null,
+    sessionStatus: fallback?.sessionStatus ?? null,
+    session: fallback?.session ?? null,
+    remainingSeconds: fallback?.remainingSeconds ?? null,
+    clock: null,
+  };
+
+  if (participationAuth !== "authenticated") {
+    return {
+      durationSeconds: activity.durationSeconds,
+      sessionStatus: null,
+      session: null,
+      remainingSeconds: null,
+      clock: null,
+    };
+  }
+
+  return {
+    ...activity,
+    sessionStatus: getEffectiveTriviaSessionStatus(
+      activity.sessionStatus,
+      activity.clock,
+      triviaClockNow
+    ),
+  };
+}
+
+function isTriviaSubmissionBlocked(key: string) {
+  if (participationAuth === "guest") {
+    return false;
+  }
+
+  if (participationAuth !== "authenticated") {
+    return true;
+  }
+
+  const activity = localTriviaSessions[key];
+
+  return !canSubmitTriviaAnswer(
+    activity?.sessionStatus ?? null,
+    activity?.clock ?? null,
+    triviaClockNow
+  );
+}
+
+async function startTriviaActivity(
+  kind: "QUESTION" | "QUIZ",
+  id: number
+) {
+  if (participationAuth === "guest") {
+    setParticipationPrompt("trivia");
+    return;
+  }
+
+  if (participationAuth !== "authenticated") {
+    setError("Unable to verify your sign-in status.");
+    return;
+  }
+
+  if (triviaStartLock.current) return;
+
+  triviaStartLock.current = true;
+
+  const key = `${kind}:${id}`;
+
+  setStartingTriviaKey(key);
+  setError("");
+
+  const requestEpoch =
+    participationAuthEpoch.current;
+
+  try {
+    const response = await apiFetch(
+      "/api/trivia/session",
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        "X-Trivia-Viewer": String(participationUserIdRef.current),
+        },
+        body: JSON.stringify(
+          kind === "QUESTION"
+            ? { questionId: id }
+            : { quizId: id }
+        ),
+      }
+    );
+
+    const result = await response.json();
+
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    if (
+      !validateTriviaResponseIdentity(
+        result,
+        requestEpoch
+      )
+    ) {
+      return;
+    }
+
+    if (response.status === 401) {
+      setParticipationAuth("guest");
+      setParticipationPrompt("trivia");
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.error || "Unable to start Trivia."
+      );
+    }
+
+    const data = result as TriviaSessionResponse;
+
+    saveTriviaSession(
+      key,
+      {
+        durationSeconds: data.durationSeconds,
+        sessionStatus: data.status,
+        session: data.session,
+        remainingSeconds: data.remainingSeconds,
+      },
+      data.serverNow,
+      performance.now()
+    );
+
+    if (
+      data.status === "EXPIRED" ||
+      data.status === "CLOSED"
+    ) {
+      setError(
+        data.status === "EXPIRED"
+          ? "Time is up! This countdown has expired."
+          : "This Trivia activity is closed."
+      );
+    }
+  } catch (err) {
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to start Trivia."
+    );
+  } finally {
+    if (
+      requestEpoch === participationAuthEpoch.current
+    ) {
+      triviaStartLock.current = false;
+      setStartingTriviaKey(null);
+    }
+  }
+}
+
+function renderTriviaCountdown(
+  kind: "QUESTION" | "QUIZ",
+  id: number,
+  fallback: Partial<TriviaCountdownFields>,
+  completed = false
+) {
+  const key = `${kind}:${id}`;
+  const activity = getTriviaActivity(key, fallback);
+
+  const status = completed
+    ? "COMPLETED"
+    : participationAuth === "guest"
+      ? null
+      : activity.sessionStatus;
+
+  const canStart =
+    !completed &&
+    activity.durationSeconds !== null &&
+    (
+      status === "NOT_STARTED" ||
+      participationAuth === "guest"
+    );
+
+  return (
+    <>
+      <TriviaCountdown
+        status={status}
+        durationSeconds={activity.durationSeconds}
+        clock={activity.clock}
+      />
+
+      {canStart && (
+        <button
+          type="button"
+          className="sf-trivia-quiz-button"
+          disabled={
+            startingTriviaKey !== null ||
+            participationAuth === "checking" ||
+            participationAuth === "error"
+          }
+          onClick={() =>
+            void startTriviaActivity(kind, id)
+          }
+        >
+          {startingTriviaKey === key
+            ? "Starting..."
+            : participationAuth === "guest"
+              ? "Sign in to Start"
+              : kind === "QUESTION"
+                ? "Start Trivia"
+                : "Start Quiz"}
+        </button>
+      )}
+    </>
+  );
+}
 
   /*
    * ============================================================
@@ -528,6 +1124,9 @@ async function loadPolls() {
  */
 
 async function loadTriviaQuizzes() {
+  const requestEpoch =
+    participationAuthEpoch.current;
+
   try {
     setTriviaQuizzesLoading(true);
     setError("");
@@ -538,6 +1137,21 @@ async function loadTriviaQuizzes() {
 
     const result = await response.json();
 
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    if (
+      !validateTriviaResponseIdentity(
+        result,
+        requestEpoch
+      )
+    ) {
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(
         result.error || "Unable to load Trivia quizzes."
@@ -545,15 +1159,26 @@ async function loadTriviaQuizzes() {
     }
 
     const data = result as TriviaQuizzesResponse;
+    recoverQuizSessions(data);
     setTriviaQuizzes(data.quizzes);
   } catch (err) {
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
     setError(
       err instanceof Error
         ? err.message
         : "Unable to load Trivia quizzes."
     );
   } finally {
-    setTriviaQuizzesLoading(false);
+    if (
+      requestEpoch === participationAuthEpoch.current
+    ) {
+      setTriviaQuizzesLoading(false);
+    }
   }
 }
 
@@ -564,6 +1189,9 @@ async function loadTriviaQuizzes() {
  */
 
 async function openTriviaQuiz(quizId: number) {
+  const requestEpoch =
+    participationAuthEpoch.current;
+
   try {
     setSelectedTriviaQuizLoading(true);
     setError("");
@@ -576,6 +1204,21 @@ async function openTriviaQuiz(quizId: number) {
 
     const result = await response.json();
 
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    if (
+      !validateTriviaResponseIdentity(
+        result,
+        requestEpoch
+      )
+    ) {
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(
         result.error || "Unable to open this Trivia quiz."
@@ -583,6 +1226,14 @@ async function openTriviaQuiz(quizId: number) {
     }
 
     const data = result as TriviaQuizDetailsResponse;
+
+    saveTriviaSession(
+      `QUIZ:${data.quiz.id}`,
+      data.quiz,
+      data.serverNow,
+      performance.now(),
+      data.quiz.endsAt
+    );
 
     setSelectedTriviaQuiz(data);
 
@@ -598,13 +1249,23 @@ async function openTriviaQuiz(quizId: number) {
     );
 
   } catch (err) {
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
     setError(
       err instanceof Error
         ? err.message
         : "Unable to open this Trivia quiz."
     );
   } finally {
-    setSelectedTriviaQuizLoading(false);
+    if (
+      requestEpoch === participationAuthEpoch.current
+    ) {
+      setSelectedTriviaQuizLoading(false);
+    }
   }
 }
 
@@ -615,6 +1276,9 @@ async function openTriviaQuiz(quizId: number) {
  */
 
 async function loadTrivia() {
+  const requestEpoch =
+    participationAuthEpoch.current;
+
   try {
     setTriviaLoading(true);
     setError("");
@@ -625,22 +1289,48 @@ async function loadTrivia() {
 
     const result = await response.json();
 
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    if (
+      !validateTriviaResponseIdentity(
+        result,
+        requestEpoch
+      )
+    ) {
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(
         result.error || "Failed to load Trivia."
       );
     }
 
+    recoverSingleSessions(result as TriviaResponse);
     setTriviaData(result);
     setTriviaAnswers({});
   } catch (err) {
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
     setError(
       err instanceof Error
         ? err.message
         : "Failed to load Trivia."
     );
   } finally {
-    setTriviaLoading(false);
+    if (
+      requestEpoch === participationAuthEpoch.current
+    ) {
+      setTriviaLoading(false);
+    }
   }
 }
 
@@ -715,6 +1405,16 @@ useEffect(() => {
   let cancelled = false;
 
   async function fetchQuizzes() {
+    if (
+      participationAuthRef.current !== "authenticated" &&
+      participationAuthRef.current !== "guest"
+    ) {
+      return;
+    }
+
+    const requestEpoch =
+      participationAuthEpoch.current;
+
     setTriviaQuizzesLoading(true);
 
     try {
@@ -724,18 +1424,41 @@ useEffect(() => {
 
       const result = await response.json();
 
+      if (
+        cancelled ||
+        requestEpoch !== participationAuthEpoch.current
+      ) {
+        return;
+      }
+
+      if (
+        !validateTriviaResponseIdentity(
+          result,
+          requestEpoch
+        )
+      ) {
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(
           result.error || "Unable to load Trivia quizzes."
         );
       }
 
-      if (!cancelled) {
+      if (
+        !cancelled &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
         const data = result as TriviaQuizzesResponse;
+        recoverQuizSessions(data);
         setTriviaQuizzes(data.quizzes);
       }
     } catch (err) {
-      if (!cancelled) {
+      if (
+        !cancelled &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
         setError(
           err instanceof Error
             ? err.message
@@ -743,7 +1466,10 @@ useEffect(() => {
         );
       }
     } finally {
-      if (!cancelled) {
+      if (
+        !cancelled &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
         setTriviaQuizzesLoading(false);
       }
     }
@@ -754,7 +1480,11 @@ useEffect(() => {
   return () => {
     cancelled = true;
   };
-}, [activeTab]);
+}, [
+  activeTab,
+  participationAuth,
+  participationIdentityVersion
+]);
 
 /*
  * ============================================================
@@ -770,6 +1500,16 @@ useEffect(() => {
   let requestInProgress = false;
 
   async function fetchTrivia() {
+    if (
+      participationAuthRef.current !== "authenticated" &&
+      participationAuthRef.current !== "guest"
+    ) {
+      return;
+    }
+
+    const requestEpoch =
+      participationAuthEpoch.current;
+
     if (requestInProgress || cancelled) return;
 
     requestInProgress = true;
@@ -786,15 +1526,37 @@ useEffect(() => {
 
       const result = await response.json();
 
+      if (
+        cancelled ||
+        requestEpoch !== participationAuthEpoch.current
+      ) {
+        return;
+      }
+
+      if (
+        !validateTriviaResponseIdentity(
+          result,
+          requestEpoch
+        )
+      ) {
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(
           result.error || "Failed to load Trivia."
         );
       }
 
-      if (!cancelled) {
+      if (
+        !cancelled &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
+        const incoming = result as TriviaResponse;
+
+        recoverSingleSessions(incoming);
+
         setTriviaData((current) => {
-          const incoming = result as TriviaResponse;
 
           if (!current) return incoming;
 
@@ -820,7 +1582,10 @@ useEffect(() => {
         setError("");
       }
     } catch (err) {
-      if (!cancelled) {
+      if (
+        !cancelled &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
         setError(
           err instanceof Error
             ? err.message
@@ -830,7 +1595,11 @@ useEffect(() => {
     } finally {
       requestInProgress = false;
 
-      if (!cancelled && !isFirstLoad) {
+      if (
+        !cancelled &&
+        !isFirstLoad &&
+        requestEpoch === participationAuthEpoch.current
+      ) {
         setTriviaLoading(false);
       }
     }
@@ -846,7 +1615,11 @@ useEffect(() => {
     cancelled = true;
     window.clearInterval(refreshInterval);
   };
-}, [activeTab]);
+}, [
+  activeTab,
+  participationAuth,
+  participationIdentityVersion
+]);
 
 /*
  * ============================================================
@@ -926,12 +1699,39 @@ async function handleTriviaAnswer(questionId: number) {
     return;
   }
 
+  if (triviaSubmitLock.current) return;
+
+  const activityKey = getTriviaActivityKey(questionId);
+
+  const activity =
+    localTriviaSessionsRef.current[activityKey];
+
+  if (
+    !canSubmitTriviaAnswer(
+      activity?.sessionStatus ?? null,
+      activity?.clock ?? null,
+      performance.now()
+    )
+  ) {
+    setError(
+      activity?.sessionStatus === "NOT_STARTED"
+        ? "Start this Trivia activity first."
+        : "This Trivia activity is not accepting answers. Check your countdown."
+    );
+    return;
+  }
+
   const selectedOption = triviaAnswers[questionId];
 
   if (!selectedOption) {
     setError("Please select an answer first.");
     return;
   }
+
+  triviaSubmitLock.current = true;
+
+  const requestEpoch =
+    participationAuthEpoch.current;
 
   try {
     setTriviaSubmittingId(questionId);
@@ -942,6 +1742,7 @@ async function handleTriviaAnswer(questionId: number) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Trivia-Viewer": String(participationUserIdRef.current),
       },
       body: JSON.stringify({
         questionId,
@@ -951,12 +1752,53 @@ async function handleTriviaAnswer(questionId: number) {
 
     const result = await response.json();
 
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
+    if (
+      !validateTriviaResponseIdentity(
+        result,
+        requestEpoch
+      )
+    ) {
+      return;
+    }
+
     if (!response.ok) {
       if (response.status === 401) {
         setParticipationAuth("guest");
-        throw new Error(
-          "Your session has expired. Please sign in to continue."
-        );
+        setParticipationPrompt("trivia");
+        return;
+      }
+
+      const terminalStatuses: Record<string, TriviaSessionStatus> = {
+        TRIVIA_SESSION_EXPIRED: "EXPIRED",
+        TRIVIA_SESSION_COMPLETED: "COMPLETED",
+        TRIVIA_ACTIVITY_CLOSED: "CLOSED",
+        QUESTION_DEADLINE_PASSED: "CLOSED",
+        QUIZ_DEADLINE_PASSED: "CLOSED",
+      };
+
+      const terminalStatus =
+        terminalStatuses[result.code];
+
+      const current =
+        localTriviaSessionsRef.current[activityKey];
+
+      if (terminalStatus && current) {
+        const updated = {
+          ...localTriviaSessionsRef.current,
+          [activityKey]: {
+            ...current,
+            sessionStatus: terminalStatus,
+          },
+        };
+
+        localTriviaSessionsRef.current = updated;
+        setLocalTriviaSessions(updated);
       }
 
       throw new Error(
@@ -966,6 +1808,25 @@ async function handleTriviaAnswer(questionId: number) {
 
     const answerResult =
       result as TriviaAnswerResponse;
+
+    const currentActivity =
+      localTriviaSessionsRef.current[activityKey];
+
+    if (
+      currentActivity &&
+      answerResult.sessionCompleted
+    ) {
+      const updated: Record<string, LocalTriviaSession> = {
+        ...localTriviaSessionsRef.current,
+        [activityKey]: {
+          ...currentActivity,
+          sessionStatus: "COMPLETED",
+        },
+      };
+
+      localTriviaSessionsRef.current = updated;
+      setLocalTriviaSessions(updated);
+    }
 
     setMessage(
       answerResult.isCorrect
@@ -1038,13 +1899,24 @@ async function handleTriviaAnswer(questionId: number) {
       };
     });
   } catch (err) {
+    if (
+      requestEpoch !== participationAuthEpoch.current
+    ) {
+      return;
+    }
+
     setError(
       err instanceof Error
         ? err.message
         : "Unable to submit your answer."
     );
   } finally {
-    setTriviaSubmittingId(null);
+    if (
+      requestEpoch === participationAuthEpoch.current
+    ) {
+      triviaSubmitLock.current = false;
+      setTriviaSubmittingId(null);
+    }
   }
 }
 
@@ -2002,7 +2874,24 @@ async function handleTriviaAnswer(questionId: number) {
                         : "sf-trivia-status available"
                     }
                   >
-                    {quiz.isCompleted ? "Completed" : "Available"}
+                    {quiz.isCompleted ||
+                    getTriviaActivity(
+                      `QUIZ:${quiz.id}`, quiz
+                    ).sessionStatus === "COMPLETED"
+                      ? "Completed"
+                      : getTriviaActivity(
+                          `QUIZ:${quiz.id}`, quiz
+                        ).sessionStatus === "EXPIRED"
+                        ? "Expired"
+                        : getTriviaActivity(
+                            `QUIZ:${quiz.id}`, quiz
+                          ).sessionStatus === "ACTIVE"
+                          ? "In Progress"
+                          : getTriviaActivity(
+                              `QUIZ:${quiz.id}`, quiz
+                            ).sessionStatus === "CLOSED"
+                            ? "Closed"
+                            : "Available"}
                   </span>
                 </div>
 
@@ -2016,6 +2905,12 @@ async function handleTriviaAnswer(questionId: number) {
                   {quiz.questionCount} questions
                   <span aria-hidden="true"> · </span>
                   {formatPoints(quiz.maxPoints)} Fan Points
+                  {quiz.durationSeconds !== null && (
+                    <>
+                      <span aria-hidden="true"> · </span>
+                      {formatTriviaDuration(quiz.durationSeconds)}
+                    </>
+                  )}
                 </p>
 
                 {quiz.completedCount !== null && (
@@ -2034,9 +2929,16 @@ async function handleTriviaAnswer(questionId: number) {
                     ? "Opening..."
                     : quiz.isCompleted
                       ? "Review Quiz"
-                      : quiz.completedCount
-                        ? "Resume Quiz"
-                        : "Start Quiz"}
+                      : getTriviaActivity(
+                          `QUIZ:${quiz.id}`, quiz
+                        ).sessionStatus === "EXPIRED"
+                        ? "View Quiz"
+                        : getTriviaActivity(
+                            `QUIZ:${quiz.id}`, quiz
+                          ).sessionStatus === "ACTIVE" ||
+                          quiz.completedCount
+                          ? "Resume Quiz"
+                          : "View Quiz"}
                 </button>
               </div>
             </article>
@@ -2073,6 +2975,13 @@ async function handleTriviaAnswer(questionId: number) {
             <p>{selectedTriviaQuiz.quiz.description}</p>
           )}
         </div>
+
+        {renderTriviaCountdown(
+          "QUIZ",
+          selectedTriviaQuiz.quiz.id,
+          selectedTriviaQuiz.quiz,
+          Boolean(selectedTriviaQuiz.progress?.isCompleted)
+        )}
 
         {quizQuestionIndex >= selectedTriviaQuiz.questions.length ? (
           <div style={{ marginTop: 20 }}>
@@ -2156,7 +3065,10 @@ async function handleTriviaAnswer(questionId: number) {
                         disabled={
                           question.attempted ||
                           Boolean(triviaResults[question.id]) ||
-                          triviaSubmittingId === question.id
+                          triviaSubmittingId !== null ||
+                          isTriviaSubmissionBlocked(
+                            `QUIZ:${selectedTriviaQuiz.quiz.id}`
+                          )
                         }
                         onChange={() =>
                           setTriviaAnswers((current) => ({
@@ -2223,7 +3135,10 @@ async function handleTriviaAnswer(questionId: number) {
                     type="button"
                     disabled={
                       !triviaAnswers[question.id] ||
-                      triviaSubmittingId === question.id
+                      triviaSubmittingId !== null ||
+                      isTriviaSubmissionBlocked(
+                        `QUIZ:${selectedTriviaQuiz.quiz.id}`
+                      )
                     }
                     onClick={() =>
                       void handleTriviaAnswer(question.id)
@@ -2323,6 +3238,13 @@ async function handleTriviaAnswer(questionId: number) {
 
           <h2>{question.question}</h2>
 
+          {renderTriviaCountdown(
+            "QUESTION",
+            question.id,
+            question,
+            Boolean(triviaResults[question.id])
+          )}
+
           {question.imageUrl && (
             <img
               src={question.imageUrl}
@@ -2376,7 +3298,11 @@ async function handleTriviaAnswer(questionId: number) {
                     option.value
                   }
                   disabled={
-                    triviaSubmittingId === question.id
+                    triviaSubmittingId !== null ||
+                    Boolean(triviaResults[question.id]) ||
+                    isTriviaSubmissionBlocked(
+                      `QUESTION:${question.id}`
+                    )
                   }
                   onChange={() =>
                     setTriviaAnswers((current) => ({
@@ -2463,7 +3389,10 @@ async function handleTriviaAnswer(questionId: number) {
               type="button"
               disabled={
                 !triviaAnswers[question.id] ||
-                triviaSubmittingId === question.id
+                triviaSubmittingId !== null ||
+                isTriviaSubmissionBlocked(
+                  `QUESTION:${question.id}`
+                )
               }
               onClick={() =>
                 handleTriviaAnswer(question.id)

@@ -1,0 +1,617 @@
+[
+  {
+    "id": "table.trivia_sessions",
+    "label": "Create table \"trivia_sessions\"",
+    "summary": "Creates table \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"trivia_sessions\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"trivia_sessions\"",
+        "sql": "CREATE TABLE \"public\".\"trivia_sessions\" (\n  \"completedAt\" timestamptz,\n  \"durationSeconds\" int4 NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"questionId\" int4,\n  \"quizId\" int4,\n  \"startedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"trivia_session_completion_check_3e64cd05\" CHECK (\"completedAt\" IS NULL OR (\"completedAt\" >= \"startedAt\" AND \"completedAt\" <= \"expiresAt\")),\n  CONSTRAINT \"trivia_session_duration_check_92dcd0be\" CHECK ((\"questionId\" IS NOT NULL AND \"durationSeconds\" BETWEEN 10 AND 600) OR (\"quizId\" IS NOT NULL AND \"durationSeconds\" BETWEEN 30 AND 3600)),\n  CONSTRAINT \"trivia_session_expiry_check_d11bec3f\" CHECK (\"expiresAt\" > \"startedAt\"),\n  CONSTRAINT \"trivia_session_max_expiry_check_ba652e41\" CHECK (\"expiresAt\" <= \"startedAt\" + \"durationSeconds\" * INTERVAL '1 second'),\n  CONSTRAINT \"trivia_session_target_check_eb0b64e4\" CHECK ((\"questionId\" IS NOT NULL AND \"quizId\" IS NULL) OR (\"questionId\" IS NULL AND \"quizId\" IS NOT NULL))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"trivia_sessions\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.trivia_questions.durationSeconds",
+    "label": "Add column \"durationSeconds\" to \"trivia_questions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "durationSeconds",
+        "table": "trivia_questions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"durationSeconds\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "trivia_questions",
+          "durationSeconds"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"durationSeconds\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_questions\" ADD COLUMN \"durationSeconds\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"durationSeconds\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "trivia_questions",
+          "durationSeconds"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.trivia_quizzes.durationSeconds",
+    "label": "Add column \"durationSeconds\" to \"trivia_quizzes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "durationSeconds",
+        "table": "trivia_quizzes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"durationSeconds\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "trivia_quizzes",
+          "durationSeconds"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"durationSeconds\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_quizzes\" ADD COLUMN \"durationSeconds\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"durationSeconds\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "trivia_quizzes",
+          "durationSeconds"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.trivia_questions.trivia_question_duration_check_40c45e4e",
+    "label": "Add check constraint \"trivia_question_duration_check_40c45e4e\" on \"trivia_questions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "trivia_question_duration_check_40c45e4e",
+        "table": "trivia_questions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_question_duration_check_40c45e4e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_question_duration_check_40c45e4e",
+          "public",
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"trivia_question_duration_check_40c45e4e\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_questions\" ADD CONSTRAINT \"trivia_question_duration_check_40c45e4e\" CHECK (\"durationSeconds\" IS NULL OR \"durationSeconds\" BETWEEN 10 AND 600)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_question_duration_check_40c45e4e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_question_duration_check_40c45e4e",
+          "public",
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.trivia_questions.trivia_question_quiz_timer_check_cb9dad47",
+    "label": "Add check constraint \"trivia_question_quiz_timer_check_cb9dad47\" on \"trivia_questions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "trivia_question_quiz_timer_check_cb9dad47",
+        "table": "trivia_questions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_question_quiz_timer_check_cb9dad47\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_question_quiz_timer_check_cb9dad47",
+          "public",
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"trivia_question_quiz_timer_check_cb9dad47\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_questions\" ADD CONSTRAINT \"trivia_question_quiz_timer_check_cb9dad47\" CHECK (\"quizId\" IS NULL OR \"durationSeconds\" IS NULL)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_question_quiz_timer_check_cb9dad47\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_question_quiz_timer_check_cb9dad47",
+          "public",
+          "\"public\".\"trivia_questions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.trivia_quizzes.trivia_quiz_duration_check_cad6701c",
+    "label": "Add check constraint \"trivia_quiz_duration_check_cad6701c\" on \"trivia_quizzes\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "trivia_quiz_duration_check_cad6701c",
+        "table": "trivia_quizzes"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_quiz_duration_check_cad6701c\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_quiz_duration_check_cad6701c",
+          "public",
+          "\"public\".\"trivia_quizzes\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"trivia_quiz_duration_check_cad6701c\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_quizzes\" ADD CONSTRAINT \"trivia_quiz_duration_check_cad6701c\" CHECK (\"durationSeconds\" IS NULL OR \"durationSeconds\" BETWEEN 30 AND 3600)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_quiz_duration_check_cad6701c\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_quiz_duration_check_cad6701c",
+          "public",
+          "\"public\".\"trivia_quizzes\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.trivia_sessions.trivia_sessions_userId_questionId_key",
+    "label": "Add unique constraint on \"trivia_sessions\" (userId, questionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "trivia_sessions_userId_questionId_key",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_sessions_userId_questionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_questionId_key",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"trivia_sessions_userId_questionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_sessions\" ADD CONSTRAINT \"trivia_sessions_userId_questionId_key\" UNIQUE (\"userId\", \"questionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_sessions_userId_questionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_questionId_key",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.trivia_sessions.trivia_sessions_userId_quizId_key",
+    "label": "Add unique constraint on \"trivia_sessions\" (userId, quizId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "trivia_sessions_userId_quizId_key",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"trivia_sessions_userId_quizId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_quizId_key",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"trivia_sessions_userId_quizId_key\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_sessions\" ADD CONSTRAINT \"trivia_sessions_userId_quizId_key\" UNIQUE (\"userId\", \"quizId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"trivia_sessions_userId_quizId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_quizId_key",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_sessions.trivia_sessions_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"trivia_sessions_expiresAt_idx_6b6b8c10\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_sessions_expiresAt_idx_6b6b8c10",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_sessions_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_sessions_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"trivia_sessions_expiresAt_idx_6b6b8c10\" ON \"public\".\"trivia_sessions\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_sessions_expiresAt_idx_6b6b8c10\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_sessions.trivia_sessions_questionId_idx_fdb42076",
+    "label": "Create index \"trivia_sessions_questionId_idx_fdb42076\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_sessions_questionId_idx_fdb42076",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_sessions_questionId_idx_fdb42076\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_questionId_idx_fdb42076\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_sessions_questionId_idx_fdb42076\"",
+        "sql": "CREATE INDEX \"trivia_sessions_questionId_idx_fdb42076\" ON \"public\".\"trivia_sessions\" (\"questionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_sessions_questionId_idx_fdb42076\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_questionId_idx_fdb42076\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_sessions.trivia_sessions_quizId_idx_c721979c",
+    "label": "Create index \"trivia_sessions_quizId_idx_c721979c\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_sessions_quizId_idx_c721979c",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_sessions_quizId_idx_c721979c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_quizId_idx_c721979c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_sessions_quizId_idx_c721979c\"",
+        "sql": "CREATE INDEX \"trivia_sessions_quizId_idx_c721979c\" ON \"public\".\"trivia_sessions\" (\"quizId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_sessions_quizId_idx_c721979c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_quizId_idx_c721979c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trivia_sessions.trivia_sessions_userId_idx_a489d58a",
+    "label": "Create index \"trivia_sessions_userId_idx_a489d58a\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trivia_sessions_userId_idx_a489d58a",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trivia_sessions_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trivia_sessions_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"trivia_sessions_userId_idx_a489d58a\" ON \"public\".\"trivia_sessions\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trivia_sessions_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trivia_sessions_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.trivia_sessions.trivia_sessions_userId_fkey",
+    "label": "Add foreign key \"trivia_sessions_userId_fkey\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "trivia_sessions_userId_fkey",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"trivia_sessions_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"trivia_sessions_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_sessions\"\nADD CONSTRAINT \"trivia_sessions_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"users\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"trivia_sessions_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_userId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.trivia_sessions.trivia_sessions_questionId_fkey",
+    "label": "Add foreign key \"trivia_sessions_questionId_fkey\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "trivia_sessions_questionId_fkey",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"trivia_sessions_questionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_questionId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"trivia_sessions_questionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_sessions\"\nADD CONSTRAINT \"trivia_sessions_questionId_fkey\"\nFOREIGN KEY (\"questionId\")\nREFERENCES \"public\".\"trivia_questions\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"trivia_sessions_questionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_questionId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.trivia_sessions.trivia_sessions_quizId_fkey",
+    "label": "Add foreign key \"trivia_sessions_quizId_fkey\" on \"trivia_sessions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "trivia_sessions_quizId_fkey",
+        "table": "trivia_sessions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"trivia_sessions_quizId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_quizId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"trivia_sessions_quizId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"trivia_sessions\"\nADD CONSTRAINT \"trivia_sessions_quizId_fkey\"\nFOREIGN KEY (\"quizId\")\nREFERENCES \"public\".\"trivia_quizzes\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"trivia_sessions_quizId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "trivia_sessions_quizId_fkey",
+          "public",
+          "\"public\".\"trivia_sessions\""
+        ]
+      }
+    ]
+  }
+]

@@ -1,10 +1,10 @@
 import PrivateStaffPermissionGuard from "@/components/admin/PrivateStaffPermissionGuard";
-import TriviaManagement from "./trivia-management";
+import TriviaManagementTabs from "./trivia-management-tabs";
 
 export default function TriviaPage() {
   return (
     <PrivateStaffPermissionGuard permission="trivia:manage">
-      <TriviaManagement />
+      <TriviaManagementTabs />
     </PrivateStaffPermissionGuard>
   );
 }

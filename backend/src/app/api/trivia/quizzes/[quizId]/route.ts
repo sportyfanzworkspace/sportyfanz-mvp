@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import {
+  isTriviaQuizFullyAvailable,
+} from "@/lib/trivia/quiz-availability";
 import { getCurrentUserId } from "@/lib/auth";
+import { buildTriviaSessionResponse } from "@/lib/trivia/session-response";
 
 type RouteContext = {
   params: Promise<{ quizId: string }>;
@@ -46,27 +50,47 @@ export async function GET(
 
     const userId = await getCurrentUserId();
 
+    if (userId) {
+      const user = await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+      if (!user || user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Your account is not active." },
+          { status: 403 }
+        );
+      }
+    }
+
     const questions = await db.orm.public.TriviaQuestion
-      .where({ quizId, status: "ACTIVE" })
+      .where({ quizId })
       .all();
 
-    const availableQuestions = questions
-      .filter((question) => {
-        const started =
-          !question.startsAt ||
-          new Date(question.startsAt).getTime() <= now;
-
-        const notExpired =
-          !question.endsAt ||
-          new Date(question.endsAt).getTime() > now;
-
-        return started && notExpired;
-      })
-      .sort(
-        (a, b) =>
-          a.questionOrder - b.questionOrder ||
-          a.id - b.id
+    if (
+      !isTriviaQuizFullyAvailable(
+        questions,
+        Date.now()
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "This Trivia quiz is not currently available.",
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control": "private, no-store",
+          },
+        }
       );
+    }
+
+    const availableQuestions = [...questions].sort(
+      (a, b) =>
+        a.questionOrder - b.questionOrder ||
+        a.id - b.id
+    );
 
     const attempts = userId
       ? await db.orm.public.TriviaAttempt
@@ -89,6 +113,18 @@ export async function GET(
       ])
     );
 
+    const session = userId
+      ? await db.orm.public.TriviaSession
+          .where({
+            userId,
+            quizId,
+            questionId: null,
+          })
+          .first()
+      : null;
+
+    const responseTime = Date.now();
+
     const completedCount = quizAttempts.length;
 
     const earnedPoints = quizAttempts.reduce(
@@ -98,7 +134,17 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
+      viewerUserId: userId ?? null,
+      serverNow: new Date(responseTime).toISOString(),
       quiz: {
+        ...buildTriviaSessionResponse(
+          quiz,
+          session ?? null,
+          responseTime,
+          Boolean(userId),
+          availableQuestions.length > 0 &&
+            completedCount === availableQuestions.length
+        ),
         id: quiz.id,
         title: quiz.title,
         description: quiz.description,
@@ -141,6 +187,10 @@ export async function GET(
             : null,
         };
       }),
+    }, {
+      headers: {
+        "Cache-Control": "private, no-store",
+      },
     });
   } catch (error) {
     console.error("GET Trivia quiz details failed:", error);

@@ -12451,3 +12451,101 @@ grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-top: 14px;
   }
 }
+
+/* =========================================================
+   TRIVIA COUNTDOWN COMPONENT
+========================================================= */
+
+.sf-trivia-countdown {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  margin: 12px 0;
+  border: 1px solid #cde8c9;
+  border-radius: 12px;
+  background: #f2faef;
+  color: #285e2c;
+}
+
+.sf-trivia-countdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sf-trivia-countdown-header > svg {
+  flex-shrink: 0;
+}
+
+.sf-trivia-countdown-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sf-trivia-countdown-copy span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sf-trivia-countdown-copy strong {
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-trivia-countdown-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.09);
+  margin-top: 12px;
+}
+
+.sf-trivia-countdown-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #7ccf72;
+  transition: width 200ms linear;
+}
+
+.sf-trivia-countdown-danger {
+  color: #b42318;
+  border-color: #f3b9b4;
+  background: #fff1f0;
+}
+
+.sf-trivia-countdown-danger
+.sf-trivia-countdown-fill {
+  background: #dc2626;
+}
+
+.sf-trivia-countdown-completed {
+  background: #eaf8e7;
+  border-color: #7ccf72;
+}
+
+.sf-trivia-countdown p {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: inherit;
+}
+
+@media (max-width: 600px) {
+  .sf-trivia-countdown {
+    padding: 12px;
+  }
+
+  .sf-trivia-countdown-copy strong {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-trivia-countdown-fill {
+    transition: none;
+  }
+}

@@ -5,6 +5,11 @@ import { apiFetch } from "@/lib/api";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
+import {
+  TRIVIA_DURATION_LIMITS,
+  parseTriviaDuration,
+  formatTriviaDuration,
+} from "@/lib/trivia-duration";
 
 type TriviaQuestion = {
   id: number;
@@ -16,6 +21,7 @@ type TriviaQuestion = {
   optionD: string;
   correctOption: string;
   pointsReward: number;
+  durationSeconds: number | null;
   status: string;
   scheduleStatus?: string;
   startsAt: string | null;
@@ -33,6 +39,7 @@ type TriviaForm = {
   optionD: string;
   correctOption: string;
   pointsReward: string;
+  durationSeconds: string;
   status: string;
   startsAt: string;
   endsAt: string;
@@ -46,6 +53,9 @@ const emptyForm: TriviaForm = {
   optionD: "",
   correctOption: "A",
   pointsReward: "10",
+  durationSeconds: String(
+    TRIVIA_DURATION_LIMITS.QUESTION.defaultSeconds
+  ),
   status: "DRAFT",
   startsAt: "",
   endsAt: "",
@@ -135,6 +145,8 @@ export default function TriviaManagement() {
     "Option D": item.optionD,
     "Correct Answer": item.correctOption,
     "Points Reward": item.pointsReward,
+    "Duration (Seconds)": item.durationSeconds ?? "",
+    "Time Limit": formatTriviaDuration(item.durationSeconds),
     Status: item.status,
     "Schedule Status": item.scheduleStatus ?? item.status,
     "Start Date": item.startsAt ?? "",
@@ -287,6 +299,18 @@ export default function TriviaManagement() {
       return;
     }
 
+    const durationSeconds = parseTriviaDuration(
+      form.durationSeconds,
+      "QUESTION"
+    );
+
+    if (durationSeconds === null) {
+      setError(
+        "Question time limit must be a whole number between 10 and 600 seconds."
+      );
+      return;
+    }
+
     setSaving(true);
     setError("");
     setNotice("");
@@ -299,6 +323,7 @@ export default function TriviaManagement() {
            ...form,
            imageUrl: triviaImageUrl || null,
            pointsReward: Number(form.pointsReward),
+           durationSeconds,
            startsAt: form.startsAt
            ? new Date(form.startsAt).toISOString()
            : null,
@@ -677,6 +702,107 @@ export default function TriviaManagement() {
               />
             </label>
 
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+                minWidth: 0,
+              }}
+            >
+              <label>
+                <span style={{ display: "block", marginBottom: 7 }}>
+                  Question Time Limit (seconds) *
+                </span>
+
+                <input
+                  type="number"
+                  name="durationSeconds"
+                  min={TRIVIA_DURATION_LIMITS.QUESTION.min}
+                  max={TRIVIA_DURATION_LIMITS.QUESTION.max}
+                  step="1"
+                  required
+                  disabled={saving}
+                  value={form.durationSeconds}
+                  onChange={(event) =>
+                    updateForm(
+                      "durationSeconds",
+                      event.target.value
+                    )
+                  }
+                  style={inputStyle}
+                />
+              </label>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
+                {[15, 30, 60, 120].map((seconds) => {
+                  const selected =
+                    Number(form.durationSeconds) === seconds;
+
+                  return (
+                    <button
+                      key={seconds}
+                      type="button"
+                      disabled={saving}
+                      aria-pressed={selected}
+                      onClick={() =>
+                        updateForm(
+                          "durationSeconds",
+                          String(seconds)
+                        )
+                      }
+                      style={{
+                        ...buttonStyle,
+                        padding: "8px 12px",
+                        background: selected
+                          ? "#7ccf72"
+                          : "#252a3a",
+                        color: selected
+                          ? "#10121b"
+                          : "#f5f6fa",
+                        border: "1px solid #303447",
+                        fontSize: 12,
+                      }}
+                    >
+                      {seconds} sec
+                    </button>
+                  );
+                })}
+              </div>
+
+              {parseTriviaDuration(
+                form.durationSeconds,
+                "QUESTION"
+              ) !== null ? (
+                <small style={{ color: "#7ccf72" }}>
+                  Time allowed:{" "}
+                  {formatTriviaDuration(
+                    Number(form.durationSeconds)
+                  )}
+                </small>
+              ) : (
+                <small style={{ color: "#ff7777" }}>
+                  Enter a whole number between 10 and 600 seconds.
+                </small>
+              )}
+
+              <small
+                style={{
+                  color: "#a5acc1",
+                  lineHeight: 1.5,
+                }}
+              >
+                The countdown begins when a registered fan
+                starts the question. Publication dates are
+                configured separately.
+              </small>
+            </div>
+
             <label>
               <span style={{ display: "block", marginBottom: 7 }}>Status</span>
               <select
@@ -865,7 +991,17 @@ export default function TriviaManagement() {
               fontSize: 13,
             }}
           >
-            <span>{item.pointsReward} points</span>
+            <span>{item.pointsReward} Fan Points</span>
+            <span
+              style={{
+                color: item.durationSeconds == null
+                  ? "#a5acc1"
+                  : "#7ccf72",
+              }}
+            >
+              Time limit:{" "}
+              {formatTriviaDuration(item.durationSeconds)}
+            </span>
             <span>{item.attemptCount} attempts</span>
             <span>{item.correctCount} correct</span>
           </div>

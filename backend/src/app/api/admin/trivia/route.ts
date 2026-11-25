@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/admin/require-admin";
 import { db } from "@/lib/prisma";
+import { validateTriviaDuration } from "@/lib/trivia/duration-validation";
 
 const STATUSES = ["DRAFT", "ACTIVE", "CLOSED"] as const;
 const OPTIONS = ["A", "B", "C", "D"] as const;
@@ -30,7 +31,7 @@ export async function GET() {
 
     // 1. Find active questions and close those past their deadline.
     const activeQuestions = await db.orm.public.TriviaQuestion
-      .where({ status: "ACTIVE" })
+      .where({ status: "ACTIVE", quizId: null })
       .all();
 
     for (const question of activeQuestions) {
@@ -39,13 +40,14 @@ export async function GET() {
         new Date(question.endsAt).getTime() <= now
       ) {
         await db.orm.public.TriviaQuestion
-          .where({ id: question.id })
+          .where({ id: question.id, status: "ACTIVE", quizId: null })
           .update({ status: "CLOSED" });
       }
     }
 
     // 2. Reload all questions so the admin sees every status.
     const questions = await db.orm.public.TriviaQuestion
+      .where({ quizId: null })
       .all();
 
     // 3. Load attempts for all questions.
@@ -115,7 +117,17 @@ export async function POST(request: Request) {
     let body: Record<string, unknown>;
 
     try {
-      body = await request.json();
+      const parsed: unknown = await request.json();
+
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error("INVALID_BODY");
+      }
+
+      body = parsed as Record<string, unknown>;
     } catch {
       return NextResponse.json(
         { error: "Invalid request body." },
@@ -140,6 +152,22 @@ export async function POST(request: Request) {
         : "";
 
     const pointsReward = Number(body.pointsReward);
+
+    const durationValidation = validateTriviaDuration(
+      body.durationSeconds,
+      "QUESTION"
+    );
+
+    if (durationValidation.ok === false) {
+      return NextResponse.json(
+        { error: durationValidation.error },
+        { status: 400 }
+      );
+    }
+
+    const durationSeconds =
+      durationValidation.durationSeconds;
+
     const status = body.status ?? "DRAFT";
     const startsAt = parseScheduleDate(body.startsAt);
     const endsAt = parseScheduleDate(body.endsAt);
@@ -284,6 +312,7 @@ export async function POST(request: Request) {
       optionD,
       correctOption,
       pointsReward,
+      durationSeconds,
       imageUrl,
       status: status as "DRAFT" | "ACTIVE" | "CLOSED",
       startsAt,

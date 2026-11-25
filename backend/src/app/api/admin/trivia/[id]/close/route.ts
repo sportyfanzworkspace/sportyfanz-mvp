@@ -38,6 +38,15 @@ export async function PATCH(
       );
     }
 
+    if (question.quizId !== null) {
+      return NextResponse.json(
+        {
+          error: "This question belongs to a Trivia quiz. Manage it through the quiz."
+        },
+        { status: 409 }
+      );
+    }
+
     if (question.status === "CLOSED") {
       return NextResponse.json(
         { error: "Trivia question is already closed." },
@@ -53,7 +62,7 @@ export async function PATCH(
     }
 
     const updated = await db.orm.public.TriviaQuestion
-      .where({ id, status: "ACTIVE" })
+      .where({ id, status: "ACTIVE", quizId: null })
       .update({ status: "CLOSED" });
 
     if (!updated) {
