@@ -29,7 +29,7 @@ const navItems = [
     icon: Home,
   },
   {
-    label: "Live & Matches",
+    label: "Live Matches",
     href: "/app/live",
     icon: Radio,
   },

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/admin/require-admin";
+import {
+  requirePermission,
+  hasPermission,
+} from "@/lib/admin/require-admin";
 import { db } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -210,30 +213,108 @@ export async function POST(request: Request) {
       suffix += 1;
     }
 
-    const player = await db.orm.public.Player.create({
-      firstName,
-      lastName,
-      displayName: displayName || null,
-      slug,
-      position: position || null,
-      nationality: nationality || null,
-      jerseyNumber,
-      avatarUrl: avatarUrl || null,
-      isActive: true,
-    });
+    const player = await db.transaction(async tx => {
+      const selectedTeam = teamId === null
+        ? null
+        : await tx.orm.public.Team
+            .where({ id: teamId })
+            .update({ id: teamId });
 
-    if (team) {
-      await db.orm.public.PlayerTeam.create({
-        playerId: player.id,
-        teamId: team.id,
+      if (teamId !== null) {
+        if (!selectedTeam || !selectedTeam.isActive) {
+          throw new Error("TEAM_UNAVAILABLE");
+        }
+
+        if (
+          selectedTeam.publicationStatus === "ARCHIVED"
+        ) {
+          throw new Error("TEAM_UNAVAILABLE");
+        }
+
+        if (
+          selectedTeam.publicationStatus === "PUBLISHED" &&
+          !hasPermission(
+            auth.user.staffRole,
+            "discovery:publish"
+          )
+        ) {
+          throw new Error("PUBLICATION_PERMISSION_REQUIRED");
+        }
+
+        const sport = await tx.orm.public.Sport
+          .where({ id: selectedTeam.sportId })
+          .first();
+
+        if (!sport || !sport.isActive) {
+          throw new Error("SPORT_UNAVAILABLE");
+        }
+      }
+
+      const created = await tx.orm.public.Player.create({
+        firstName,
+        lastName,
+        displayName: displayName || null,
+        slug,
+        position: position || null,
+        nationality: nationality || null,
+        jerseyNumber,
+        avatarUrl: avatarUrl || null,
+        sportId: selectedTeam?.sportId ?? null,
+        publicationStatus: "DRAFT",
+        dataSource: "MANUAL",
+        isActive: true,
       });
-    }
+
+      if (selectedTeam) {
+        const joinedAt = new Date().toISOString();
+
+        await tx.orm.public.PlayerTeam.create({
+          playerId: created.id,
+          teamId: selectedTeam.id,
+          joinedAt,
+        });
+
+        await tx.orm.public.PlayerCareer.create({
+          playerId: created.id,
+          teamId: selectedTeam.id,
+          joinedAt,
+          position: created.position,
+          jerseyNumber: created.jerseyNumber,
+          dataSource: "MANUAL",
+        });
+      }
+
+      return created;
+    });
 
     return NextResponse.json(
       { success: true, player },
       { status: 201 }
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "PUBLICATION_PERMISSION_REQUIRED"
+    ) {
+      return NextResponse.json(
+        { error: "Publication permission is required." },
+        { status: 403 }
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      (
+        error.message === "TEAM_UNAVAILABLE" ||
+        error.message === "SPORT_UNAVAILABLE"
+      )
+    ) {
+      return NextResponse.json(
+        { error: "The selected team or sport is unavailable." },
+        { status: 400 }
+      );
+    }
+
     console.error("Admin player creation failed:", error);
 
     return NextResponse.json(

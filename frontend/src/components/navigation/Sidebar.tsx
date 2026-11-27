@@ -32,7 +32,7 @@ const navItems = [
     icon: Home,
   },
   {
-    label: "Live & Matches",
+    label: "Live Matches",
     href: "/live",
     icon: Radio,
   },

@@ -22,6 +22,9 @@ type AdminPermission =
   | "content:moderate"
   | "fans:support"
   | "players:manage"
+  | "discovery:manage"
+  | "discovery:publish"
+  | "discovery:import"
   | "kyc:manage";
 
 const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
@@ -36,6 +39,9 @@ const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
     "content:moderate",
     "fans:support",
     "players:manage",
+    "discovery:manage",
+    "discovery:publish",
+    "discovery:import",
     "kyc:manage",
   ],
   OPERATIONS: [

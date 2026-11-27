@@ -326,6 +326,26 @@ model KycSubmission {
 // ============================================================
 // SPORTS
 // ============================================================
+
+// ============================================================
+// DISCOVERY DIRECTORY
+// ============================================================
+
+enum DiscoveryPublicationStatus {
+  @@type("pg/text@1")
+
+  DRAFT = "DRAFT"
+  PUBLISHED = "PUBLISHED"
+  ARCHIVED = "ARCHIVED"
+}
+
+enum DiscoveryDataSource {
+  @@type("pg/text@1")
+
+  MANUAL = "MANUAL"
+  PROVIDER = "PROVIDER"
+}
+
 model Sport {
   id          Int                        @id @default(autoincrement())
 
@@ -343,6 +363,9 @@ model Sport {
   matches     Match[]
 
   followers   UserSportFollow[]
+
+  competitions Competition[]
+  players      Player[]
 
   @@index([isActive])
   @@map("sports")
@@ -364,6 +387,26 @@ model Team {
   logoUrl     String?
   coverUrl    String?
 
+  // Public club profile
+  overview          String?
+  nickname          String?
+  foundedYear       Int?
+  stadiumName       String?
+  stadiumCapacity   Int?
+  websiteUrl        String?
+
+  // External sports data
+  providerName      String?
+  providerTeamId    String?
+  dataSource        DiscoveryDataSource @default(MANUAL)
+  lastSyncedAt      TimestamptzString?
+
+  // Public directory and SEO
+  seoTitle          String?
+  seoDescription    String?
+  publicationStatus DiscoveryPublicationStatus @default(DRAFT)
+  publishedAt       TimestamptzString?
+
   isActive    Boolean                    @default(true)
 
   createdAt   TimestamptzString          @default(now())
@@ -376,9 +419,20 @@ model Team {
 
   followers   UserTeamFollow[]
 
+  competitionEntries CompetitionTeam[]
+  standings          CompetitionStanding[]
+  careerRecords      PlayerCareer[]
+  playerStatistics   PlayerStatistics[]
+  media              TeamMedia[]
+  aliases            DiscoveryAlias[]
+  clubFanRooms       FanRoom[]
+
   @@unique([sportId, name])
   @@index([sportId])
   @@index([isActive])
+  @@unique([providerName, providerTeamId])
+  @@index([publicationStatus])
+  @@index([country])
   @@map("teams")
 }
 
@@ -397,6 +451,26 @@ model Player {
 
   avatarUrl    String?
 
+  // Public player profile
+  biography         String?
+  dateOfBirth       String?
+  heightCm          Int?
+  weightKg          Int?
+  preferredFoot     String?
+  achievements      String?
+
+  // External sports data
+  providerName      String?
+  providerPlayerId  String?
+  dataSource        DiscoveryDataSource @default(MANUAL)
+  lastSyncedAt      TimestamptzString?
+
+  // Public directory and SEO
+  seoTitle          String?
+  seoDescription    String?
+  publicationStatus DiscoveryPublicationStatus @default(DRAFT)
+  publishedAt       TimestamptzString?
+
   isActive     Boolean                    @default(true)
 
   createdAt    TimestamptzString          @default(now())
@@ -408,8 +482,21 @@ model Player {
 
   matchEvents  MatchEvent[]
 
+  sportId       Int?
+  sport         Sport? @relation(fields: [sportId], references: [id])
+
+  careerRecords PlayerCareer[]
+  statistics    PlayerStatistics[]
+  media         PlayerMedia[]
+  aliases       DiscoveryAlias[]
+
+  @@index([sportId])
+
   @@index([lastName])
   @@index([isActive])
+  @@unique([providerName, providerPlayerId])
+  @@index([publicationStatus])
+  @@index([nationality])
   @@map("players")
 }
 
@@ -420,7 +507,9 @@ model PlayerTeam {
   player   Player             @relation(fields: [playerId], references: [id])
   team     Team               @relation(fields: [teamId], references: [id])
 
-  joinedAt TimestamptzString  @default(now())
+  joinedAt   TimestamptzString?
+  observedAt TimestamptzString?
+  dataSource DiscoveryDataSource @default(MANUAL)
   leftAt   TimestamptzString?
 
   @@id([playerId, teamId])
@@ -498,6 +587,11 @@ model Match {
 
   predictions       Prediction[]
 
+  competitionSeasonId Int?
+  competitionSeason   CompetitionSeason? @relation(fields: [competitionSeasonId], references: [id])
+
+  @@index([competitionSeasonId])
+
   @@index([sportId])
   @@index([status])
   @@index([scheduledAt])
@@ -564,6 +658,9 @@ model FanRoom {
 
   members             FanRoomMember[]
   messages            FanRoomMessage[]
+
+  teamId Int? @unique
+  team   Team? @relation(fields: [teamId], references: [id])
 
   @@unique([sport, providerFixtureId])
   @@index([matchId])
@@ -1281,4 +1378,352 @@ model EmailVerificationCode {
   createdAt    TimestamptzString  @default(now())
 
   @@map("email_verification_codes")
+}
+
+
+// ============================================================
+// DISCOVERY — COMPETITIONS
+// ============================================================
+
+model Competition {
+  id                Int @id @default(autoincrement())
+
+  sportId           Int
+  sport             Sport @relation(fields: [sportId], references: [id])
+
+  name              String
+  shortName         String?
+  slug              String @unique
+  country           String?
+  description       String?
+  competitionType   String?
+  foundedYear       Int?
+  logoUrl           String?
+  coverUrl          String?
+  websiteUrl        String?
+
+  providerName      String?
+  providerLeagueId  String?
+  dataSource        DiscoveryDataSource @default(MANUAL)
+  lastSyncedAt      TimestamptzString?
+
+  seoTitle          String?
+  seoDescription    String?
+  publicationStatus DiscoveryPublicationStatus @default(DRAFT)
+  publishedAt       TimestamptzString?
+
+  isActive          Boolean @default(true)
+
+  createdAt         TimestamptzString @default(now())
+  updatedAt         temporal.updatedAtString()
+
+  seasons           CompetitionSeason[]
+  aliases           DiscoveryAlias[]
+
+  @@unique([providerName, providerLeagueId])
+  @@index([sportId])
+  @@index([country])
+  @@index([publicationStatus])
+  @@map("competitions")
+}
+
+model CompetitionSeason {
+  id            Int @id @default(autoincrement())
+
+  competitionId Int
+  competition   Competition @relation(fields: [competitionId], references: [id])
+
+  name          String
+  providerSeason String?
+  startsAt      TimestamptzString?
+  endsAt        TimestamptzString?
+  isCurrent     Boolean @default(false)
+
+  createdAt     TimestamptzString @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  teams         CompetitionTeam[]
+  standings     CompetitionStanding[]
+  matches       Match[]
+  statistics    PlayerStatistics[]
+
+  @@unique([competitionId, name])
+  @@index([competitionId, isCurrent])
+  @@map("competition_seasons")
+}
+
+model CompetitionTeam {
+  seasonId Int
+  teamId   Int
+
+  season   CompetitionSeason @relation(fields: [seasonId], references: [id])
+  team     Team @relation(fields: [teamId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+
+  @@id([seasonId, teamId])
+  @@index([teamId])
+  @@map("competition_teams")
+}
+
+model CompetitionStanding {
+  id           Int @id @default(autoincrement())
+
+  seasonId     Int
+  season       CompetitionSeason @relation(fields: [seasonId], references: [id])
+
+  teamId       Int
+  team         Team @relation(fields: [teamId], references: [id])
+
+  groupName    String @default("Overall")
+
+  rank         Int
+  played       Int?
+  won          Int?
+  drawn        Int?
+  lost         Int?
+  scored       Int?
+  conceded     Int?
+  difference   Int?
+  points       Int?
+  form         String?
+
+  dataSource   DiscoveryDataSource @default(MANUAL)
+  providerObservedAt TimestamptzString?
+  updatedAt    temporal.updatedAtString()
+
+  @@unique([seasonId, teamId, groupName])
+  @@index([seasonId, groupName, rank])
+  @@index([teamId])
+  @@map("competition_standings")
+}
+
+// ============================================================
+// DISCOVERY — PLAYER CAREER AND STATISTICS
+// ============================================================
+
+model PlayerCareer {
+  id          Int @id @default(autoincrement())
+
+  playerId    Int
+  player      Player @relation(fields: [playerId], references: [id])
+
+  teamId      Int
+  team        Team @relation(fields: [teamId], references: [id])
+
+  joinedAt    TimestamptzString?
+  leftAt      TimestamptzString?
+
+  position    String?
+  jerseyNumber Int?
+  transferType String?
+  notes        String?
+
+  dataSource  DiscoveryDataSource @default(MANUAL)
+
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  @@index([playerId])
+  @@index([teamId])
+  @@map("player_careers")
+}
+
+model PlayerStatistics {
+  id          Int @id @default(autoincrement())
+
+  playerId    Int
+  player      Player @relation(fields: [playerId], references: [id])
+
+  teamId      Int
+  team        Team @relation(fields: [teamId], references: [id])
+
+  seasonId    Int
+  season      CompetitionSeason @relation(fields: [seasonId], references: [id])
+
+  metricKey   String
+  metricLabel String
+  metricValue Float
+
+  dataSource  DiscoveryDataSource @default(MANUAL)
+  providerObservedAt TimestamptzString?
+  updatedAt   temporal.updatedAtString()
+
+  @@unique([playerId, teamId, seasonId, metricKey])
+  @@index([seasonId, metricKey])
+  @@index([teamId])
+  @@map("player_statistics")
+}
+
+// ============================================================
+// DISCOVERY — MEDIA AND SEARCH ALIASES
+// ============================================================
+
+model TeamMedia {
+  id          Int @id @default(autoincrement())
+
+  teamId      Int
+  team        Team @relation(fields: [teamId], references: [id])
+
+  imageUrl    String
+  caption     String?
+  altText     String?
+  credit      String?
+  sourceUrl   String?
+  sortOrder   Int @default(0)
+  isActive    Boolean @default(true)
+
+  createdAt   TimestamptzString @default(now())
+
+  @@index([teamId, sortOrder])
+  @@map("team_media")
+}
+
+model PlayerMedia {
+  id          Int @id @default(autoincrement())
+
+  playerId    Int
+  player      Player @relation(fields: [playerId], references: [id])
+
+  imageUrl    String
+  caption     String?
+  altText     String?
+  credit      String?
+  sourceUrl   String?
+  sortOrder   Int @default(0)
+  isActive    Boolean @default(true)
+
+  createdAt   TimestamptzString @default(now())
+
+  @@index([playerId, sortOrder])
+  @@map("player_media")
+}
+
+model DiscoveryAlias {
+  id            Int @id @default(autoincrement())
+
+  alias         String
+  normalized    String
+
+  teamId        Int?
+  team          Team? @relation(fields: [teamId], references: [id])
+
+  playerId      Int?
+  player        Player? @relation(fields: [playerId], references: [id])
+
+  competitionId Int?
+  competition   Competition? @relation(fields: [competitionId], references: [id])
+
+  createdAt     TimestamptzString @default(now())
+
+  @@unique([teamId, normalized])
+  @@unique([playerId, normalized])
+  @@unique([competitionId, normalized])
+  @@index([normalized])
+  @@map("discovery_aliases")
+}
+
+
+// ============================================================
+// DISCOVERY AUTOMATED SYNCHRONIZATION
+// ============================================================
+
+enum DiscoverySyncJobStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  RUNNING = "RUNNING"
+  RETRY = "RETRY"
+  COMPLETED = "COMPLETED"
+  FAILED = "FAILED"
+  CANCELLED = "CANCELLED"
+}
+
+model DiscoverySyncJob {
+  id Int @id @default(autoincrement())
+
+  jobKey       String @unique
+  sportSlug    String
+  providerName String
+  jobType      String
+  parameters   String
+  checkpoint   String?
+
+  status DiscoverySyncJobStatus @default(PENDING)
+
+  priority    Int @default(100)
+  attempts    Int @default(0)
+  maxAttempts Int @default(3)
+
+  recordsProcessed  Int @default(0)
+  recordsCreated    Int @default(0)
+  recordsUpdated    Int @default(0)
+  recordsSkipped    Int @default(0)
+  recordsConflicted Int @default(0)
+
+  scheduledAt TimestamptzString @default(now())
+  startedAt   TimestamptzString?
+  completedAt TimestamptzString?
+  nextRetryAt TimestamptzString?
+
+  lockToken     String?
+  lockExpiresAt TimestamptzString?
+  heartbeatAt   TimestamptzString?
+
+  lastErrorCode String?
+  lastError     String?
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@index([status, scheduledAt])
+  @@index([status, nextRetryAt])
+  @@index([status, lockExpiresAt])
+  @@index([sportSlug, jobType])
+  @@index([providerName, status])
+  @@map("discovery_sync_jobs")
+}
+
+model DiscoveryProviderQuota {
+  quotaKey String @id
+
+  dailyLimit      Int?
+  dailyRemaining  Int?
+  minuteLimit     Int?
+  minuteRemaining Int?
+
+  observedAt TimestamptzString?
+
+  accessRestricted Boolean @default(false)
+  cooldownUntil TimestamptzString?
+
+  lockToken     String?
+  lockExpiresAt TimestamptzString?
+
+  lastErrorCode String?
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@map("discovery_provider_quotas")
+}
+
+model DiscoveryProviderCache {
+  cacheKey String @id
+
+  providerName String
+  endpoint     String
+
+  payload      String
+  payloadBytes Int
+
+  fetchedAt TimestamptzString
+  expiresAt TimestamptzString
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@index([expiresAt])
+  @@index([providerName, endpoint])
+  @@map("discovery_provider_cache")
 }

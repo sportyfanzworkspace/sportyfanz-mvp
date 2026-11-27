@@ -22,6 +22,9 @@ type AdminPermission =
   | "content:moderate"
   | "fans:support"
   | "players:manage"
+  | "discovery:manage"
+  | "discovery:publish"
+  | "discovery:import"
   | "kyc:manage";
 
 type AdminUser = {
@@ -42,6 +45,9 @@ const ROLE_PERMISSIONS: Record<StaffRole, AdminPermission[]> = {
     "content:moderate",
     "fans:support",
     "players:manage",
+    "discovery:manage",
+    "discovery:publish",
+    "discovery:import",
     "kyc:manage",
   ],
   OPERATIONS: ["rewards:manage", "predictions:manage", "kyc:manage"],
@@ -57,6 +63,15 @@ const sections: {
   href: string;
   permission: AdminPermission;
 }[] = [
+  {
+    title: "Discovery Management",
+    description:
+      "Manage club, player and competition profiles in the sports directory.",
+    status: "Discovery directory",
+    icon: "◎",
+    href: "/sf-vault-k8m42x/dashboard/discovery",
+    permission: "discovery:manage",
+  },
   {
     title: "Trivia Management",
     description: "Create questions, manage answer options, set points, and publish trivia.",

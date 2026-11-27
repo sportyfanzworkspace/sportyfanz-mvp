@@ -1,6 +1,18 @@
+import {
+  loadPublicDirectory,
+} from "@/lib/discovery/public-directory";
+
+import {
+  DirectoryQueryError,
+} from "@/lib/discovery/directory-pagination";
+
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import {
+  isPublicDirectoryRecord,
+  normalizeCompetitionName,
+} from "@/lib/discovery/public-visibility";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,14 +50,41 @@ async function getActiveUser() {
   return { userId, response: null };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const userId = await getCurrentUserId();
+
+    const params = new URL(request.url).searchParams;
+
+    if (params.has("directory")) {
+      try {
+        const result = await loadPublicDirectory(
+          params,
+          userId
+        );
+
+        return NextResponse.json(result, {
+          headers: {
+            "Cache-Control": "no-store, max-age=0",
+          },
+        });
+      } catch (error) {
+        if (error instanceof DirectoryQueryError) {
+          return NextResponse.json(
+            { error: error.message },
+            { status: 400 }
+          );
+        }
+
+        throw error;
+      }
+    }
 
     const [
       allSports,
       allTeams,
       allPlayers,
+      allCompetitions,
       playerTeams,
       allMatches,
       sportFollows,
@@ -55,11 +94,24 @@ export async function GET() {
       db.orm.public.Sport.all(),
       db.orm.public.Team.all(),
       db.orm.public.Player.all(),
+      db.orm.public.Competition.all(),
       db.orm.public.PlayerTeam.all(),
       db.orm.public.Match.all(),
-      db.orm.public.UserSportFollow.all(),
-      db.orm.public.UserTeamFollow.all(),
-      db.orm.public.UserPlayerFollow.all(),
+      userId
+        ? db.orm.public.UserSportFollow
+            .where({ userId })
+            .all()
+        : Promise.resolve([]),
+      userId
+        ? db.orm.public.UserTeamFollow
+            .where({ userId })
+            .all()
+        : Promise.resolve([]),
+      userId
+        ? db.orm.public.UserPlayerFollow
+            .where({ userId })
+            .all()
+        : Promise.resolve([]),
     ]);
 
     const sports = allSports
@@ -77,7 +129,8 @@ export async function GET() {
 
     const teams = allTeams
       .filter(
-        (team) => team.isActive && activeSports.has(team.sportId)
+        (team) =>
+          isPublicDirectoryRecord(team, activeSports)
       )
       .map((team) => {
         const sport = sports.find(
@@ -121,7 +174,13 @@ export async function GET() {
     }
 
     const players = allPlayers
-      .filter((player) => player.isActive)
+      .filter((player) =>
+        isPublicDirectoryRecord(
+          player,
+          activeSports,
+          true
+        )
+      )
       .map((player) => ({
         id: player.id,
         firstName: player.firstName,
@@ -130,6 +189,11 @@ export async function GET() {
           player.displayName?.trim() ||
           `${player.firstName} ${player.lastName}`.trim(),
         slug: player.slug,
+        sportId: player.sportId,
+        sportName:
+          sports.find(
+            sport => sport.id === player.sportId
+          )?.name ?? null,
         position: player.position,
         nationality: player.nationality,
         jerseyNumber: player.jerseyNumber,
@@ -138,7 +202,31 @@ export async function GET() {
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    const competitions = [
+    const competitionProfiles = allCompetitions
+      .filter(competition =>
+        isPublicDirectoryRecord(
+          competition,
+          activeSports
+        )
+      )
+      .map(competition => ({
+        id: competition.id,
+        name: competition.name,
+        shortName: competition.shortName,
+        slug: competition.slug,
+        sportId: competition.sportId,
+        sportName:
+          sports.find(
+            sport => sport.id === competition.sportId
+          )?.name ?? "Sport",
+        country: competition.country,
+        competitionType: competition.competitionType,
+        logoUrl: competition.logoUrl,
+        coverUrl: competition.coverUrl,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const legacyCompetitions = [
       ...new Set(
         allMatches
           .filter(
@@ -151,6 +239,29 @@ export async function GET() {
       ),
     ].sort((a, b) => a.localeCompare(b));
 
+    const competitionNames = new Map<string, string>();
+
+    for (const name of legacyCompetitions) {
+      const key = normalizeCompetitionName(name);
+
+      if (key && !competitionNames.has(key)) {
+        competitionNames.set(key, name);
+      }
+    }
+
+    for (const competition of competitionProfiles) {
+      const key = normalizeCompetitionName(
+        competition.name
+      );
+
+      if (key) {
+        competitionNames.set(key, competition.name);
+      }
+    }
+
+    const competitions = [...competitionNames.values()]
+      .sort((a, b) => a.localeCompare(b));
+
     return NextResponse.json(
       {
         success: true,
@@ -158,6 +269,7 @@ export async function GET() {
         teams,
         players,
         competitions,
+        competitionProfiles,
         followedSportIds: userId
           ? sportFollows
               .filter((item) => item.userId === userId)
@@ -225,7 +337,10 @@ export async function POST(request: Request) {
         .where({ id })
         .first();
 
-      if (!sport || !sport.isActive) {
+      if (
+        !sport ||
+        (action === "follow" && !sport.isActive)
+      ) {
         return NextResponse.json(
           { error: "This sport is not available." },
           { status: 404 }
@@ -253,7 +368,7 @@ export async function POST(request: Request) {
         .where({ id })
         .first();
 
-      if (!team || !team.isActive) {
+      if (!team) {
         return NextResponse.json(
           { error: "This team is not available." },
           { status: 404 }
@@ -264,9 +379,21 @@ export async function POST(request: Request) {
         .where({ id: team.sportId })
         .first();
 
-      if (!sport || !sport.isActive) {
+      const activeSportIds = new Set<number>();
+
+      if (sport?.isActive) {
+        activeSportIds.add(sport.id);
+      }
+
+      if (
+        action === "follow" &&
+        !isPublicDirectoryRecord(
+          team,
+          activeSportIds
+        )
+      ) {
         return NextResponse.json(
-          { error: "This team's sport is not available." },
+          { error: "This team is not available." },
           { status: 404 }
         );
       }
@@ -292,11 +419,38 @@ export async function POST(request: Request) {
         .where({ id })
         .first();
 
-      if (!player || !player.isActive) {
+      if (!player) {
         return NextResponse.json(
           { error: "This player is not available." },
           { status: 404 }
         );
+      }
+
+      if (action === "follow") {
+        const activeSportIds = new Set<number>();
+
+        if (player.sportId !== null) {
+          const sport = await db.orm.public.Sport
+            .where({ id: player.sportId })
+            .first();
+
+          if (sport?.isActive) {
+            activeSportIds.add(sport.id);
+          }
+        }
+
+        if (
+          !isPublicDirectoryRecord(
+            player,
+            activeSportIds,
+            true
+          )
+        ) {
+          return NextResponse.json(
+            { error: "This player is not available." },
+            { status: 404 }
+          );
+        }
       }
 
       const existing = await db.orm.public.UserPlayerFollow

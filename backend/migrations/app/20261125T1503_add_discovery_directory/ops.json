@@ -1,0 +1,4253 @@
+[
+  {
+    "id": "table.competition_seasons",
+    "label": "Create table \"competition_seasons\"",
+    "summary": "Creates table \"competition_seasons\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "competition_seasons"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"competition_seasons\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"competition_seasons\"",
+        "sql": "CREATE TABLE \"public\".\"competition_seasons\" (\n  \"competitionId\" int4 NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"endsAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"isCurrent\" bool DEFAULT false NOT NULL,\n  \"name\" text NOT NULL,\n  \"providerSeason\" text,\n  \"startsAt\" timestamptz,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"competition_seasons\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.competition_standings",
+    "label": "Create table \"competition_standings\"",
+    "summary": "Creates table \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"competition_standings\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"competition_standings\"",
+        "sql": "CREATE TABLE \"public\".\"competition_standings\" (\n  \"conceded\" int4,\n  \"dataSource\" text DEFAULT 'MANUAL' NOT NULL,\n  \"difference\" int4,\n  \"drawn\" int4,\n  \"form\" text,\n  \"groupName\" text DEFAULT 'Overall' NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"lost\" int4,\n  \"played\" int4,\n  \"points\" int4,\n  \"rank\" int4 NOT NULL,\n  \"scored\" int4,\n  \"seasonId\" int4 NOT NULL,\n  \"teamId\" int4 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"won\" int4,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"competition_standings_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"competition_standings\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.competition_teams",
+    "label": "Create table \"competition_teams\"",
+    "summary": "Creates table \"competition_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "competition_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"competition_teams\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"competition_teams\"",
+        "sql": "CREATE TABLE \"public\".\"competition_teams\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"seasonId\" int4 NOT NULL,\n  \"teamId\" int4 NOT NULL,\n  PRIMARY KEY (\"seasonId\", \"teamId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"competition_teams\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.competitions",
+    "label": "Create table \"competitions\"",
+    "summary": "Creates table \"competitions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"competitions\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"competitions\"",
+        "sql": "CREATE TABLE \"public\".\"competitions\" (\n  \"competitionType\" text,\n  \"country\" text,\n  \"coverUrl\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dataSource\" text DEFAULT 'MANUAL' NOT NULL,\n  \"description\" text,\n  \"foundedYear\" int4,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"lastSyncedAt\" timestamptz,\n  \"logoUrl\" text,\n  \"name\" text NOT NULL,\n  \"providerLeagueId\" text,\n  \"providerName\" text,\n  \"publicationStatus\" text DEFAULT 'DRAFT' NOT NULL,\n  \"publishedAt\" timestamptz,\n  \"seoDescription\" text,\n  \"seoTitle\" text,\n  \"shortName\" text,\n  \"slug\" text NOT NULL,\n  \"sportId\" int4 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"websiteUrl\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"competitions_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER')),\n  CONSTRAINT \"competitions_publicationStatus_check_b5329110\" CHECK (\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"competitions\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.discovery_aliases",
+    "label": "Create table \"discovery_aliases\"",
+    "summary": "Creates table \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"discovery_aliases\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"discovery_aliases\"",
+        "sql": "CREATE TABLE \"public\".\"discovery_aliases\" (\n  \"alias\" text NOT NULL,\n  \"competitionId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"normalized\" text NOT NULL,\n  \"playerId\" int4,\n  \"teamId\" int4,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"discovery_aliases\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.player_careers",
+    "label": "Create table \"player_careers\"",
+    "summary": "Creates table \"player_careers\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "player_careers"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"player_careers\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"player_careers\"",
+        "sql": "CREATE TABLE \"public\".\"player_careers\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dataSource\" text DEFAULT 'MANUAL' NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"jerseyNumber\" int4,\n  \"joinedAt\" timestamptz,\n  \"leftAt\" timestamptz,\n  \"notes\" text,\n  \"playerId\" int4 NOT NULL,\n  \"position\" text,\n  \"teamId\" int4 NOT NULL,\n  \"transferType\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"player_careers_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"player_careers\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.player_media",
+    "label": "Create table \"player_media\"",
+    "summary": "Creates table \"player_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "player_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"player_media\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"player_media\"",
+        "sql": "CREATE TABLE \"public\".\"player_media\" (\n  \"altText\" text,\n  \"caption\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"credit\" text,\n  \"id\" SERIAL NOT NULL,\n  \"imageUrl\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"playerId\" int4 NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"sourceUrl\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"player_media\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.player_statistics",
+    "label": "Create table \"player_statistics\"",
+    "summary": "Creates table \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"player_statistics\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"player_statistics\"",
+        "sql": "CREATE TABLE \"public\".\"player_statistics\" (\n  \"dataSource\" text DEFAULT 'MANUAL' NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"metricKey\" text NOT NULL,\n  \"metricLabel\" text NOT NULL,\n  \"metricValue\" float8 NOT NULL,\n  \"playerId\" int4 NOT NULL,\n  \"seasonId\" int4 NOT NULL,\n  \"teamId\" int4 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"player_statistics_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"player_statistics\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.team_media",
+    "label": "Create table \"team_media\"",
+    "summary": "Creates table \"team_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "team_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"team_media\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"team_media\"",
+        "sql": "CREATE TABLE \"public\".\"team_media\" (\n  \"altText\" text,\n  \"caption\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"credit\" text,\n  \"id\" SERIAL NOT NULL,\n  \"imageUrl\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"sourceUrl\" text,\n  \"teamId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"team_media\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.fan_rooms.teamId",
+    "label": "Add column \"teamId\" to \"fan_rooms\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "teamId",
+        "table": "fan_rooms"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"teamId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "fan_rooms",
+          "teamId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"teamId\"",
+        "sql": "ALTER TABLE \"public\".\"fan_rooms\" ADD COLUMN \"teamId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"teamId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "fan_rooms",
+          "teamId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.matches.competitionSeasonId",
+    "label": "Add column \"competitionSeasonId\" to \"matches\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "competitionSeasonId",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"competitionSeasonId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "competitionSeasonId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"competitionSeasonId\"",
+        "sql": "ALTER TABLE \"public\".\"matches\" ADD COLUMN \"competitionSeasonId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"competitionSeasonId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "matches",
+          "competitionSeasonId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.achievements",
+    "label": "Add column \"achievements\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "achievements",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"achievements\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "achievements"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"achievements\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"achievements\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"achievements\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "achievements"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.biography",
+    "label": "Add column \"biography\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "biography",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"biography\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "biography"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"biography\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"biography\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"biography\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "biography"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.dataSource",
+    "label": "Add column \"dataSource\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dataSource",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dataSource\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "dataSource"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dataSource\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"dataSource\" text DEFAULT 'MANUAL' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dataSource\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "dataSource"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.dateOfBirth",
+    "label": "Add column \"dateOfBirth\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dateOfBirth",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dateOfBirth\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "dateOfBirth"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dateOfBirth\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"dateOfBirth\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dateOfBirth\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "dateOfBirth"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.heightCm",
+    "label": "Add column \"heightCm\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "heightCm",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"heightCm\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "heightCm"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"heightCm\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"heightCm\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"heightCm\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "heightCm"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.lastSyncedAt",
+    "label": "Add column \"lastSyncedAt\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastSyncedAt",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastSyncedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "lastSyncedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastSyncedAt\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"lastSyncedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastSyncedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "lastSyncedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.preferredFoot",
+    "label": "Add column \"preferredFoot\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "preferredFoot",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"preferredFoot\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "preferredFoot"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"preferredFoot\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"preferredFoot\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"preferredFoot\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "preferredFoot"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.providerName",
+    "label": "Add column \"providerName\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerName",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerName\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "providerName"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerName\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"providerName\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerName\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "providerName"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.providerPlayerId",
+    "label": "Add column \"providerPlayerId\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerPlayerId",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerPlayerId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "providerPlayerId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerPlayerId\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"providerPlayerId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerPlayerId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "providerPlayerId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.publicationStatus",
+    "label": "Add column \"publicationStatus\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "publicationStatus",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"publicationStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "publicationStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"publicationStatus\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"publicationStatus\" text DEFAULT 'DRAFT' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"publicationStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "publicationStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.publishedAt",
+    "label": "Add column \"publishedAt\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "publishedAt",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"publishedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "publishedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"publishedAt\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"publishedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"publishedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "publishedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.seoDescription",
+    "label": "Add column \"seoDescription\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "seoDescription",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"seoDescription\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "seoDescription"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"seoDescription\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"seoDescription\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"seoDescription\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "seoDescription"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.seoTitle",
+    "label": "Add column \"seoTitle\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "seoTitle",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"seoTitle\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "seoTitle"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"seoTitle\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"seoTitle\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"seoTitle\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "seoTitle"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.sportId",
+    "label": "Add column \"sportId\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sportId",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sportId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "sportId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sportId\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"sportId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sportId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "sportId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.players.weightKg",
+    "label": "Add column \"weightKg\" to \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "weightKg",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"weightKg\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "weightKg"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"weightKg\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD COLUMN \"weightKg\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"weightKg\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "players",
+          "weightKg"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.dataSource",
+    "label": "Add column \"dataSource\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dataSource",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dataSource\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "dataSource"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dataSource\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"dataSource\" text DEFAULT 'MANUAL' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dataSource\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "dataSource"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.foundedYear",
+    "label": "Add column \"foundedYear\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "foundedYear",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"foundedYear\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "foundedYear"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"foundedYear\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"foundedYear\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"foundedYear\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "foundedYear"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.lastSyncedAt",
+    "label": "Add column \"lastSyncedAt\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastSyncedAt",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastSyncedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "lastSyncedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastSyncedAt\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"lastSyncedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastSyncedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "lastSyncedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.nickname",
+    "label": "Add column \"nickname\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "nickname",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"nickname\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "nickname"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"nickname\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"nickname\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"nickname\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "nickname"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.overview",
+    "label": "Add column \"overview\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "overview",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"overview\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "overview"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"overview\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"overview\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"overview\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "overview"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.providerName",
+    "label": "Add column \"providerName\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerName",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerName\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "providerName"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerName\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"providerName\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerName\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "providerName"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.providerTeamId",
+    "label": "Add column \"providerTeamId\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerTeamId",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerTeamId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "providerTeamId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerTeamId\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"providerTeamId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerTeamId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "providerTeamId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.publicationStatus",
+    "label": "Add column \"publicationStatus\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "publicationStatus",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"publicationStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "publicationStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"publicationStatus\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"publicationStatus\" text DEFAULT 'DRAFT' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"publicationStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "publicationStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.publishedAt",
+    "label": "Add column \"publishedAt\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "publishedAt",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"publishedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "publishedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"publishedAt\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"publishedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"publishedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "publishedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.seoDescription",
+    "label": "Add column \"seoDescription\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "seoDescription",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"seoDescription\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "seoDescription"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"seoDescription\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"seoDescription\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"seoDescription\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "seoDescription"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.seoTitle",
+    "label": "Add column \"seoTitle\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "seoTitle",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"seoTitle\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "seoTitle"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"seoTitle\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"seoTitle\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"seoTitle\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "seoTitle"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.stadiumCapacity",
+    "label": "Add column \"stadiumCapacity\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "stadiumCapacity",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"stadiumCapacity\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "stadiumCapacity"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"stadiumCapacity\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"stadiumCapacity\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"stadiumCapacity\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "stadiumCapacity"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.stadiumName",
+    "label": "Add column \"stadiumName\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "stadiumName",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"stadiumName\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "stadiumName"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"stadiumName\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"stadiumName\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"stadiumName\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "stadiumName"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.teams.websiteUrl",
+    "label": "Add column \"websiteUrl\" to \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "websiteUrl",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"websiteUrl\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "websiteUrl"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"websiteUrl\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD COLUMN \"websiteUrl\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"websiteUrl\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "teams",
+          "websiteUrl"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.competition_seasons.competition_seasons_competitionId_name_key",
+    "label": "Add unique constraint on \"competition_seasons\" (competitionId, name)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "competition_seasons_competitionId_name_key",
+        "table": "competition_seasons"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"competition_seasons_competitionId_name_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_seasons_competitionId_name_key",
+          "public",
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"competition_seasons_competitionId_name_key\"",
+        "sql": "ALTER TABLE \"public\".\"competition_seasons\" ADD CONSTRAINT \"competition_seasons_competitionId_name_key\" UNIQUE (\"competitionId\", \"name\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"competition_seasons_competitionId_name_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_seasons_competitionId_name_key",
+          "public",
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.competition_standings.competition_standings_seasonId_teamId_groupName_key",
+    "label": "Add unique constraint on \"competition_standings\" (seasonId, teamId, groupName)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "competition_standings_seasonId_teamId_groupName_key",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"competition_standings_seasonId_teamId_groupName_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_seasonId_teamId_groupName_key",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"competition_standings_seasonId_teamId_groupName_key\"",
+        "sql": "ALTER TABLE \"public\".\"competition_standings\" ADD CONSTRAINT \"competition_standings_seasonId_teamId_groupName_key\" UNIQUE (\"seasonId\", \"teamId\", \"groupName\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"competition_standings_seasonId_teamId_groupName_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_seasonId_teamId_groupName_key",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.competitions.competitions_slug_key",
+    "label": "Add unique constraint on \"competitions\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "competitions_slug_key",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"competitions_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_slug_key",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"competitions_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"competitions\" ADD CONSTRAINT \"competitions_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"competitions_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_slug_key",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.competitions.competitions_providerName_providerLeagueId_key",
+    "label": "Add unique constraint on \"competitions\" (providerName, providerLeagueId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "competitions_providerName_providerLeagueId_key",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"competitions_providerName_providerLeagueId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_providerName_providerLeagueId_key",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"competitions_providerName_providerLeagueId_key\"",
+        "sql": "ALTER TABLE \"public\".\"competitions\" ADD CONSTRAINT \"competitions_providerName_providerLeagueId_key\" UNIQUE (\"providerName\", \"providerLeagueId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"competitions_providerName_providerLeagueId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_providerName_providerLeagueId_key",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.discovery_aliases.discovery_aliases_teamId_normalized_key",
+    "label": "Add unique constraint on \"discovery_aliases\" (teamId, normalized)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "discovery_aliases_teamId_normalized_key",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"discovery_aliases_teamId_normalized_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_teamId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"discovery_aliases_teamId_normalized_key\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\" ADD CONSTRAINT \"discovery_aliases_teamId_normalized_key\" UNIQUE (\"teamId\", \"normalized\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"discovery_aliases_teamId_normalized_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_teamId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.discovery_aliases.discovery_aliases_playerId_normalized_key",
+    "label": "Add unique constraint on \"discovery_aliases\" (playerId, normalized)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "discovery_aliases_playerId_normalized_key",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"discovery_aliases_playerId_normalized_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_playerId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"discovery_aliases_playerId_normalized_key\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\" ADD CONSTRAINT \"discovery_aliases_playerId_normalized_key\" UNIQUE (\"playerId\", \"normalized\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"discovery_aliases_playerId_normalized_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_playerId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.discovery_aliases.discovery_aliases_competitionId_normalized_key",
+    "label": "Add unique constraint on \"discovery_aliases\" (competitionId, normalized)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "discovery_aliases_competitionId_normalized_key",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"discovery_aliases_competitionId_normalized_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_competitionId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"discovery_aliases_competitionId_normalized_key\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\" ADD CONSTRAINT \"discovery_aliases_competitionId_normalized_key\" UNIQUE (\"competitionId\", \"normalized\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"discovery_aliases_competitionId_normalized_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_competitionId_normalized_key",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.fan_rooms.fan_rooms_teamId_key",
+    "label": "Add unique constraint on \"fan_rooms\" (teamId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "fan_rooms_teamId_key",
+        "table": "fan_rooms"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"fan_rooms_teamId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fan_rooms_teamId_key",
+          "public",
+          "\"public\".\"fan_rooms\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"fan_rooms_teamId_key\"",
+        "sql": "ALTER TABLE \"public\".\"fan_rooms\" ADD CONSTRAINT \"fan_rooms_teamId_key\" UNIQUE (\"teamId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"fan_rooms_teamId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fan_rooms_teamId_key",
+          "public",
+          "\"public\".\"fan_rooms\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.player_statistics.player_statistics_playerId_teamId_seasonId_metricKey_key",
+    "label": "Add unique constraint on \"player_statistics\" (playerId, teamId, seasonId, metricKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "player_statistics_playerId_teamId_seasonId_metricKey_key",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"player_statistics_playerId_teamId_seasonId_metricKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_playerId_teamId_seasonId_metricKey_key",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"player_statistics_playerId_teamId_seasonId_metricKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"player_statistics\" ADD CONSTRAINT \"player_statistics_playerId_teamId_seasonId_metricKey_key\" UNIQUE (\"playerId\", \"teamId\", \"seasonId\", \"metricKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"player_statistics_playerId_teamId_seasonId_metricKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_playerId_teamId_seasonId_metricKey_key",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.players.players_dataSource_check_579a951a",
+    "label": "Add check constraint \"players_dataSource_check_579a951a\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "players_dataSource_check_579a951a",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"players_dataSource_check_579a951a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"players_dataSource_check_579a951a\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD CONSTRAINT \"players_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"players_dataSource_check_579a951a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.players.players_publicationStatus_check_b5329110",
+    "label": "Add check constraint \"players_publicationStatus_check_b5329110\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "players_publicationStatus_check_b5329110",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"players_publicationStatus_check_b5329110\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_publicationStatus_check_b5329110",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"players_publicationStatus_check_b5329110\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD CONSTRAINT \"players_publicationStatus_check_b5329110\" CHECK (\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"players_publicationStatus_check_b5329110\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_publicationStatus_check_b5329110",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.players.players_providerName_providerPlayerId_key",
+    "label": "Add unique constraint on \"players\" (providerName, providerPlayerId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "players_providerName_providerPlayerId_key",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"players_providerName_providerPlayerId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_providerName_providerPlayerId_key",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"players_providerName_providerPlayerId_key\"",
+        "sql": "ALTER TABLE \"public\".\"players\" ADD CONSTRAINT \"players_providerName_providerPlayerId_key\" UNIQUE (\"providerName\", \"providerPlayerId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"players_providerName_providerPlayerId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_providerName_providerPlayerId_key",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.teams.teams_dataSource_check_579a951a",
+    "label": "Add check constraint \"teams_dataSource_check_579a951a\" on \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "teams_dataSource_check_579a951a",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"teams_dataSource_check_579a951a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"teams_dataSource_check_579a951a\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD CONSTRAINT \"teams_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"teams_dataSource_check_579a951a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.teams.teams_publicationStatus_check_b5329110",
+    "label": "Add check constraint \"teams_publicationStatus_check_b5329110\" on \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "teams_publicationStatus_check_b5329110",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"teams_publicationStatus_check_b5329110\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_publicationStatus_check_b5329110",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"teams_publicationStatus_check_b5329110\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD CONSTRAINT \"teams_publicationStatus_check_b5329110\" CHECK (\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"teams_publicationStatus_check_b5329110\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_publicationStatus_check_b5329110",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.teams.teams_providerName_providerTeamId_key",
+    "label": "Add unique constraint on \"teams\" (providerName, providerTeamId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "teams_providerName_providerTeamId_key",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"teams_providerName_providerTeamId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_providerName_providerTeamId_key",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"teams_providerName_providerTeamId_key\"",
+        "sql": "ALTER TABLE \"public\".\"teams\" ADD CONSTRAINT \"teams_providerName_providerTeamId_key\" UNIQUE (\"providerName\", \"providerTeamId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"teams_providerName_providerTeamId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "teams_providerName_providerTeamId_key",
+          "public",
+          "\"public\".\"teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_seasons.competition_seasons_competitionId_idx_53fccd3b",
+    "label": "Create index \"competition_seasons_competitionId_idx_53fccd3b\" on \"competition_seasons\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_seasons_competitionId_idx_53fccd3b",
+        "table": "competition_seasons"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_seasons_competitionId_idx_53fccd3b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons_competitionId_idx_53fccd3b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_seasons_competitionId_idx_53fccd3b\"",
+        "sql": "CREATE INDEX \"competition_seasons_competitionId_idx_53fccd3b\" ON \"public\".\"competition_seasons\" (\"competitionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_seasons_competitionId_idx_53fccd3b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons_competitionId_idx_53fccd3b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_seasons.competition_seasons_competitionId_isCurrent_idx_a80475ca",
+    "label": "Create index \"competition_seasons_competitionId_isCurrent_idx_a80475ca\" on \"competition_seasons\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_seasons_competitionId_isCurrent_idx_a80475ca",
+        "table": "competition_seasons"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_seasons_competitionId_isCurrent_idx_a80475ca\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons_competitionId_isCurrent_idx_a80475ca\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_seasons_competitionId_isCurrent_idx_a80475ca\"",
+        "sql": "CREATE INDEX \"competition_seasons_competitionId_isCurrent_idx_a80475ca\" ON \"public\".\"competition_seasons\" (\"competitionId\", \"isCurrent\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_seasons_competitionId_isCurrent_idx_a80475ca\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_seasons_competitionId_isCurrent_idx_a80475ca\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_standings.competition_standings_seasonId_groupName_rank_idx_cedcf987",
+    "label": "Create index \"competition_standings_seasonId_groupName_rank_idx_cedcf987\" on \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_standings_seasonId_groupName_rank_idx_cedcf987",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_standings_seasonId_groupName_rank_idx_cedcf987\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_seasonId_groupName_rank_idx_cedcf987\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_standings_seasonId_groupName_rank_idx_cedcf987\"",
+        "sql": "CREATE INDEX \"competition_standings_seasonId_groupName_rank_idx_cedcf987\" ON \"public\".\"competition_standings\" (\"seasonId\", \"groupName\", \"rank\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_standings_seasonId_groupName_rank_idx_cedcf987\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_seasonId_groupName_rank_idx_cedcf987\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_standings.competition_standings_seasonId_idx_aa50cbae",
+    "label": "Create index \"competition_standings_seasonId_idx_aa50cbae\" on \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_standings_seasonId_idx_aa50cbae",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_standings_seasonId_idx_aa50cbae\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_standings_seasonId_idx_aa50cbae\"",
+        "sql": "CREATE INDEX \"competition_standings_seasonId_idx_aa50cbae\" ON \"public\".\"competition_standings\" (\"seasonId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_standings_seasonId_idx_aa50cbae\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_standings.competition_standings_teamId_idx_f2b72ab3",
+    "label": "Create index \"competition_standings_teamId_idx_f2b72ab3\" on \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_standings_teamId_idx_f2b72ab3",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_standings_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_standings_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"competition_standings_teamId_idx_f2b72ab3\" ON \"public\".\"competition_standings\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_standings_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_standings_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_teams.competition_teams_seasonId_idx_aa50cbae",
+    "label": "Create index \"competition_teams_seasonId_idx_aa50cbae\" on \"competition_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_teams_seasonId_idx_aa50cbae",
+        "table": "competition_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_teams_seasonId_idx_aa50cbae\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_teams_seasonId_idx_aa50cbae\"",
+        "sql": "CREATE INDEX \"competition_teams_seasonId_idx_aa50cbae\" ON \"public\".\"competition_teams\" (\"seasonId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_teams_seasonId_idx_aa50cbae\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competition_teams.competition_teams_teamId_idx_f2b72ab3",
+    "label": "Create index \"competition_teams_teamId_idx_f2b72ab3\" on \"competition_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competition_teams_teamId_idx_f2b72ab3",
+        "table": "competition_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competition_teams_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competition_teams_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"competition_teams_teamId_idx_f2b72ab3\" ON \"public\".\"competition_teams\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competition_teams_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competition_teams_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competitions.competitions_country_idx_c3994778",
+    "label": "Create index \"competitions_country_idx_c3994778\" on \"competitions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competitions_country_idx_c3994778",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competitions_country_idx_c3994778\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_country_idx_c3994778\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competitions_country_idx_c3994778\"",
+        "sql": "CREATE INDEX \"competitions_country_idx_c3994778\" ON \"public\".\"competitions\" (\"country\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competitions_country_idx_c3994778\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_country_idx_c3994778\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competitions.competitions_publicationStatus_idx_b9e8738a",
+    "label": "Create index \"competitions_publicationStatus_idx_b9e8738a\" on \"competitions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competitions_publicationStatus_idx_b9e8738a",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competitions_publicationStatus_idx_b9e8738a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competitions_publicationStatus_idx_b9e8738a\"",
+        "sql": "CREATE INDEX \"competitions_publicationStatus_idx_b9e8738a\" ON \"public\".\"competitions\" (\"publicationStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competitions_publicationStatus_idx_b9e8738a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.competitions.competitions_sportId_idx_2a876157",
+    "label": "Create index \"competitions_sportId_idx_2a876157\" on \"competitions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "competitions_sportId_idx_2a876157",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"competitions_sportId_idx_2a876157\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_sportId_idx_2a876157\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"competitions_sportId_idx_2a876157\"",
+        "sql": "CREATE INDEX \"competitions_sportId_idx_2a876157\" ON \"public\".\"competitions\" (\"sportId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"competitions_sportId_idx_2a876157\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"competitions_sportId_idx_2a876157\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_aliases.discovery_aliases_competitionId_idx_53fccd3b",
+    "label": "Create index \"discovery_aliases_competitionId_idx_53fccd3b\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_aliases_competitionId_idx_53fccd3b",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_aliases_competitionId_idx_53fccd3b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_competitionId_idx_53fccd3b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_aliases_competitionId_idx_53fccd3b\"",
+        "sql": "CREATE INDEX \"discovery_aliases_competitionId_idx_53fccd3b\" ON \"public\".\"discovery_aliases\" (\"competitionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_aliases_competitionId_idx_53fccd3b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_competitionId_idx_53fccd3b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_aliases.discovery_aliases_normalized_idx_323bea3e",
+    "label": "Create index \"discovery_aliases_normalized_idx_323bea3e\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_aliases_normalized_idx_323bea3e",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_aliases_normalized_idx_323bea3e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_normalized_idx_323bea3e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_aliases_normalized_idx_323bea3e\"",
+        "sql": "CREATE INDEX \"discovery_aliases_normalized_idx_323bea3e\" ON \"public\".\"discovery_aliases\" (\"normalized\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_aliases_normalized_idx_323bea3e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_normalized_idx_323bea3e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_aliases.discovery_aliases_playerId_idx_710cf1aa",
+    "label": "Create index \"discovery_aliases_playerId_idx_710cf1aa\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_aliases_playerId_idx_710cf1aa",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_aliases_playerId_idx_710cf1aa\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_playerId_idx_710cf1aa\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_aliases_playerId_idx_710cf1aa\"",
+        "sql": "CREATE INDEX \"discovery_aliases_playerId_idx_710cf1aa\" ON \"public\".\"discovery_aliases\" (\"playerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_aliases_playerId_idx_710cf1aa\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_playerId_idx_710cf1aa\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_aliases.discovery_aliases_teamId_idx_f2b72ab3",
+    "label": "Create index \"discovery_aliases_teamId_idx_f2b72ab3\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_aliases_teamId_idx_f2b72ab3",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_aliases_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_aliases_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"discovery_aliases_teamId_idx_f2b72ab3\" ON \"public\".\"discovery_aliases\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_aliases_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_aliases_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.matches.matches_competitionSeasonId_idx_2e6f1c2a",
+    "label": "Create index \"matches_competitionSeasonId_idx_2e6f1c2a\" on \"matches\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "matches_competitionSeasonId_idx_2e6f1c2a",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"matches_competitionSeasonId_idx_2e6f1c2a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"matches_competitionSeasonId_idx_2e6f1c2a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"matches_competitionSeasonId_idx_2e6f1c2a\"",
+        "sql": "CREATE INDEX \"matches_competitionSeasonId_idx_2e6f1c2a\" ON \"public\".\"matches\" (\"competitionSeasonId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"matches_competitionSeasonId_idx_2e6f1c2a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"matches_competitionSeasonId_idx_2e6f1c2a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_careers.player_careers_playerId_idx_710cf1aa",
+    "label": "Create index \"player_careers_playerId_idx_710cf1aa\" on \"player_careers\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_careers_playerId_idx_710cf1aa",
+        "table": "player_careers"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_careers_playerId_idx_710cf1aa\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers_playerId_idx_710cf1aa\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_careers_playerId_idx_710cf1aa\"",
+        "sql": "CREATE INDEX \"player_careers_playerId_idx_710cf1aa\" ON \"public\".\"player_careers\" (\"playerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_careers_playerId_idx_710cf1aa\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers_playerId_idx_710cf1aa\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_careers.player_careers_teamId_idx_f2b72ab3",
+    "label": "Create index \"player_careers_teamId_idx_f2b72ab3\" on \"player_careers\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_careers_teamId_idx_f2b72ab3",
+        "table": "player_careers"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_careers_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_careers_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"player_careers_teamId_idx_f2b72ab3\" ON \"public\".\"player_careers\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_careers_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_careers_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_media.player_media_playerId_idx_710cf1aa",
+    "label": "Create index \"player_media_playerId_idx_710cf1aa\" on \"player_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_media_playerId_idx_710cf1aa",
+        "table": "player_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_media_playerId_idx_710cf1aa\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media_playerId_idx_710cf1aa\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_media_playerId_idx_710cf1aa\"",
+        "sql": "CREATE INDEX \"player_media_playerId_idx_710cf1aa\" ON \"public\".\"player_media\" (\"playerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_media_playerId_idx_710cf1aa\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media_playerId_idx_710cf1aa\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_media.player_media_playerId_sortOrder_idx_a58bfb65",
+    "label": "Create index \"player_media_playerId_sortOrder_idx_a58bfb65\" on \"player_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_media_playerId_sortOrder_idx_a58bfb65",
+        "table": "player_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_media_playerId_sortOrder_idx_a58bfb65\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media_playerId_sortOrder_idx_a58bfb65\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_media_playerId_sortOrder_idx_a58bfb65\"",
+        "sql": "CREATE INDEX \"player_media_playerId_sortOrder_idx_a58bfb65\" ON \"public\".\"player_media\" (\"playerId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_media_playerId_sortOrder_idx_a58bfb65\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_media_playerId_sortOrder_idx_a58bfb65\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_statistics.player_statistics_playerId_idx_710cf1aa",
+    "label": "Create index \"player_statistics_playerId_idx_710cf1aa\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_statistics_playerId_idx_710cf1aa",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_statistics_playerId_idx_710cf1aa\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_playerId_idx_710cf1aa\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_statistics_playerId_idx_710cf1aa\"",
+        "sql": "CREATE INDEX \"player_statistics_playerId_idx_710cf1aa\" ON \"public\".\"player_statistics\" (\"playerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_statistics_playerId_idx_710cf1aa\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_playerId_idx_710cf1aa\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_statistics.player_statistics_seasonId_idx_aa50cbae",
+    "label": "Create index \"player_statistics_seasonId_idx_aa50cbae\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_statistics_seasonId_idx_aa50cbae",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_statistics_seasonId_idx_aa50cbae\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_statistics_seasonId_idx_aa50cbae\"",
+        "sql": "CREATE INDEX \"player_statistics_seasonId_idx_aa50cbae\" ON \"public\".\"player_statistics\" (\"seasonId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_statistics_seasonId_idx_aa50cbae\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_seasonId_idx_aa50cbae\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_statistics.player_statistics_seasonId_metricKey_idx_bcad9e80",
+    "label": "Create index \"player_statistics_seasonId_metricKey_idx_bcad9e80\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_statistics_seasonId_metricKey_idx_bcad9e80",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_statistics_seasonId_metricKey_idx_bcad9e80\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_seasonId_metricKey_idx_bcad9e80\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_statistics_seasonId_metricKey_idx_bcad9e80\"",
+        "sql": "CREATE INDEX \"player_statistics_seasonId_metricKey_idx_bcad9e80\" ON \"public\".\"player_statistics\" (\"seasonId\", \"metricKey\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_statistics_seasonId_metricKey_idx_bcad9e80\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_seasonId_metricKey_idx_bcad9e80\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.player_statistics.player_statistics_teamId_idx_f2b72ab3",
+    "label": "Create index \"player_statistics_teamId_idx_f2b72ab3\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "player_statistics_teamId_idx_f2b72ab3",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"player_statistics_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"player_statistics_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"player_statistics_teamId_idx_f2b72ab3\" ON \"public\".\"player_statistics\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"player_statistics_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"player_statistics_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.players.players_nationality_idx_1a6bf5fb",
+    "label": "Create index \"players_nationality_idx_1a6bf5fb\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "players_nationality_idx_1a6bf5fb",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"players_nationality_idx_1a6bf5fb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_nationality_idx_1a6bf5fb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"players_nationality_idx_1a6bf5fb\"",
+        "sql": "CREATE INDEX \"players_nationality_idx_1a6bf5fb\" ON \"public\".\"players\" (\"nationality\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"players_nationality_idx_1a6bf5fb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_nationality_idx_1a6bf5fb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.players.players_publicationStatus_idx_b9e8738a",
+    "label": "Create index \"players_publicationStatus_idx_b9e8738a\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "players_publicationStatus_idx_b9e8738a",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"players_publicationStatus_idx_b9e8738a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"players_publicationStatus_idx_b9e8738a\"",
+        "sql": "CREATE INDEX \"players_publicationStatus_idx_b9e8738a\" ON \"public\".\"players\" (\"publicationStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"players_publicationStatus_idx_b9e8738a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.players.players_sportId_idx_2a876157",
+    "label": "Create index \"players_sportId_idx_2a876157\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "players_sportId_idx_2a876157",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"players_sportId_idx_2a876157\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_sportId_idx_2a876157\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"players_sportId_idx_2a876157\"",
+        "sql": "CREATE INDEX \"players_sportId_idx_2a876157\" ON \"public\".\"players\" (\"sportId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"players_sportId_idx_2a876157\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"players_sportId_idx_2a876157\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.team_media.team_media_teamId_idx_f2b72ab3",
+    "label": "Create index \"team_media_teamId_idx_f2b72ab3\" on \"team_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "team_media_teamId_idx_f2b72ab3",
+        "table": "team_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"team_media_teamId_idx_f2b72ab3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"team_media_teamId_idx_f2b72ab3\"",
+        "sql": "CREATE INDEX \"team_media_teamId_idx_f2b72ab3\" ON \"public\".\"team_media\" (\"teamId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"team_media_teamId_idx_f2b72ab3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media_teamId_idx_f2b72ab3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.team_media.team_media_teamId_sortOrder_idx_5c0ac284",
+    "label": "Create index \"team_media_teamId_sortOrder_idx_5c0ac284\" on \"team_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "team_media_teamId_sortOrder_idx_5c0ac284",
+        "table": "team_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"team_media_teamId_sortOrder_idx_5c0ac284\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media_teamId_sortOrder_idx_5c0ac284\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"team_media_teamId_sortOrder_idx_5c0ac284\"",
+        "sql": "CREATE INDEX \"team_media_teamId_sortOrder_idx_5c0ac284\" ON \"public\".\"team_media\" (\"teamId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"team_media_teamId_sortOrder_idx_5c0ac284\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"team_media_teamId_sortOrder_idx_5c0ac284\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.teams.teams_country_idx_c3994778",
+    "label": "Create index \"teams_country_idx_c3994778\" on \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "teams_country_idx_c3994778",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"teams_country_idx_c3994778\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"teams_country_idx_c3994778\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"teams_country_idx_c3994778\"",
+        "sql": "CREATE INDEX \"teams_country_idx_c3994778\" ON \"public\".\"teams\" (\"country\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"teams_country_idx_c3994778\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"teams_country_idx_c3994778\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.teams.teams_publicationStatus_idx_b9e8738a",
+    "label": "Create index \"teams_publicationStatus_idx_b9e8738a\" on \"teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "teams_publicationStatus_idx_b9e8738a",
+        "table": "teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"teams_publicationStatus_idx_b9e8738a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"teams_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"teams_publicationStatus_idx_b9e8738a\"",
+        "sql": "CREATE INDEX \"teams_publicationStatus_idx_b9e8738a\" ON \"public\".\"teams\" (\"publicationStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"teams_publicationStatus_idx_b9e8738a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"teams_publicationStatus_idx_b9e8738a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competition_seasons.competition_seasons_competitionId_fkey",
+    "label": "Add foreign key \"competition_seasons_competitionId_fkey\" on \"competition_seasons\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competition_seasons_competitionId_fkey",
+        "table": "competition_seasons"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competition_seasons_competitionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_seasons_competitionId_fkey",
+          "public",
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competition_seasons_competitionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competition_seasons\"\nADD CONSTRAINT \"competition_seasons_competitionId_fkey\"\nFOREIGN KEY (\"competitionId\")\nREFERENCES \"public\".\"competitions\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competition_seasons_competitionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_seasons_competitionId_fkey",
+          "public",
+          "\"public\".\"competition_seasons\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competition_standings.competition_standings_seasonId_fkey",
+    "label": "Add foreign key \"competition_standings_seasonId_fkey\" on \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competition_standings_seasonId_fkey",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competition_standings_seasonId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_seasonId_fkey",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competition_standings_seasonId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competition_standings\"\nADD CONSTRAINT \"competition_standings_seasonId_fkey\"\nFOREIGN KEY (\"seasonId\")\nREFERENCES \"public\".\"competition_seasons\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competition_standings_seasonId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_seasonId_fkey",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competition_standings.competition_standings_teamId_fkey",
+    "label": "Add foreign key \"competition_standings_teamId_fkey\" on \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competition_standings_teamId_fkey",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competition_standings_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_teamId_fkey",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competition_standings_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competition_standings\"\nADD CONSTRAINT \"competition_standings_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competition_standings_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_standings_teamId_fkey",
+          "public",
+          "\"public\".\"competition_standings\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competition_teams.competition_teams_seasonId_fkey",
+    "label": "Add foreign key \"competition_teams_seasonId_fkey\" on \"competition_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competition_teams_seasonId_fkey",
+        "table": "competition_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competition_teams_seasonId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_teams_seasonId_fkey",
+          "public",
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competition_teams_seasonId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competition_teams\"\nADD CONSTRAINT \"competition_teams_seasonId_fkey\"\nFOREIGN KEY (\"seasonId\")\nREFERENCES \"public\".\"competition_seasons\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competition_teams_seasonId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_teams_seasonId_fkey",
+          "public",
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competition_teams.competition_teams_teamId_fkey",
+    "label": "Add foreign key \"competition_teams_teamId_fkey\" on \"competition_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competition_teams_teamId_fkey",
+        "table": "competition_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competition_teams_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_teams_teamId_fkey",
+          "public",
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competition_teams_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competition_teams\"\nADD CONSTRAINT \"competition_teams_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competition_teams_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competition_teams_teamId_fkey",
+          "public",
+          "\"public\".\"competition_teams\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.competitions.competitions_sportId_fkey",
+    "label": "Add foreign key \"competitions_sportId_fkey\" on \"competitions\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "competitions_sportId_fkey",
+        "table": "competitions"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"competitions_sportId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_sportId_fkey",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"competitions_sportId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"competitions\"\nADD CONSTRAINT \"competitions_sportId_fkey\"\nFOREIGN KEY (\"sportId\")\nREFERENCES \"public\".\"sports\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"competitions_sportId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "competitions_sportId_fkey",
+          "public",
+          "\"public\".\"competitions\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.discovery_aliases.discovery_aliases_teamId_fkey",
+    "label": "Add foreign key \"discovery_aliases_teamId_fkey\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "discovery_aliases_teamId_fkey",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"discovery_aliases_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_teamId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"discovery_aliases_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\"\nADD CONSTRAINT \"discovery_aliases_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"discovery_aliases_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_teamId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.discovery_aliases.discovery_aliases_playerId_fkey",
+    "label": "Add foreign key \"discovery_aliases_playerId_fkey\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "discovery_aliases_playerId_fkey",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"discovery_aliases_playerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_playerId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"discovery_aliases_playerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\"\nADD CONSTRAINT \"discovery_aliases_playerId_fkey\"\nFOREIGN KEY (\"playerId\")\nREFERENCES \"public\".\"players\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"discovery_aliases_playerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_playerId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.discovery_aliases.discovery_aliases_competitionId_fkey",
+    "label": "Add foreign key \"discovery_aliases_competitionId_fkey\" on \"discovery_aliases\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "discovery_aliases_competitionId_fkey",
+        "table": "discovery_aliases"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"discovery_aliases_competitionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_competitionId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"discovery_aliases_competitionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_aliases\"\nADD CONSTRAINT \"discovery_aliases_competitionId_fkey\"\nFOREIGN KEY (\"competitionId\")\nREFERENCES \"public\".\"competitions\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"discovery_aliases_competitionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_aliases_competitionId_fkey",
+          "public",
+          "\"public\".\"discovery_aliases\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.fan_rooms.fan_rooms_teamId_fkey",
+    "label": "Add foreign key \"fan_rooms_teamId_fkey\" on \"fan_rooms\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "fan_rooms_teamId_fkey",
+        "table": "fan_rooms"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"fan_rooms_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fan_rooms_teamId_fkey",
+          "public",
+          "\"public\".\"fan_rooms\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"fan_rooms_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"fan_rooms\"\nADD CONSTRAINT \"fan_rooms_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"fan_rooms_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fan_rooms_teamId_fkey",
+          "public",
+          "\"public\".\"fan_rooms\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.matches.matches_competitionSeasonId_fkey",
+    "label": "Add foreign key \"matches_competitionSeasonId_fkey\" on \"matches\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "matches_competitionSeasonId_fkey",
+        "table": "matches"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"matches_competitionSeasonId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "matches_competitionSeasonId_fkey",
+          "public",
+          "\"public\".\"matches\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"matches_competitionSeasonId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"matches\"\nADD CONSTRAINT \"matches_competitionSeasonId_fkey\"\nFOREIGN KEY (\"competitionSeasonId\")\nREFERENCES \"public\".\"competition_seasons\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"matches_competitionSeasonId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "matches_competitionSeasonId_fkey",
+          "public",
+          "\"public\".\"matches\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_careers.player_careers_playerId_fkey",
+    "label": "Add foreign key \"player_careers_playerId_fkey\" on \"player_careers\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_careers_playerId_fkey",
+        "table": "player_careers"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_careers_playerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_careers_playerId_fkey",
+          "public",
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_careers_playerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_careers\"\nADD CONSTRAINT \"player_careers_playerId_fkey\"\nFOREIGN KEY (\"playerId\")\nREFERENCES \"public\".\"players\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_careers_playerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_careers_playerId_fkey",
+          "public",
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_careers.player_careers_teamId_fkey",
+    "label": "Add foreign key \"player_careers_teamId_fkey\" on \"player_careers\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_careers_teamId_fkey",
+        "table": "player_careers"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_careers_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_careers_teamId_fkey",
+          "public",
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_careers_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_careers\"\nADD CONSTRAINT \"player_careers_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_careers_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_careers_teamId_fkey",
+          "public",
+          "\"public\".\"player_careers\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_media.player_media_playerId_fkey",
+    "label": "Add foreign key \"player_media_playerId_fkey\" on \"player_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_media_playerId_fkey",
+        "table": "player_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_media_playerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_media_playerId_fkey",
+          "public",
+          "\"public\".\"player_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_media_playerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_media\"\nADD CONSTRAINT \"player_media_playerId_fkey\"\nFOREIGN KEY (\"playerId\")\nREFERENCES \"public\".\"players\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_media_playerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_media_playerId_fkey",
+          "public",
+          "\"public\".\"player_media\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_statistics.player_statistics_playerId_fkey",
+    "label": "Add foreign key \"player_statistics_playerId_fkey\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_statistics_playerId_fkey",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_statistics_playerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_playerId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_statistics_playerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_statistics\"\nADD CONSTRAINT \"player_statistics_playerId_fkey\"\nFOREIGN KEY (\"playerId\")\nREFERENCES \"public\".\"players\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_statistics_playerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_playerId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_statistics.player_statistics_teamId_fkey",
+    "label": "Add foreign key \"player_statistics_teamId_fkey\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_statistics_teamId_fkey",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_statistics_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_teamId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_statistics_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_statistics\"\nADD CONSTRAINT \"player_statistics_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_statistics_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_teamId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.player_statistics.player_statistics_seasonId_fkey",
+    "label": "Add foreign key \"player_statistics_seasonId_fkey\" on \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "player_statistics_seasonId_fkey",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"player_statistics_seasonId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_seasonId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"player_statistics_seasonId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"player_statistics\"\nADD CONSTRAINT \"player_statistics_seasonId_fkey\"\nFOREIGN KEY (\"seasonId\")\nREFERENCES \"public\".\"competition_seasons\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"player_statistics_seasonId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_statistics_seasonId_fkey",
+          "public",
+          "\"public\".\"player_statistics\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.players.players_sportId_fkey",
+    "label": "Add foreign key \"players_sportId_fkey\" on \"players\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "players_sportId_fkey",
+        "table": "players"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"players_sportId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_sportId_fkey",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"players_sportId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"players\"\nADD CONSTRAINT \"players_sportId_fkey\"\nFOREIGN KEY (\"sportId\")\nREFERENCES \"public\".\"sports\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"players_sportId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "players_sportId_fkey",
+          "public",
+          "\"public\".\"players\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.team_media.team_media_teamId_fkey",
+    "label": "Add foreign key \"team_media_teamId_fkey\" on \"team_media\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "team_media_teamId_fkey",
+        "table": "team_media"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"team_media_teamId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "team_media_teamId_fkey",
+          "public",
+          "\"public\".\"team_media\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"team_media_teamId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"team_media\"\nADD CONSTRAINT \"team_media_teamId_fkey\"\nFOREIGN KEY (\"teamId\")\nREFERENCES \"public\".\"teams\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"team_media_teamId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "team_media_teamId_fkey",
+          "public",
+          "\"public\".\"team_media\""
+        ]
+      }
+    ]
+  }
+]

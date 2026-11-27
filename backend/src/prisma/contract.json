@@ -24,6 +24,38 @@
       "model": "Challenge",
       "namespace": "public"
     },
+    "competition_seasons": {
+      "model": "CompetitionSeason",
+      "namespace": "public"
+    },
+    "competition_standings": {
+      "model": "CompetitionStanding",
+      "namespace": "public"
+    },
+    "competition_teams": {
+      "model": "CompetitionTeam",
+      "namespace": "public"
+    },
+    "competitions": {
+      "model": "Competition",
+      "namespace": "public"
+    },
+    "discovery_aliases": {
+      "model": "DiscoveryAlias",
+      "namespace": "public"
+    },
+    "discovery_provider_cache": {
+      "model": "DiscoveryProviderCache",
+      "namespace": "public"
+    },
+    "discovery_provider_quotas": {
+      "model": "DiscoveryProviderQuota",
+      "namespace": "public"
+    },
+    "discovery_sync_jobs": {
+      "model": "DiscoverySyncJob",
+      "namespace": "public"
+    },
     "email_verification_codes": {
       "model": "EmailVerificationCode",
       "namespace": "public"
@@ -84,6 +116,18 @@
       "model": "Notification",
       "namespace": "public"
     },
+    "player_careers": {
+      "model": "PlayerCareer",
+      "namespace": "public"
+    },
+    "player_media": {
+      "model": "PlayerMedia",
+      "namespace": "public"
+    },
+    "player_statistics": {
+      "model": "PlayerStatistics",
+      "namespace": "public"
+    },
     "player_teams": {
       "model": "PlayerTeam",
       "namespace": "public"
@@ -126,6 +170,10 @@
     },
     "sports": {
       "model": "Sport",
+      "namespace": "public"
+    },
+    "team_media": {
+      "model": "TeamMedia",
       "namespace": "public"
     },
     "teams": {
@@ -253,6 +301,65 @@
               {
                 "name": "COMMUNITY",
                 "value": "COMMUNITY"
+              }
+            ]
+          },
+          "DiscoveryDataSource": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "MANUAL",
+                "value": "MANUAL"
+              },
+              {
+                "name": "PROVIDER",
+                "value": "PROVIDER"
+              }
+            ]
+          },
+          "DiscoveryPublicationStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "PUBLISHED",
+                "value": "PUBLISHED"
+              },
+              {
+                "name": "ARCHIVED",
+                "value": "ARCHIVED"
+              }
+            ]
+          },
+          "DiscoverySyncJobStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "RUNNING",
+                "value": "RUNNING"
+              },
+              {
+                "name": "RETRY",
+                "value": "RETRY"
+              },
+              {
+                "name": "COMPLETED",
+                "value": "COMPLETED"
+              },
+              {
+                "name": "FAILED",
+                "value": "FAILED"
+              },
+              {
+                "name": "CANCELLED",
+                "value": "CANCELLED"
               }
             ]
           },
@@ -1368,6 +1475,1437 @@
               "table": "challenge_participations"
             }
           },
+          "Competition": {
+            "fields": {
+              "competitionType": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "country": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "coverUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "foundedYear": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSyncedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "logoUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerLeagueId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "publicationStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryPublicationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "publishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoDescription": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoTitle": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "shortName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "slug": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sportId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "websiteUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "aliases": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "competitionId"
+                  ]
+                },
+                "to": {
+                  "model": "DiscoveryAlias",
+                  "namespace": "public"
+                }
+              },
+              "seasons": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "competitionId"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionSeason",
+                  "namespace": "public"
+                }
+              },
+              "sport": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "sportId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Sport",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "competitionType": {
+                  "column": "competitionType"
+                },
+                "country": {
+                  "column": "country"
+                },
+                "coverUrl": {
+                  "column": "coverUrl"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "foundedYear": {
+                  "column": "foundedYear"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "lastSyncedAt": {
+                  "column": "lastSyncedAt"
+                },
+                "logoUrl": {
+                  "column": "logoUrl"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "providerLeagueId": {
+                  "column": "providerLeagueId"
+                },
+                "providerName": {
+                  "column": "providerName"
+                },
+                "publicationStatus": {
+                  "column": "publicationStatus"
+                },
+                "publishedAt": {
+                  "column": "publishedAt"
+                },
+                "seoDescription": {
+                  "column": "seoDescription"
+                },
+                "seoTitle": {
+                  "column": "seoTitle"
+                },
+                "shortName": {
+                  "column": "shortName"
+                },
+                "slug": {
+                  "column": "slug"
+                },
+                "sportId": {
+                  "column": "sportId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "websiteUrl": {
+                  "column": "websiteUrl"
+                }
+              },
+              "namespaceId": "public",
+              "table": "competitions"
+            }
+          },
+          "CompetitionSeason": {
+            "fields": {
+              "competitionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "endsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isCurrent": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerSeason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startsAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "competition": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "competitionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Competition",
+                  "namespace": "public"
+                }
+              },
+              "matches": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "competitionSeasonId"
+                  ]
+                },
+                "to": {
+                  "model": "Match",
+                  "namespace": "public"
+                }
+              },
+              "standings": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "seasonId"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionStanding",
+                  "namespace": "public"
+                }
+              },
+              "statistics": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "seasonId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerStatistics",
+                  "namespace": "public"
+                }
+              },
+              "teams": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "seasonId"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionTeam",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "competitionId": {
+                  "column": "competitionId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "endsAt": {
+                  "column": "endsAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isCurrent": {
+                  "column": "isCurrent"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "providerSeason": {
+                  "column": "providerSeason"
+                },
+                "startsAt": {
+                  "column": "startsAt"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "competition_seasons"
+            }
+          },
+          "CompetitionStanding": {
+            "fields": {
+              "conceded": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "difference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "drawn": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "form": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "groupName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lost": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "played": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "points": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerObservedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "rank": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "scored": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "seasonId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "won": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "season": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "seasonId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionSeason",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "conceded": {
+                  "column": "conceded"
+                },
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "difference": {
+                  "column": "difference"
+                },
+                "drawn": {
+                  "column": "drawn"
+                },
+                "form": {
+                  "column": "form"
+                },
+                "groupName": {
+                  "column": "groupName"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lost": {
+                  "column": "lost"
+                },
+                "played": {
+                  "column": "played"
+                },
+                "points": {
+                  "column": "points"
+                },
+                "providerObservedAt": {
+                  "column": "providerObservedAt"
+                },
+                "rank": {
+                  "column": "rank"
+                },
+                "scored": {
+                  "column": "scored"
+                },
+                "seasonId": {
+                  "column": "seasonId"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "won": {
+                  "column": "won"
+                }
+              },
+              "namespaceId": "public",
+              "table": "competition_standings"
+            }
+          },
+          "CompetitionTeam": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "seasonId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "season": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "seasonId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionSeason",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "seasonId": {
+                  "column": "seasonId"
+                },
+                "teamId": {
+                  "column": "teamId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "competition_teams"
+            }
+          },
+          "DiscoveryAlias": {
+            "fields": {
+              "alias": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "competitionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "normalized": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "playerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "competition": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "competitionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Competition",
+                  "namespace": "public"
+                }
+              },
+              "player": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "playerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "alias": {
+                  "column": "alias"
+                },
+                "competitionId": {
+                  "column": "competitionId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "normalized": {
+                  "column": "normalized"
+                },
+                "playerId": {
+                  "column": "playerId"
+                },
+                "teamId": {
+                  "column": "teamId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "discovery_aliases"
+            }
+          },
+          "DiscoveryProviderCache": {
+            "fields": {
+              "cacheKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "endpoint": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "fetchedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "payload": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "payloadBytes": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "cacheKey": {
+                  "column": "cacheKey"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "endpoint": {
+                  "column": "endpoint"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "fetchedAt": {
+                  "column": "fetchedAt"
+                },
+                "payload": {
+                  "column": "payload"
+                },
+                "payloadBytes": {
+                  "column": "payloadBytes"
+                },
+                "providerName": {
+                  "column": "providerName"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "discovery_provider_cache"
+            }
+          },
+          "DiscoveryProviderQuota": {
+            "fields": {
+              "accessRestricted": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "cooldownUntil": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dailyLimit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "dailyRemaining": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastErrorCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lockExpiresAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "lockToken": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "minuteLimit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "minuteRemaining": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "observedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "quotaKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "accessRestricted": {
+                  "column": "accessRestricted"
+                },
+                "cooldownUntil": {
+                  "column": "cooldownUntil"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dailyLimit": {
+                  "column": "dailyLimit"
+                },
+                "dailyRemaining": {
+                  "column": "dailyRemaining"
+                },
+                "lastErrorCode": {
+                  "column": "lastErrorCode"
+                },
+                "lockExpiresAt": {
+                  "column": "lockExpiresAt"
+                },
+                "lockToken": {
+                  "column": "lockToken"
+                },
+                "minuteLimit": {
+                  "column": "minuteLimit"
+                },
+                "minuteRemaining": {
+                  "column": "minuteRemaining"
+                },
+                "observedAt": {
+                  "column": "observedAt"
+                },
+                "quotaKey": {
+                  "column": "quotaKey"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "discovery_provider_quotas"
+            }
+          },
+          "DiscoverySyncJob": {
+            "fields": {
+              "attempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "checkpoint": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "completedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "heartbeatAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jobKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "jobType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastError": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastErrorCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lockExpiresAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "lockToken": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "maxAttempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "nextRetryAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "parameters": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "priority": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsConflicted": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsCreated": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsProcessed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsSkipped": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsUpdated": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "scheduledAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "sportSlug": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoverySyncJobStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "attempts": {
+                  "column": "attempts"
+                },
+                "checkpoint": {
+                  "column": "checkpoint"
+                },
+                "completedAt": {
+                  "column": "completedAt"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "heartbeatAt": {
+                  "column": "heartbeatAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jobKey": {
+                  "column": "jobKey"
+                },
+                "jobType": {
+                  "column": "jobType"
+                },
+                "lastError": {
+                  "column": "lastError"
+                },
+                "lastErrorCode": {
+                  "column": "lastErrorCode"
+                },
+                "lockExpiresAt": {
+                  "column": "lockExpiresAt"
+                },
+                "lockToken": {
+                  "column": "lockToken"
+                },
+                "maxAttempts": {
+                  "column": "maxAttempts"
+                },
+                "nextRetryAt": {
+                  "column": "nextRetryAt"
+                },
+                "parameters": {
+                  "column": "parameters"
+                },
+                "priority": {
+                  "column": "priority"
+                },
+                "providerName": {
+                  "column": "providerName"
+                },
+                "recordsConflicted": {
+                  "column": "recordsConflicted"
+                },
+                "recordsCreated": {
+                  "column": "recordsCreated"
+                },
+                "recordsProcessed": {
+                  "column": "recordsProcessed"
+                },
+                "recordsSkipped": {
+                  "column": "recordsSkipped"
+                },
+                "recordsUpdated": {
+                  "column": "recordsUpdated"
+                },
+                "scheduledAt": {
+                  "column": "scheduledAt"
+                },
+                "sportSlug": {
+                  "column": "sportSlug"
+                },
+                "startedAt": {
+                  "column": "startedAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "discovery_sync_jobs"
+            }
+          },
           "EmailVerificationCode": {
             "fields": {
               "attempts": {
@@ -1839,6 +3377,13 @@
                   "plane": "domain"
                 }
               },
+              "teamId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -1893,6 +3438,22 @@
                   "model": "FanRoomMessage",
                   "namespace": "public"
                 }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1932,6 +3493,9 @@
                 },
                 "status": {
                   "column": "status"
+                },
+                "teamId": {
+                  "column": "teamId"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -2545,6 +4109,13 @@
                   "kind": "scalar"
                 }
               },
+              "competitionSeasonId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -2744,6 +4315,22 @@
                   "namespace": "public"
                 }
               },
+              "competitionSeason": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "competitionSeasonId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionSeason",
+                  "namespace": "public"
+                }
+              },
               "events": {
                 "cardinality": "1:N",
                 "on": {
@@ -2859,6 +4446,9 @@
                 },
                 "competition": {
                   "column": "competition"
+                },
+                "competitionSeasonId": {
+                  "column": "competitionSeasonId"
                 },
                 "createdAt": {
                   "column": "createdAt"
@@ -3610,7 +5200,21 @@
           },
           "Player": {
             "fields": {
+              "achievements": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "avatarUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "biography": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -3621,6 +5225,26 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "dateOfBirth": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -3635,6 +5259,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "heightCm": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -3666,6 +5297,13 @@
                   "kind": "scalar"
                 }
               },
+              "lastSyncedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "nationality": {
                 "nullable": true,
                 "type": {
@@ -3680,10 +5318,72 @@
                   "kind": "scalar"
                 }
               },
+              "preferredFoot": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerPlayerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "publicationStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryPublicationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "publishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoDescription": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoTitle": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "slug": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sportId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -3693,9 +5393,46 @@
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
+              },
+              "weightKg": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
+              "aliases": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "playerId"
+                  ]
+                },
+                "to": {
+                  "model": "DiscoveryAlias",
+                  "namespace": "public"
+                }
+              },
+              "careerRecords": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "playerId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerCareer",
+                  "namespace": "public"
+                }
+              },
               "followers": {
                 "cardinality": "1:N",
                 "on": {
@@ -3726,6 +5463,52 @@
                   "namespace": "public"
                 }
               },
+              "media": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "playerId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerMedia",
+                  "namespace": "public"
+                }
+              },
+              "sport": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "sportId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Sport",
+                  "namespace": "public"
+                }
+              },
+              "statistics": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "playerId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerStatistics",
+                  "namespace": "public"
+                }
+              },
               "teams": {
                 "cardinality": "1:N",
                 "on": {
@@ -3744,17 +5527,32 @@
             },
             "storage": {
               "fields": {
+                "achievements": {
+                  "column": "achievements"
+                },
                 "avatarUrl": {
                   "column": "avatarUrl"
                 },
+                "biography": {
+                  "column": "biography"
+                },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "dateOfBirth": {
+                  "column": "dateOfBirth"
                 },
                 "displayName": {
                   "column": "displayName"
                 },
                 "firstName": {
                   "column": "firstName"
+                },
+                "heightCm": {
+                  "column": "heightCm"
                 },
                 "id": {
                   "column": "id"
@@ -3768,33 +5566,547 @@
                 "lastName": {
                   "column": "lastName"
                 },
+                "lastSyncedAt": {
+                  "column": "lastSyncedAt"
+                },
                 "nationality": {
                   "column": "nationality"
                 },
                 "position": {
                   "column": "position"
                 },
+                "preferredFoot": {
+                  "column": "preferredFoot"
+                },
+                "providerName": {
+                  "column": "providerName"
+                },
+                "providerPlayerId": {
+                  "column": "providerPlayerId"
+                },
+                "publicationStatus": {
+                  "column": "publicationStatus"
+                },
+                "publishedAt": {
+                  "column": "publishedAt"
+                },
+                "seoDescription": {
+                  "column": "seoDescription"
+                },
+                "seoTitle": {
+                  "column": "seoTitle"
+                },
                 "slug": {
                   "column": "slug"
                 },
+                "sportId": {
+                  "column": "sportId"
+                },
                 "updatedAt": {
                   "column": "updatedAt"
+                },
+                "weightKg": {
+                  "column": "weightKg"
                 }
               },
               "namespaceId": "public",
               "table": "players"
             }
           },
-          "PlayerTeam": {
+          "PlayerCareer": {
             "fields": {
-              "joinedAt": {
+              "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
               },
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jerseyNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "joinedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "leftAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "playerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "position": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "transferType": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "player": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "playerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jerseyNumber": {
+                  "column": "jerseyNumber"
+                },
+                "joinedAt": {
+                  "column": "joinedAt"
+                },
+                "leftAt": {
+                  "column": "leftAt"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "playerId": {
+                  "column": "playerId"
+                },
+                "position": {
+                  "column": "position"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "transferType": {
+                  "column": "transferType"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "player_careers"
+            }
+          },
+          "PlayerMedia": {
+            "fields": {
+              "altText": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "caption": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "credit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "imageUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "playerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sortOrder": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "player": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "playerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "altText": {
+                  "column": "altText"
+                },
+                "caption": {
+                  "column": "caption"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "credit": {
+                  "column": "credit"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "imageUrl": {
+                  "column": "imageUrl"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "playerId": {
+                  "column": "playerId"
+                },
+                "sortOrder": {
+                  "column": "sortOrder"
+                },
+                "sourceUrl": {
+                  "column": "sourceUrl"
+                }
+              },
+              "namespaceId": "public",
+              "table": "player_media"
+            }
+          },
+          "PlayerStatistics": {
+            "fields": {
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "metricKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "metricLabel": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "metricValue": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "playerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerObservedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "seasonId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "player": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "playerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "season": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "seasonId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionSeason",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "metricKey": {
+                  "column": "metricKey"
+                },
+                "metricLabel": {
+                  "column": "metricLabel"
+                },
+                "metricValue": {
+                  "column": "metricValue"
+                },
+                "playerId": {
+                  "column": "playerId"
+                },
+                "providerObservedAt": {
+                  "column": "providerObservedAt"
+                },
+                "seasonId": {
+                  "column": "seasonId"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "player_statistics"
+            }
+          },
+          "PlayerTeam": {
+            "fields": {
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "joinedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "leftAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "observedAt": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
@@ -3852,11 +6164,17 @@
             },
             "storage": {
               "fields": {
+                "dataSource": {
+                  "column": "dataSource"
+                },
                 "joinedAt": {
                   "column": "joinedAt"
                 },
                 "leftAt": {
                   "column": "leftAt"
+                },
+                "observedAt": {
+                  "column": "observedAt"
                 },
                 "playerId": {
                   "column": "playerId"
@@ -4955,6 +7273,21 @@
               }
             },
             "relations": {
+              "competitions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sportId"
+                  ]
+                },
+                "to": {
+                  "model": "Competition",
+                  "namespace": "public"
+                }
+              },
               "followers": {
                 "cardinality": "1:N",
                 "on": {
@@ -4982,6 +7315,21 @@
                 },
                 "to": {
                   "model": "Match",
+                  "namespace": "public"
+                }
+              },
+              "players": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sportId"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
                   "namespace": "public"
                 }
               },
@@ -5062,6 +7410,26 @@
                   "kind": "scalar"
                 }
               },
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryDataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "foundedYear": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -5076,6 +7444,13 @@
                   "kind": "scalar"
                 }
               },
+              "lastSyncedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "logoUrl": {
                 "nullable": true,
                 "type": {
@@ -5085,6 +7460,68 @@
               },
               "name": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "nickname": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "overview": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerTeamId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "publicationStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DiscoveryPublicationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "publishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoDescription": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "seoTitle": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -5111,15 +7548,51 @@
                   "kind": "scalar"
                 }
               },
+              "stadiumCapacity": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "stadiumName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
+              },
+              "websiteUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
+              "aliases": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "DiscoveryAlias",
+                  "namespace": "public"
+                }
+              },
               "awayMatches": {
                 "cardinality": "1:N",
                 "on": {
@@ -5132,6 +7605,51 @@
                 },
                 "to": {
                   "model": "Match",
+                  "namespace": "public"
+                }
+              },
+              "careerRecords": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerCareer",
+                  "namespace": "public"
+                }
+              },
+              "clubFanRooms": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "FanRoom",
+                  "namespace": "public"
+                }
+              },
+              "competitionEntries": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionTeam",
                   "namespace": "public"
                 }
               },
@@ -5165,6 +7683,36 @@
                   "namespace": "public"
                 }
               },
+              "media": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "TeamMedia",
+                  "namespace": "public"
+                }
+              },
+              "playerStatistics": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "PlayerStatistics",
+                  "namespace": "public"
+                }
+              },
               "players": {
                 "cardinality": "1:N",
                 "on": {
@@ -5195,6 +7743,21 @@
                   "model": "Sport",
                   "namespace": "public"
                 }
+              },
+              "standings": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "CompetitionStanding",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -5211,17 +7774,50 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "dataSource": {
+                  "column": "dataSource"
+                },
+                "foundedYear": {
+                  "column": "foundedYear"
+                },
                 "id": {
                   "column": "id"
                 },
                 "isActive": {
                   "column": "isActive"
                 },
+                "lastSyncedAt": {
+                  "column": "lastSyncedAt"
+                },
                 "logoUrl": {
                   "column": "logoUrl"
                 },
                 "name": {
                   "column": "name"
+                },
+                "nickname": {
+                  "column": "nickname"
+                },
+                "overview": {
+                  "column": "overview"
+                },
+                "providerName": {
+                  "column": "providerName"
+                },
+                "providerTeamId": {
+                  "column": "providerTeamId"
+                },
+                "publicationStatus": {
+                  "column": "publicationStatus"
+                },
+                "publishedAt": {
+                  "column": "publishedAt"
+                },
+                "seoDescription": {
+                  "column": "seoDescription"
+                },
+                "seoTitle": {
+                  "column": "seoTitle"
                 },
                 "shortName": {
                   "column": "shortName"
@@ -5232,12 +7828,149 @@
                 "sportId": {
                   "column": "sportId"
                 },
+                "stadiumCapacity": {
+                  "column": "stadiumCapacity"
+                },
+                "stadiumName": {
+                  "column": "stadiumName"
+                },
                 "updatedAt": {
                   "column": "updatedAt"
+                },
+                "websiteUrl": {
+                  "column": "websiteUrl"
                 }
               },
               "namespaceId": "public",
               "table": "teams"
+            }
+          },
+          "TeamMedia": {
+            "fields": {
+              "altText": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "caption": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "credit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "imageUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "sortOrder": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "altText": {
+                  "column": "altText"
+                },
+                "caption": {
+                  "column": "caption"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "credit": {
+                  "column": "credit"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "imageUrl": {
+                  "column": "imageUrl"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "sortOrder": {
+                  "column": "sortOrder"
+                },
+                "sourceUrl": {
+                  "column": "sourceUrl"
+                },
+                "teamId": {
+                  "column": "teamId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "team_media"
             }
           },
           "TriviaAttempt": {
@@ -7412,6 +10145,1194 @@
                 }
               ]
             },
+            "competition_seasons": {
+              "columns": {
+                "competitionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "endsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isCurrent": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "providerSeason": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "startsAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "competitionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_seasons"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competitions"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "competitionId"
+                  ],
+                  "name": "competition_seasons_competitionId_idx_53fccd3b",
+                  "prefix": "competition_seasons_competitionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "competitionId",
+                    "isCurrent"
+                  ],
+                  "name": "competition_seasons_competitionId_isCurrent_idx_a80475ca",
+                  "prefix": "competition_seasons_competitionId_isCurrent_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "competitionId",
+                    "name"
+                  ]
+                }
+              ]
+            },
+            "competition_standings": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "competition_standings_dataSource_check_579a951a",
+                  "prefix": "competition_standings_dataSource_check"
+                }
+              ],
+              "columns": {
+                "conceded": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "difference": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "drawn": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "form": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "groupName": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Overall"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lost": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "played": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "points": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "providerObservedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "rank": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "scored": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "seasonId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "won": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "seasonId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_standings"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_seasons"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_standings"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "seasonId",
+                    "groupName",
+                    "rank"
+                  ],
+                  "name": "competition_standings_seasonId_groupName_rank_idx_cedcf987",
+                  "prefix": "competition_standings_seasonId_groupName_rank_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "seasonId"
+                  ],
+                  "name": "competition_standings_seasonId_idx_aa50cbae",
+                  "prefix": "competition_standings_seasonId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "competition_standings_teamId_idx_f2b72ab3",
+                  "prefix": "competition_standings_teamId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "seasonId",
+                    "teamId",
+                    "groupName"
+                  ]
+                }
+              ]
+            },
+            "competition_teams": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "seasonId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "seasonId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_teams"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_seasons"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_teams"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "seasonId"
+                  ],
+                  "name": "competition_teams_seasonId_idx_aa50cbae",
+                  "prefix": "competition_teams_seasonId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "competition_teams_teamId_idx_f2b72ab3",
+                  "prefix": "competition_teams_teamId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "seasonId",
+                  "teamId"
+                ]
+              },
+              "uniques": []
+            },
+            "competitions": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "competitions_dataSource_check_579a951a",
+                  "prefix": "competitions_dataSource_check"
+                },
+                {
+                  "expression": "\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+                  "name": "competitions_publicationStatus_check_b5329110",
+                  "prefix": "competitions_publicationStatus_check"
+                }
+              ],
+              "columns": {
+                "competitionType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "country": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "coverUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "foundedYear": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "lastSyncedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "logoUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "providerLeagueId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "providerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "publicationStatus": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryPublicationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "publishedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "seoDescription": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "seoTitle": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "shortName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "slug": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sportId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "websiteUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "sportId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competitions"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sports"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "country"
+                  ],
+                  "name": "competitions_country_idx_c3994778",
+                  "prefix": "competitions_country_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "publicationStatus"
+                  ],
+                  "name": "competitions_publicationStatus_idx_b9e8738a",
+                  "prefix": "competitions_publicationStatus_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sportId"
+                  ],
+                  "name": "competitions_sportId_idx_2a876157",
+                  "prefix": "competitions_sportId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "slug"
+                  ]
+                },
+                {
+                  "columns": [
+                    "providerName",
+                    "providerLeagueId"
+                  ]
+                }
+              ]
+            },
+            "discovery_aliases": {
+              "columns": {
+                "alias": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "competitionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "normalized": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "playerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "discovery_aliases"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "playerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "discovery_aliases"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "players"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "competitionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "discovery_aliases"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competitions"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "competitionId"
+                  ],
+                  "name": "discovery_aliases_competitionId_idx_53fccd3b",
+                  "prefix": "discovery_aliases_competitionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "normalized"
+                  ],
+                  "name": "discovery_aliases_normalized_idx_323bea3e",
+                  "prefix": "discovery_aliases_normalized_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "playerId"
+                  ],
+                  "name": "discovery_aliases_playerId_idx_710cf1aa",
+                  "prefix": "discovery_aliases_playerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "discovery_aliases_teamId_idx_f2b72ab3",
+                  "prefix": "discovery_aliases_teamId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "teamId",
+                    "normalized"
+                  ]
+                },
+                {
+                  "columns": [
+                    "playerId",
+                    "normalized"
+                  ]
+                },
+                {
+                  "columns": [
+                    "competitionId",
+                    "normalized"
+                  ]
+                }
+              ]
+            },
+            "discovery_provider_cache": {
+              "columns": {
+                "cacheKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "endpoint": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "fetchedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "payload": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "payloadBytes": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "providerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "discovery_provider_cache_expiresAt_idx_6b6b8c10",
+                  "prefix": "discovery_provider_cache_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "providerName",
+                    "endpoint"
+                  ],
+                  "name": "discovery_provider_cache_providerName_endpoint_idx_8a54ab6a",
+                  "prefix": "discovery_provider_cache_providerName_endpoint_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "cacheKey"
+                ]
+              },
+              "uniques": []
+            },
+            "discovery_provider_quotas": {
+              "columns": {
+                "accessRestricted": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "cooldownUntil": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dailyLimit": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "dailyRemaining": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "lastErrorCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lockExpiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "lockToken": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "minuteLimit": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "minuteRemaining": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "observedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "quotaKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "quotaKey"
+                ]
+              },
+              "uniques": []
+            },
+            "discovery_sync_jobs": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'RUNNING', 'RETRY', 'COMPLETED', 'FAILED', 'CANCELLED')",
+                  "name": "discovery_sync_jobs_status_check_5efaf795",
+                  "prefix": "discovery_sync_jobs_status_check"
+                }
+              ],
+              "columns": {
+                "attempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "checkpoint": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "completedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "heartbeatAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jobKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "jobType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "lastError": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastErrorCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lockExpiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "lockToken": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "maxAttempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 3
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "nextRetryAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "parameters": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "priority": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 100
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "providerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "recordsConflicted": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "recordsCreated": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "recordsProcessed": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "recordsSkipped": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "recordsUpdated": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "scheduledAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "sportSlug": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoverySyncJobStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "providerName",
+                    "status"
+                  ],
+                  "name": "discovery_sync_jobs_providerName_status_idx_d0becd57",
+                  "prefix": "discovery_sync_jobs_providerName_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sportSlug",
+                    "jobType"
+                  ],
+                  "name": "discovery_sync_jobs_sportSlug_jobType_idx_a128776a",
+                  "prefix": "discovery_sync_jobs_sportSlug_jobType_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status",
+                    "lockExpiresAt"
+                  ],
+                  "name": "discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482",
+                  "prefix": "discovery_sync_jobs_status_lockExpiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status",
+                    "nextRetryAt"
+                  ],
+                  "name": "discovery_sync_jobs_status_nextRetryAt_idx_58d36316",
+                  "prefix": "discovery_sync_jobs_status_nextRetryAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status",
+                    "scheduledAt"
+                  ],
+                  "name": "discovery_sync_jobs_status_scheduledAt_idx_62252894",
+                  "prefix": "discovery_sync_jobs_status_scheduledAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "jobKey"
+                  ]
+                }
+              ]
+            },
             "email_verification_codes": {
               "columns": {
                 "attempts": {
@@ -8130,6 +12051,11 @@
                     "plane": "storage"
                   }
                 },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -8151,6 +12077,22 @@
                     ],
                     "namespaceId": "public",
                     "tableName": "matches"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "fan_rooms"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
                   }
                 }
               ],
@@ -8194,6 +12136,11 @@
                 {
                   "columns": [
                     "apiFootballFixtureId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "teamId"
                   ]
                 },
                 {
@@ -8672,6 +12619,11 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "competitionSeasonId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -8872,6 +12824,22 @@
                     "namespaceId": "public",
                     "tableName": "teams"
                   }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "competitionSeasonId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "matches"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_seasons"
+                  }
                 }
               ],
               "indexes": [
@@ -8881,6 +12849,14 @@
                   ],
                   "name": "matches_awayTeamId_idx_17f82264",
                   "prefix": "matches_awayTeamId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "competitionSeasonId"
+                  ],
+                  "name": "matches_competitionSeasonId_idx_2e6f1c2a",
+                  "prefix": "matches_competitionSeasonId_idx",
                   "unique": false
                 },
                 {
@@ -9475,9 +13451,16 @@
               },
               "uniques": []
             },
-            "player_teams": {
+            "player_careers": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "player_careers_dataSource_check_579a951a",
+                  "prefix": "player_careers_dataSource_check"
+                }
+              ],
               "columns": {
-                "joinedAt": {
+                "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
                     "expression": "now()",
@@ -9486,7 +13469,458 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jerseyNumber": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "joinedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "leftAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "playerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "position": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "transferType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "playerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_careers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "players"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_careers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "playerId"
+                  ],
+                  "name": "player_careers_playerId_idx_710cf1aa",
+                  "prefix": "player_careers_playerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "player_careers_teamId_idx_f2b72ab3",
+                  "prefix": "player_careers_teamId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "player_media": {
+              "columns": {
+                "altText": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "caption": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "credit": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "imageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "playerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sortOrder": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sourceUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "playerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_media"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "players"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "playerId"
+                  ],
+                  "name": "player_media_playerId_idx_710cf1aa",
+                  "prefix": "player_media_playerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "playerId",
+                    "sortOrder"
+                  ],
+                  "name": "player_media_playerId_sortOrder_idx_a58bfb65",
+                  "prefix": "player_media_playerId_sortOrder_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "player_statistics": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "player_statistics_dataSource_check_579a951a",
+                  "prefix": "player_statistics_dataSource_check"
+                }
+              ],
+              "columns": {
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "metricKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "metricLabel": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "metricValue": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "playerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "providerObservedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "seasonId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "playerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_statistics"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "players"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_statistics"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "seasonId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player_statistics"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "competition_seasons"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "playerId"
+                  ],
+                  "name": "player_statistics_playerId_idx_710cf1aa",
+                  "prefix": "player_statistics_playerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "seasonId"
+                  ],
+                  "name": "player_statistics_seasonId_idx_aa50cbae",
+                  "prefix": "player_statistics_seasonId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "seasonId",
+                    "metricKey"
+                  ],
+                  "name": "player_statistics_seasonId_metricKey_idx_bcad9e80",
+                  "prefix": "player_statistics_seasonId_metricKey_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "player_statistics_teamId_idx_f2b72ab3",
+                  "prefix": "player_statistics_teamId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "playerId",
+                    "teamId",
+                    "seasonId",
+                    "metricKey"
+                  ]
+                }
+              ]
+            },
+            "player_teams": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "player_teams_dataSource_check_579a951a",
+                  "prefix": "player_teams_dataSource_check"
+                }
+              ],
+              "columns": {
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "joinedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "leftAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "observedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": true
@@ -9563,8 +13997,30 @@
               "uniques": []
             },
             "players": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "players_dataSource_check_579a951a",
+                  "prefix": "players_dataSource_check"
+                },
+                {
+                  "expression": "\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+                  "name": "players_publicationStatus_check_b5329110",
+                  "prefix": "players_publicationStatus_check"
+                }
+              ],
               "columns": {
+                "achievements": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "avatarUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "biography": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -9578,6 +14034,26 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "dateOfBirth": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "displayName": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -9587,6 +14063,11 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "heightCm": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
                 },
                 "id": {
                   "codecId": "pg/int4@1",
@@ -9616,6 +14097,11 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "lastSyncedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "nationality": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -9626,18 +14112,90 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "preferredFoot": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "providerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "providerPlayerId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "publicationStatus": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryPublicationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "publishedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "seoDescription": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "seoTitle": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "slug": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
+                "sportId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "weightKg": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "sportId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "players"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sports"
+                  }
+                }
+              ],
               "indexes": [
                 {
                   "columns": [
@@ -9654,6 +14212,30 @@
                   "name": "players_lastName_idx_08145514",
                   "prefix": "players_lastName_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "nationality"
+                  ],
+                  "name": "players_nationality_idx_1a6bf5fb",
+                  "prefix": "players_nationality_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "publicationStatus"
+                  ],
+                  "name": "players_publicationStatus_idx_b9e8738a",
+                  "prefix": "players_publicationStatus_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sportId"
+                  ],
+                  "name": "players_sportId_idx_2a876157",
+                  "prefix": "players_sportId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -9665,6 +14247,12 @@
                 {
                   "columns": [
                     "slug"
+                  ]
+                },
+                {
+                  "columns": [
+                    "providerName",
+                    "providerPlayerId"
                   ]
                 }
               ]
@@ -10722,7 +15310,132 @@
                 }
               ]
             },
+            "team_media": {
+              "columns": {
+                "altText": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "caption": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "credit": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "imageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "sortOrder": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sourceUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "teamId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "team_media"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teams"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "team_media_teamId_idx_f2b72ab3",
+                  "prefix": "team_media_teamId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId",
+                    "sortOrder"
+                  ],
+                  "name": "team_media_teamId_sortOrder_idx_5c0ac284",
+                  "prefix": "team_media_teamId_sortOrder_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "teams": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('MANUAL', 'PROVIDER')",
+                  "name": "teams_dataSource_check_579a951a",
+                  "prefix": "teams_dataSource_check"
+                },
+                {
+                  "expression": "\"publicationStatus\" IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+                  "name": "teams_publicationStatus_check_b5329110",
+                  "prefix": "teams_publicationStatus_check"
+                }
+              ],
               "columns": {
                 "city": {
                   "codecId": "pg/text@1",
@@ -10748,6 +15461,26 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryDataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "foundedYear": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -10766,6 +15499,11 @@
                   "nativeType": "bool",
                   "nullable": false
                 },
+                "lastSyncedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "logoUrl": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -10775,6 +15513,56 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "nickname": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "overview": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "providerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "providerTeamId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "publicationStatus": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DiscoveryPublicationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "publishedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "seoDescription": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "seoTitle": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "shortName": {
                   "codecId": "pg/text@1",
@@ -10791,10 +15579,25 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "stadiumCapacity": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "stadiumName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "websiteUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -10818,10 +15621,26 @@
               "indexes": [
                 {
                   "columns": [
+                    "country"
+                  ],
+                  "name": "teams_country_idx_c3994778",
+                  "prefix": "teams_country_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "isActive"
                   ],
                   "name": "teams_isActive_idx_77fe3ba1",
                   "prefix": "teams_isActive_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "publicationStatus"
+                  ],
+                  "name": "teams_publicationStatus_idx_b9e8738a",
+                  "prefix": "teams_publicationStatus_idx",
                   "unique": false
                 },
                 {
@@ -10848,6 +15667,12 @@
                   "columns": [
                     "sportId",
                     "name"
+                  ]
+                },
+                {
+                  "columns": [
+                    "providerName",
+                    "providerTeamId"
                   ]
                 }
               ]
@@ -12022,6 +16847,32 @@
                 "COMMUNITY"
               ]
             },
+            "DiscoveryDataSource": {
+              "kind": "valueSet",
+              "values": [
+                "MANUAL",
+                "PROVIDER"
+              ]
+            },
+            "DiscoveryPublicationStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "PUBLISHED",
+                "ARCHIVED"
+              ]
+            },
+            "DiscoverySyncJobStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "RUNNING",
+                "RETRY",
+                "COMPLETED",
+                "FAILED",
+                "CANCELLED"
+              ]
+            },
             "FanLevel": {
               "kind": "valueSet",
               "values": [
@@ -12199,10 +17050,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "da6226bdb051a353bbc2d68c8f89fe148e4c55e26157c5d4814897630009d1ae"
+    "storageHash": "fb7aabe97435b6bbf2c27da15dc4bfb749eca68da8a15b9631c8af028a1684fc"
   },
   "execution": {
-    "executionHash": "2cc3d2d82c8e5661963949da23f78cedab8040242c11002c81b87f72b71952d5",
+    "executionHash": "7fdd871792dface1cfa8fcae0b5910db1324374c4e9ad4313e070eb6dfd2d73f",
     "mutations": {
       "defaults": [
         {
@@ -12261,6 +17112,96 @@
           },
           "ref": {
             "entry": "challenges",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "competition_seasons",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "competition_standings",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "competitions",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "discovery_provider_cache",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "discovery_provider_quotas",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "discovery_sync_jobs",
             "field": "updatedAt",
             "namespace": "public"
           }
@@ -12351,6 +17292,36 @@
           },
           "ref": {
             "entry": "news_comments",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "player_careers",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "player_statistics",
             "field": "updatedAt",
             "namespace": "public"
           }

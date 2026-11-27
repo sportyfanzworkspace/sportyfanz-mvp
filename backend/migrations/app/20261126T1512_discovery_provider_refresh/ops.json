@@ -1,0 +1,86 @@
+[
+  {
+    "id": "column.public.competition_standings.providerObservedAt",
+    "label": "Add column \"providerObservedAt\" to \"competition_standings\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerObservedAt",
+        "table": "competition_standings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerObservedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "competition_standings",
+          "providerObservedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerObservedAt\"",
+        "sql": "ALTER TABLE \"public\".\"competition_standings\" ADD COLUMN \"providerObservedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerObservedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "competition_standings",
+          "providerObservedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.player_statistics.providerObservedAt",
+    "label": "Add column \"providerObservedAt\" to \"player_statistics\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerObservedAt",
+        "table": "player_statistics"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerObservedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_statistics",
+          "providerObservedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerObservedAt\"",
+        "sql": "ALTER TABLE \"public\".\"player_statistics\" ADD COLUMN \"providerObservedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerObservedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_statistics",
+          "providerObservedAt"
+        ]
+      }
+    ]
+  }
+]

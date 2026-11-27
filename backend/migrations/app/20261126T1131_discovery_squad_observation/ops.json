@@ -1,0 +1,213 @@
+[
+  {
+    "id": "dropDefault.player_teams.joinedAt",
+    "label": "Drop default on \"player_teams\".\"joinedAt\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "joinedAt",
+        "table": "player_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"joinedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "joinedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop default on \"joinedAt\"",
+        "sql": "ALTER TABLE \"public\".\"player_teams\" ALTER COLUMN \"joinedAt\" DROP DEFAULT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"joinedAt\" has no default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "joinedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.player_teams.dataSource",
+    "label": "Add column \"dataSource\" to \"player_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dataSource",
+        "table": "player_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dataSource\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "dataSource"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dataSource\"",
+        "sql": "ALTER TABLE \"public\".\"player_teams\" ADD COLUMN \"dataSource\" text DEFAULT 'MANUAL' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dataSource\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "dataSource"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.player_teams.observedAt",
+    "label": "Add column \"observedAt\" to \"player_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "observedAt",
+        "table": "player_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"observedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "observedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"observedAt\"",
+        "sql": "ALTER TABLE \"public\".\"player_teams\" ADD COLUMN \"observedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"observedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "observedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.player_teams.joinedAt",
+    "label": "Drop NOT NULL on \"player_teams\".\"joinedAt\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "joinedAt",
+        "table": "player_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"joinedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "joinedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"joinedAt\"",
+        "sql": "ALTER TABLE \"public\".\"player_teams\" ALTER COLUMN \"joinedAt\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"joinedAt\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "player_teams",
+          "joinedAt",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.player_teams.player_teams_dataSource_check_579a951a",
+    "label": "Add check constraint \"player_teams_dataSource_check_579a951a\" on \"player_teams\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "player_teams_dataSource_check_579a951a",
+        "table": "player_teams"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"player_teams_dataSource_check_579a951a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_teams_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"player_teams\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"player_teams_dataSource_check_579a951a\"",
+        "sql": "ALTER TABLE \"public\".\"player_teams\" ADD CONSTRAINT \"player_teams_dataSource_check_579a951a\" CHECK (\"dataSource\" IN ('MANUAL', 'PROVIDER'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"player_teams_dataSource_check_579a951a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "player_teams_dataSource_check_579a951a",
+          "public",
+          "\"public\".\"player_teams\""
+        ]
+      }
+    ]
+  }
+]

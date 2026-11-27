@@ -1,0 +1,434 @@
+[
+  {
+    "id": "table.discovery_provider_cache",
+    "label": "Create table \"discovery_provider_cache\"",
+    "summary": "Creates table \"discovery_provider_cache\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "discovery_provider_cache"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"discovery_provider_cache\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"discovery_provider_cache\"",
+        "sql": "CREATE TABLE \"public\".\"discovery_provider_cache\" (\n  \"cacheKey\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"endpoint\" text NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"fetchedAt\" timestamptz NOT NULL,\n  \"payload\" text NOT NULL,\n  \"payloadBytes\" int4 NOT NULL,\n  \"providerName\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"cacheKey\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"discovery_provider_cache\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.discovery_provider_quotas",
+    "label": "Create table \"discovery_provider_quotas\"",
+    "summary": "Creates table \"discovery_provider_quotas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "discovery_provider_quotas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"discovery_provider_quotas\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_quotas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"discovery_provider_quotas\"",
+        "sql": "CREATE TABLE \"public\".\"discovery_provider_quotas\" (\n  \"accessRestricted\" bool DEFAULT false NOT NULL,\n  \"cooldownUntil\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dailyLimit\" int4,\n  \"dailyRemaining\" int4,\n  \"lastErrorCode\" text,\n  \"lockExpiresAt\" timestamptz,\n  \"lockToken\" text,\n  \"minuteLimit\" int4,\n  \"minuteRemaining\" int4,\n  \"observedAt\" timestamptz,\n  \"quotaKey\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"quotaKey\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"discovery_provider_quotas\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_quotas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.discovery_sync_jobs",
+    "label": "Create table \"discovery_sync_jobs\"",
+    "summary": "Creates table \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"discovery_sync_jobs\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"discovery_sync_jobs\"",
+        "sql": "CREATE TABLE \"public\".\"discovery_sync_jobs\" (\n  \"attempts\" int4 DEFAULT 0 NOT NULL,\n  \"checkpoint\" text,\n  \"completedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"heartbeatAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"jobKey\" text NOT NULL,\n  \"jobType\" text NOT NULL,\n  \"lastError\" text,\n  \"lastErrorCode\" text,\n  \"lockExpiresAt\" timestamptz,\n  \"lockToken\" text,\n  \"maxAttempts\" int4 DEFAULT 3 NOT NULL,\n  \"nextRetryAt\" timestamptz,\n  \"parameters\" text NOT NULL,\n  \"priority\" int4 DEFAULT 100 NOT NULL,\n  \"providerName\" text NOT NULL,\n  \"recordsConflicted\" int4 DEFAULT 0 NOT NULL,\n  \"recordsCreated\" int4 DEFAULT 0 NOT NULL,\n  \"recordsProcessed\" int4 DEFAULT 0 NOT NULL,\n  \"recordsSkipped\" int4 DEFAULT 0 NOT NULL,\n  \"recordsUpdated\" int4 DEFAULT 0 NOT NULL,\n  \"scheduledAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"sportSlug\" text NOT NULL,\n  \"startedAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"discovery_sync_jobs_status_check_5efaf795\" CHECK (\"status\" IN ('PENDING', 'RUNNING', 'RETRY', 'COMPLETED', 'FAILED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"discovery_sync_jobs\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.discovery_sync_jobs.discovery_sync_jobs_jobKey_key",
+    "label": "Add unique constraint on \"discovery_sync_jobs\" (jobKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "discovery_sync_jobs_jobKey_key",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"discovery_sync_jobs_jobKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_sync_jobs_jobKey_key",
+          "public",
+          "\"public\".\"discovery_sync_jobs\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"discovery_sync_jobs_jobKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"discovery_sync_jobs\" ADD CONSTRAINT \"discovery_sync_jobs_jobKey_key\" UNIQUE (\"jobKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"discovery_sync_jobs_jobKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "discovery_sync_jobs_jobKey_key",
+          "public",
+          "\"public\".\"discovery_sync_jobs\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_provider_cache.discovery_provider_cache_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"discovery_provider_cache_expiresAt_idx_6b6b8c10\" on \"discovery_provider_cache\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_provider_cache_expiresAt_idx_6b6b8c10",
+        "table": "discovery_provider_cache"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_provider_cache_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_provider_cache_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"discovery_provider_cache_expiresAt_idx_6b6b8c10\" ON \"public\".\"discovery_provider_cache\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_provider_cache_expiresAt_idx_6b6b8c10\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_provider_cache.discovery_provider_cache_providerName_endpoint_idx_8a54ab6a",
+    "label": "Create index \"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\" on \"discovery_provider_cache\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_provider_cache_providerName_endpoint_idx_8a54ab6a",
+        "table": "discovery_provider_cache"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\"",
+        "sql": "CREATE INDEX \"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\" ON \"public\".\"discovery_provider_cache\" (\"providerName\", \"endpoint\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_provider_cache_providerName_endpoint_idx_8a54ab6a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_sync_jobs.discovery_sync_jobs_providerName_status_idx_d0becd57",
+    "label": "Create index \"discovery_sync_jobs_providerName_status_idx_d0becd57\" on \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_sync_jobs_providerName_status_idx_d0becd57",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_sync_jobs_providerName_status_idx_d0becd57\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_providerName_status_idx_d0becd57\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_sync_jobs_providerName_status_idx_d0becd57\"",
+        "sql": "CREATE INDEX \"discovery_sync_jobs_providerName_status_idx_d0becd57\" ON \"public\".\"discovery_sync_jobs\" (\"providerName\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_sync_jobs_providerName_status_idx_d0becd57\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_providerName_status_idx_d0becd57\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_sync_jobs.discovery_sync_jobs_sportSlug_jobType_idx_a128776a",
+    "label": "Create index \"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\" on \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_sync_jobs_sportSlug_jobType_idx_a128776a",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\"",
+        "sql": "CREATE INDEX \"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\" ON \"public\".\"discovery_sync_jobs\" (\"sportSlug\", \"jobType\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_sportSlug_jobType_idx_a128776a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_sync_jobs.discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482",
+    "label": "Create index \"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\" on \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\"",
+        "sql": "CREATE INDEX \"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\" ON \"public\".\"discovery_sync_jobs\" (\"status\", \"lockExpiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_lockExpiresAt_idx_fbaeb482\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_sync_jobs.discovery_sync_jobs_status_nextRetryAt_idx_58d36316",
+    "label": "Create index \"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\" on \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_sync_jobs_status_nextRetryAt_idx_58d36316",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\"",
+        "sql": "CREATE INDEX \"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\" ON \"public\".\"discovery_sync_jobs\" (\"status\", \"nextRetryAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_nextRetryAt_idx_58d36316\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.discovery_sync_jobs.discovery_sync_jobs_status_scheduledAt_idx_62252894",
+    "label": "Create index \"discovery_sync_jobs_status_scheduledAt_idx_62252894\" on \"discovery_sync_jobs\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "discovery_sync_jobs_status_scheduledAt_idx_62252894",
+        "table": "discovery_sync_jobs"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"discovery_sync_jobs_status_scheduledAt_idx_62252894\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_scheduledAt_idx_62252894\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"discovery_sync_jobs_status_scheduledAt_idx_62252894\"",
+        "sql": "CREATE INDEX \"discovery_sync_jobs_status_scheduledAt_idx_62252894\" ON \"public\".\"discovery_sync_jobs\" (\"status\", \"scheduledAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"discovery_sync_jobs_status_scheduledAt_idx_62252894\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"discovery_sync_jobs_status_scheduledAt_idx_62252894\""
+        ]
+      }
+    ]
+  }
+]

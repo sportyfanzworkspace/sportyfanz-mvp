@@ -14,6 +14,9 @@ const PERMISSIONS = {
   predictions: "predictions:manage",
   polls: "polls:manage",
   trivia: "trivia:manage",
+  clubs: "discovery:manage",
+  players: "discovery:manage",
+  competitions: "discovery:manage",
 } as const;
 
 export async function POST(request: Request) {
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
 
     if (
       !categoryHeader ||
-      !(categoryHeader in PERMISSIONS)
+      !Object.prototype.hasOwnProperty.call(PERMISSIONS, categoryHeader)
     ) {
       return NextResponse.json(
         { error: "Invalid image category." },

@@ -104,37 +104,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="brandFeatures">
-            <div className="brandFeature">
-              <div className="featureIcon">
-                <Trophy size={16} />
-              </div>
-              <span>Keep up with every match and moment</span>
-            </div>
-
-            <div className="brandFeature">
-              <div className="featureIcon">
-                <Users size={16} />
-              </div>
-              <span>Stay connected with your fan community</span>
-            </div>
-
-            <div className="brandFeature">
-              <div className="featureIcon">
-                <Sparkles size={16} />
-              </div>
-              <span>Continue earning Fan Points</span>
-            </div>
-          </div>
         </section>
 
         {/* FORM PANEL */}
         <section className="formPanel">
           <div className="formWrapper">
             <div className="formHeader">
-              <span className="formEyebrow">WELCOME BACK</span>
-
-              <h1 className="formTitle">Log in to SportyFanz</h1>
 
               <p className="formSubtitle">
                 Enter your details to continue to your Fan Kingdom.

@@ -43,6 +43,12 @@ type Fixture = {
   awayScore: number | null;
 };
 
+type FanSport = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 type FixturesResponse = {
   success: boolean;
   liveMatches: Fixture[];
@@ -156,6 +162,62 @@ export default function MatchesPage() {
   const [showAllLive, setShowAllLive] = useState(false);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [selectedSport, setSelectedSport] = useState("football");
+  const [fanSports, setFanSports] = useState<FanSport[]>([]);
+  const [sportsLoading, setSportsLoading] = useState(true);
+  const [sportsError, setSportsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSports() {
+      try {
+        const response = await apiFetch("/api/sports", {
+          cache: "no-store",
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error("Unable to load available sports.");
+        }
+
+        if (active) {
+          setFanSports(
+            (data.sports ?? []).filter(
+              (sport: FanSport) =>
+                !["badminton", "formula-1", "athletics"].includes(
+                  sport.slug
+                )
+            )
+          );
+        }
+      } catch {
+        if (active) {
+          setSportsError("Unable to load available sports.");
+        }
+      } finally {
+        if (active) setSportsLoading(false);
+      }
+    }
+
+    loadSports();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function selectSport(slug: string) {
+    if (slug === selectedSport) return;
+
+    const url = new URL(window.location.href);
+
+    url.searchParams.set("sport", slug);
+    url.searchParams.delete("fixtureId");
+
+    window.location.assign(url.toString());
+  }
+
   const [selectedMatch, setSelectedMatch] = useState<Fixture | null>(null);
   const [details, setDetails] = useState<MatchDetails | null>(null);
   const [activeTab, setActiveTab] = useState<MatchTab>("overview");
@@ -614,6 +676,83 @@ export default function MatchesPage() {
                 <p>Discuss football with other fans.</p>
                 <a href="/fanroom">Join conversation →</a>
               </div>
+            </div>
+
+            <div className="live-your-sports">
+              <div className="sf-your-sports-panel">
+          <h2 style={{ margin: "0 0 6px", fontSize: 18 }}>
+             Your Sports
+          </h2>
+
+         <p style={{ margin: "0 0 16px", color: "#64748b", fontSize: 13 }}>
+           Choose a sport to explore its matches.
+         </p>
+
+         {sportsLoading ? (
+           <p>Loading available sports...</p>
+          ) : sportsError ? (
+           <p>{sportsError}</p>
+          ) : fanSports.length === 0 ? (
+           <p>
+             No sports are available right now. Please check back soon.
+           </p>
+          ) : (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+          }}
+        >
+        {fanSports
+          .filter(
+            (sport) =>
+              !["badminton", "formula-1", "athletics"].includes(
+                sport.slug
+              )
+          )
+          .map((sport) => {
+        const active = selectedSport === sport.slug;
+
+        const icons: Record<string, string> = {
+          football: "⚽",
+          basketball: "🏀",
+          tennis: "🎾",
+          cricket: "🏏",
+          rugby: "🏉",
+          volleyball: "🏐",
+          baseball: "⚾",
+          badminton: "🏸",
+          "formula-1": "🏎️",
+          athletics: "🏃",
+        };
+
+        return (
+          <button
+            key={sport.id}
+            type="button"
+            onClick={() => selectSport(sport.slug)}
+            aria-pressed={active}
+            className="secondary-button"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: active ? "#16a34a" : "#fff",
+              color: active ? "#fff" : "#243447",
+              border: `1px solid ${active ? "#16a34a" : "#ddd"}`,
+              borderRadius: 10,
+              padding: "10px 16px",
+            }}
+          >
+            <span>{icons[sport.slug] ?? "🏆"}</span>
+            {sport.name}
+          </button>
+           );
+          })}
+         </div>
+        )}
+       </div>
             </div>
           </aside>
 

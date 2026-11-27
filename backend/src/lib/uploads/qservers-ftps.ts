@@ -6,7 +6,10 @@ import sharp from "sharp";
 export type ImageCategory =
   | "predictions"
   | "polls"
-  | "trivia";
+  | "trivia"
+  | "clubs"
+  | "players"
+  | "competitions";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const MAX_DIMENSION = 4096;
@@ -31,7 +34,7 @@ export async function uploadImageToQServers(
   file: File,
   category: ImageCategory
 ): Promise<string> {
-  if (!["predictions", "polls", "trivia"].includes(category)) {
+  if (!["predictions", "polls", "trivia", "clubs", "players", "competitions"].includes(category)) {
     throw new Error("Invalid image category.");
   }
 

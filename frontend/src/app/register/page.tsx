@@ -110,38 +110,14 @@ export default function RegisterPage() {
           connect and earn rewards for the sports they love.
         </p>
 
-        <div className="auth-benefits">
-          <div className="auth-benefit">
-            <div className="auth-benefit-icon">
-              <Users size={16} />
-            </div>
-            Connect with real fans
-          </div>
-
-          <div className="auth-benefit">
-            <div className="auth-benefit-icon">
-              <Trophy size={16} />
-            </div>
-            Participate in sports challenges
-          </div>
-
-          <div className="auth-benefit">
-            <div className="auth-benefit-icon">
-              <Gift size={16} />
-            </div>
-            Earn fan rewards
-          </div>
-        </div>
       </section>
 
       <section className="auth-form-panel">
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-form-header">
-            <span>Join SportyFanz</span>
 
             <h1>Create your fan profile</h1>
 
-            <p>Join the community and start participating.</p>
           </div>
 
           <div className="auth-form-fields">
